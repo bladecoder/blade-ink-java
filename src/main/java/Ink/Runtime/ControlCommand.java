@@ -5,9 +5,9 @@
 package Ink.Runtime;
 
 import Ink.Runtime.ControlCommand;
-import Ink.Runtime.Object;
+import Ink.Runtime.RTObject;
 
-public class ControlCommand  extends Object 
+public class ControlCommand  extends RTObject 
 {
     public enum CommandType
     {
@@ -50,11 +50,11 @@ public class ControlCommand  extends Object
         this(CommandType.NotSet);
     }
 
-    public Object copy() throws Exception {
+    public RTObject copy() throws Exception {
         return new ControlCommand(getcommandType());
     }
 
-    // The following static factory methods are to make generating these objects
+    // The following static factory methods are to make generating these RTObjects
     // slightly more succinct. Without these, the code gets pretty massive! e.g.
     //
     //     var c = new Runtime.ControlCommand(Runtime.ControlCommand.CommandType.EvalStart)

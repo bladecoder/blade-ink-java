@@ -1,44 +1,19 @@
-//
-// Translated by CS2J (http://www.cs2j.com): 22/07/2016 12:24:33
-//
-
 package Ink.Runtime;
 
-import CS2JNet.JavaSupport.language.RefSupport;
-import CS2JNet.System.StringSupport;
-import Ink.Runtime.Choice;
-import Ink.Runtime.ChoicePoint;
-import Ink.Runtime.Container;
-import Ink.Runtime.ControlCommand;
-import Ink.Runtime.Divert;
-import Ink.Runtime.DivertTargetValue;
-import Ink.Runtime.FloatValue;
-import Ink.Runtime.Glue;
-import Ink.Runtime.GlueType;
-import Ink.Runtime.IntValue;
-import Ink.Runtime.NativeFunctionCall;
-import Ink.Runtime.Object;
-import Ink.Runtime.Path;
-import Ink.Runtime.PushPopType;
-import Ink.Runtime.StringValue;
-import Ink.Runtime.Value;
-import Ink.Runtime.VariableAssignment;
-import Ink.Runtime.VariablePointerValue;
-import Ink.Runtime.VariableReference;
-import Ink.Runtime.Void;
+import java.util.List;
 
 public class Json   
 {
-    public static <T extends Object>List<Object> listToJArray(List<T> serialisables) throws Exception {
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jArray = new List<Object>();
+    public static <T extends RTObject>List<RTObject> listToJArray(List<T> serialisables) throws Exception {
+        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jArray = new List<RTObject>();
         for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ s : serialisables)
         {
-            jArray.Add(RuntimeObjectToJToken(s));
+            jArray.Add(RuntimeRTObjectToJToken(s));
         }
         return jArray;
     }
 
-    public static <T extends Object>List<T> jArrayToRuntimeObjList(List<Object> jArray, boolean skipLast) throws Exception {
+    public static <T extends RTObject>List<T> jArrayToRuntimeObjList(List<RTObject> jArray, boolean skipLast) throws Exception {
         int count = jArray.Count;
         if (skipLast)
             count--;
@@ -47,48 +22,48 @@ public class Json
         for (int i = 0;i < count;i++)
         {
             /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jTok = jArray[i];
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ runtimeObj = jTokenToRuntimeObject(jTok) instanceof T ? (T)jTokenToRuntimeObject(jTok) : (T)null;
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ runtimeObj = jTokenToRuntimeRTObject(jTok) instanceof T ? (T)jTokenToRuntimeRTObject(jTok) : (T)null;
             list.Add(runtimeObj);
         }
         return list;
     }
 
-    public static List<Object> jArrayToRuntimeObjList(List<Object> jArray, boolean skipLast) throws Exception {
-        return JArrayToRuntimeObjList<Object>(jArray, skipLast);
+    public static List<RTObject> jArrayToRuntimeObjList(List<RTObject> jArray, boolean skipLast) throws Exception {
+        return JArrayToRuntimeObjList<RTObject>(jArray, skipLast);
     }
 
-    public static Dictionary<String, Object> dictionaryRuntimeObjsToJObject(Dictionary<String, Object> dictionary) throws Exception {
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jsonObj = new Dictionary<String, Object>();
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ keyVal : dictionary)
+    public static HashMap<String, RTObject> HashMapRuntimeObjsToJRTObject(HashMap<String, RTObject> HashMap) throws Exception {
+        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jsonObj = new HashMap<String, RTObject>();
+        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ keyVal : HashMap)
         {
-            Object runtimeObj = keyVal.Value instanceof Object ? (Object)keyVal.Value : (Object)null;
+            RTObject runtimeObj = keyVal.Value instanceof RTObject ? (RTObject)keyVal.Value : (RTObject)null;
             if (runtimeObj != null)
-                jsonObj[keyVal.Key] = RuntimeObjectToJToken(runtimeObj);
+                jsonObj[keyVal.Key] = RuntimeRTObjectToJToken(runtimeObj);
              
         }
         return jsonObj;
     }
 
-    public static Dictionary<String, Object> jObjectToDictionaryRuntimeObjs(Dictionary<String, Object> jObject) throws Exception {
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ dict = new Dictionary<String, Object>(jObject.Count);
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ keyVal : jObject)
+    public static HashMap<String, RTObject> jRTObjectToHashMapRuntimeObjs(HashMap<String, RTObject> jRTObject) throws Exception {
+        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ dict = new HashMap<String, RTObject>(jRTObject.Count);
+        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ keyVal : jRTObject)
         {
-            dict[keyVal.Key] = jTokenToRuntimeObject(keyVal.Value);
+            dict[keyVal.Key] = jTokenToRuntimeRTObject(keyVal.Value);
         }
         return dict;
     }
 
-    public static Dictionary<String, int> jObjectToIntDictionary(Dictionary<String, Object> jObject) throws Exception {
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ dict = new Dictionary<String, int>(jObject.Count);
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ keyVal : jObject)
+    public static HashMap<String, int> jRTObjectToIntHashMap(HashMap<String, RTObject> jRTObject) throws Exception {
+        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ dict = new HashMap<String, int>(jRTObject.Count);
+        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ keyVal : jRTObject)
         {
             dict[keyVal.Key] = (int)keyVal.Value;
         }
         return dict;
     }
 
-    public static Dictionary<String, Object> intDictionaryToJObject(Dictionary<String, int> dict) throws Exception {
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new Dictionary<String, Object>();
+    public static HashMap<String, RTObject> intHashMapToJRTObject(HashMap<String, int> dict) throws Exception {
+        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new HashMap<String, RTObject>();
         for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ keyVal : dict)
         {
             jObj[keyVal.Key] = keyVal.Value;
@@ -140,7 +115,7 @@ public class Json
     //
     // Choice:         Nothing too clever, it's only used in the save state,
     //                 there's not likely to be many of them.
-    public static Object jTokenToRuntimeObject(Object token) throws Exception {
+    public static RTObject jTokenToRuntimeRTObject(RTObject token) throws Exception {
         if (token instanceof int || token instanceof float)
         {
             return Value.create(token);
@@ -190,22 +165,22 @@ public class Json
              
         }
          
-        if (token instanceof Dictionary<String, Object>)
+        if (token instanceof HashMap<String, RTObject>)
         {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ obj = (Dictionary<String, Object>)token;
-            Object propValue = new Object();
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ obj = (HashMap<String, RTObject>)token;
+            RTObject propValue = new RTObject();
             // Divert target value to path
             boolean boolVar___0 = obj.TryGetValue("^->", refVar___0);
             if (boolVar___0)
             {
-                RefSupport<Object> refVar___0 = new RefSupport<Object>();
+                RefSupport<RTObject> refVar___0 = new RefSupport<RTObject>();
                 DivertTargetValue resVar___1 = new DivertTargetValue(new Path((String)propValue));
                 propValue = refVar___0.getValue();
                 return resVar___1;
             }
              
             // VariablePointerValue
-            RefSupport<Object> refVar___1 = new RefSupport<Object>();
+            RefSupport<RTObject> refVar___1 = new RefSupport<RTObject>();
             boolean boolVar___2 = obj.TryGetValue("^var", refVar___1);
             propValue = refVar___1.getValue();
             if (boolVar___2)
@@ -214,7 +189,7 @@ public class Json
                 boolean boolVar___3 = obj.TryGetValue("ci", refVar___2);
                 if (boolVar___3)
                 {
-                    RefSupport<Object> refVar___2 = new RefSupport<Object>();
+                    RefSupport<RTObject> refVar___2 = new RefSupport<RTObject>();
                     varPtr.setcontextIndex((Integer)propValue);
                     propValue = refVar___2.getValue();
                 }
@@ -252,10 +227,10 @@ public class Json
                     }
                     else
                     {
-                        RefSupport<Object> refVar___3 = new RefSupport<Object>();
-                        RefSupport<Object> refVar___4 = new RefSupport<Object>();
-                        RefSupport<Object> refVar___5 = new RefSupport<Object>();
-                        RefSupport<Object> refVar___6 = new RefSupport<Object>();
+                        RefSupport<RTObject> refVar___3 = new RefSupport<RTObject>();
+                        RefSupport<RTObject> refVar___4 = new RefSupport<RTObject>();
+                        RefSupport<RTObject> refVar___5 = new RefSupport<RTObject>();
+                        RefSupport<RTObject> refVar___6 = new RefSupport<RTObject>();
                         boolean boolVar___7 = obj.TryGetValue("x()", refVar___6);
                         propValue = refVar___3.getValue();
                         propValue = refVar___4.getValue();
@@ -282,13 +257,13 @@ public class Json
                 boolean boolVar___8 = obj.TryGetValue("var", refVar___7);
                 if (boolVar___8)
                 {
-                    RefSupport<Object> refVar___7 = new RefSupport<Object>();
+                    RefSupport<RTObject> refVar___7 = new RefSupport<RTObject>();
                     divert.setvariableDivertName(target);
                     propValue = refVar___7.getValue();
                 }
                 else
                     divert.settargetPathString(target); 
-                RefSupport<Object> refVar___8 = new RefSupport<Object>();
+                RefSupport<RTObject> refVar___8 = new RefSupport<RTObject>();
                 divert.setisConditional(obj.TryGetValue("c", refVar___8));
                 propValue = refVar___8.getValue();
                 if (external)
@@ -296,7 +271,7 @@ public class Json
                     boolean boolVar___9 = obj.TryGetValue("exArgs", refVar___9);
                     if (boolVar___9)
                     {
-                        RefSupport<Object> refVar___9 = new RefSupport<Object>();
+                        RefSupport<RTObject> refVar___9 = new RefSupport<RTObject>();
                         divert.setexternalArgs((Integer)propValue);
                         propValue = refVar___9.getValue();
                     }
@@ -307,7 +282,7 @@ public class Json
             }
              
             // Choice
-            RefSupport<Object> refVar___10 = new RefSupport<Object>();
+            RefSupport<RTObject> refVar___10 = new RefSupport<RTObject>();
             boolean boolVar___10 = obj.TryGetValue("*", refVar___10);
             propValue = refVar___10.getValue();
             if (boolVar___10)
@@ -317,7 +292,7 @@ public class Json
                 boolean boolVar___11 = obj.TryGetValue("flg", refVar___11);
                 if (boolVar___11)
                 {
-                    RefSupport<Object> refVar___11 = new RefSupport<Object>();
+                    RefSupport<RTObject> refVar___11 = new RefSupport<RTObject>();
                     choice.setflags((Integer)propValue);
                     propValue = refVar___11.getValue();
                 }
@@ -333,8 +308,8 @@ public class Json
             }
             else
             {
-                RefSupport<Object> refVar___12 = new RefSupport<Object>();
-                RefSupport<Object> refVar___13 = new RefSupport<Object>();
+                RefSupport<RTObject> refVar___12 = new RefSupport<RTObject>();
+                RefSupport<RTObject> refVar___13 = new RefSupport<RTObject>();
                 boolean boolVar___13 = obj.TryGetValue("CNT?", refVar___13);
                 propValue = refVar___12.getValue();
                 propValue = refVar___13.getValue();
@@ -357,8 +332,8 @@ public class Json
             }
             else
             {
-                RefSupport<Object> refVar___14 = new RefSupport<Object>();
-                RefSupport<Object> refVar___15 = new RefSupport<Object>();
+                RefSupport<RTObject> refVar___14 = new RefSupport<RTObject>();
+                RefSupport<RTObject> refVar___15 = new RefSupport<RTObject>();
                 boolean boolVar___15 = obj.TryGetValue("temp=", refVar___15);
                 propValue = refVar___14.getValue();
                 propValue = refVar___15.getValue();
@@ -372,7 +347,7 @@ public class Json
             if (isVarAss)
             {
                 /* [UNSUPPORTED] 'var' as type is unsupported "var" */ varName = propValue.ToString();
-                RefSupport<Object> refVar___16 = new RefSupport<Object>();
+                RefSupport<RTObject> refVar___16 = new RefSupport<RTObject>();
                 /* [UNSUPPORTED] 'var' as type is unsupported "var" */ isNewDecl = !obj.TryGetValue("re", refVar___16);
                 propValue = refVar___16.getValue();
                 VariableAssignment varAss = new VariableAssignment(varName, isNewDecl);
@@ -381,23 +356,23 @@ public class Json
             }
              
             if (obj["originalChoicePath"] != null)
-                return JObjectToChoice(obj);
+                return JRTObjectToChoice(obj);
              
         }
          
         // Array is always a Runtime.Container
-        if (token instanceof List<Object>)
+        if (token instanceof List<RTObject>)
         {
-            return JArrayToContainer((List<Object>)token);
+            return JArrayToContainer((List<RTObject>)token);
         }
          
         if (token == null)
             return null;
          
-        throw new System.Exception("Failed to convert token to runtime object: " + token);
+        throw new System.Exception("Failed to convert token to runtime RTObject: " + token);
     }
 
-    public static Object runtimeObjectToJToken(Object obj) throws Exception {
+    public static RTObject runtimeRTObjectToJToken(RTObject obj) throws Exception {
         Container container = obj instanceof Container ? (Container)obj : (Container)null;
         if (container)
         {
@@ -424,7 +399,7 @@ public class Json
                 targetStr = divert.getvariableDivertName();
             else
                 targetStr = divert.gettargetPathString(); 
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new Dictionary<String, Object>();
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new HashMap<String, RTObject>();
             jObj[divTypeKey] = targetStr;
             if (divert.gethasVariableTarget())
                 jObj["var"] = true;
@@ -441,7 +416,7 @@ public class Json
         ChoicePoint choicePoint = obj instanceof ChoicePoint ? (ChoicePoint)obj : (ChoicePoint)null;
         if (choicePoint)
         {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new Dictionary<String, Object>();
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new HashMap<String, RTObject>();
             jObj["*"] = choicePoint.getpathStringOnChoice();
             jObj["flg"] = choicePoint.getflags();
             return jObj;
@@ -467,7 +442,7 @@ public class Json
         DivertTargetValue divTargetVal = obj instanceof DivertTargetValue ? (DivertTargetValue)obj : (DivertTargetValue)null;
         if (divTargetVal)
         {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ divTargetJsonObj = new Dictionary<String, Object>();
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ divTargetJsonObj = new HashMap<String, RTObject>();
             divTargetJsonObj["^->"] = divTargetVal.getvalue().getcomponentsString();
             return divTargetJsonObj;
         }
@@ -475,7 +450,7 @@ public class Json
         VariablePointerValue varPtrVal = obj instanceof VariablePointerValue ? (VariablePointerValue)obj : (VariablePointerValue)null;
         if (varPtrVal)
         {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ varPtrJsonObj = new Dictionary<String, Object>();
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ varPtrJsonObj = new HashMap<String, RTObject>();
             varPtrJsonObj["^var"] = varPtrVal.getvalue();
             varPtrJsonObj["ci"] = varPtrVal.getcontextIndex();
             return varPtrJsonObj;
@@ -506,7 +481,7 @@ public class Json
         VariableReference varRef = obj instanceof VariableReference ? (VariableReference)obj : (VariableReference)null;
         if (varRef)
         {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new Dictionary<String, Object>();
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new HashMap<String, RTObject>();
             String readCountPath = varRef.getpathStringForCount();
             if (readCountPath != null)
             {
@@ -524,7 +499,7 @@ public class Json
         if (varAss)
         {
             String key = varAss.getisGlobal() ? "VAR=" : "temp=";
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new Dictionary<String, Object>();
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new HashMap<String, RTObject>();
             jObj[key] = varAss.getvariableName();
             // Reassignment?
             if (!varAss.getisNewDeclaration())
@@ -540,33 +515,33 @@ public class Json
         // Used when serialising save state only
         Choice choice = obj instanceof Choice ? (Choice)obj : (Choice)null;
         if (choice)
-            return choiceToJObject(choice);
+            return choiceToJRTObject(choice);
          
-        throw new System.Exception("Failed to convert runtime object to Json token: " + obj);
+        throw new System.Exception("Failed to convert runtime RTObject to Json token: " + obj);
     }
 
-    static List<Object> containerToJArray(Container container) throws Exception {
+    static List<RTObject> containerToJArray(Container container) throws Exception {
         /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jArray = listToJArray(container.getcontent());
         // Container is always an array [...]
         // But the final element is always either:
-        //  - a dictionary containing the named content, as well as possibly
+        //  - a HashMap containing the named content, as well as possibly
         //    the key "#" with the count flags
         //  - null, if neither of the above
         /* [UNSUPPORTED] 'var' as type is unsupported "var" */ namedOnlyContent = container.getnamedOnlyContent();
         /* [UNSUPPORTED] 'var' as type is unsupported "var" */ countFlags = container.getcountFlags();
         if (namedOnlyContent != null && namedOnlyContent.Count > 0 || countFlags > 0 || container.getname() != null)
         {
-            Dictionary<String, Object> terminatingObj = new Dictionary<String, Object>();
+            HashMap<String, RTObject> terminatingObj = new HashMap<String, RTObject>();
             if (namedOnlyContent != null)
             {
-                terminatingObj = DictionaryRuntimeObjsToJObject(namedOnlyContent);
+                terminatingObj = HashMapRuntimeObjsToJRTObject(namedOnlyContent);
                 for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ namedContentObj : terminatingObj)
                 {
                     // Strip redundant names from containers if necessary
-                    /* [UNSUPPORTED] 'var' as type is unsupported "var" */ subContainerJArray = namedContentObj.Value instanceof List<Object> ? (List<Object>)namedContentObj.Value : (List<Object>)null;
+                    /* [UNSUPPORTED] 'var' as type is unsupported "var" */ subContainerJArray = namedContentObj.Value instanceof List<RTObject> ? (List<RTObject>)namedContentObj.Value : (List<RTObject>)null;
                     if (subContainerJArray != null)
                     {
-                        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ attrJObj = subContainerJArray[subContainerJArray.Count - 1] instanceof Dictionary<String, Object> ? (Dictionary<String, Object>)subContainerJArray[subContainerJArray.Count - 1] : (Dictionary<String, Object>)null;
+                        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ attrJObj = subContainerJArray[subContainerJArray.Count - 1] instanceof HashMap<String, RTObject> ? (HashMap<String, RTObject>)subContainerJArray[subContainerJArray.Count - 1] : (HashMap<String, RTObject>)null;
                         if (attrJObj != null)
                         {
                             attrJObj.Remove("#n");
@@ -580,7 +555,7 @@ public class Json
                 }
             }
             else
-                terminatingObj = new Dictionary<String, Object>(); 
+                terminatingObj = new HashMap<String, RTObject>(); 
             if (countFlags > 0)
                 terminatingObj["#f"] = countFlags;
              
@@ -591,23 +566,23 @@ public class Json
         }
         else
         {
-            // Add null terminator to indicate that there's no dictionary
+            // Add null terminator to indicate that there's no HashMap
             jArray.Add(null);
         } 
         return jArray;
     }
 
-    static Container jArrayToContainer(List<Object> jArray) throws Exception {
+    static Container jArrayToContainer(List<RTObject> jArray) throws Exception {
         Container container = new Container();
         container.setcontent(JArrayToRuntimeObjList(jArray));
-        // Final object in the array is always a combination of
+        // Final RTObject in the array is always a combination of
         //  - named content
         //  - a "#" key with the countFlags
         // (if either exists at all, otherwise null)
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ terminatingObj = jArray[jArray.Count - 1] instanceof Dictionary<String, Object> ? (Dictionary<String, Object>)jArray[jArray.Count - 1] : (Dictionary<String, Object>)null;
+        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ terminatingObj = jArray[jArray.Count - 1] instanceof HashMap<String, RTObject> ? (HashMap<String, RTObject>)jArray[jArray.Count - 1] : (HashMap<String, RTObject>)null;
         if (terminatingObj != null)
         {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ namedOnlyContent = new Dictionary<String, Object>(terminatingObj.Count);
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ namedOnlyContent = new HashMap<String, RTObject>(terminatingObj.Count);
             for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ keyVal : terminatingObj)
             {
                 if (StringSupport.equals(keyVal.Key, "#f"))
@@ -620,7 +595,7 @@ public class Json
                 }
                 else
                 {
-                    /* [UNSUPPORTED] 'var' as type is unsupported "var" */ namedContentItem = jTokenToRuntimeObject(keyVal.Value);
+                    /* [UNSUPPORTED] 'var' as type is unsupported "var" */ namedContentItem = jTokenToRuntimeRTObject(keyVal.Value);
                     Container namedSubContainer = namedContentItem instanceof Container ? (Container)namedContentItem : (Container)null;
                     if (namedSubContainer)
                         namedSubContainer.setname(keyVal.Key);
@@ -634,7 +609,7 @@ public class Json
         return container;
     }
 
-    static Choice jObjectToChoice(Dictionary<String, Object> jObj) throws Exception {
+    static Choice jRTObjectToChoice(HashMap<String, RTObject> jObj) throws Exception {
         Choice choice = new Choice();
         choice.settext(jObj["text"].ToString());
         choice.setindex((int)jObj["index"]);
@@ -643,8 +618,8 @@ public class Json
         return choice;
     }
 
-    static Dictionary<String, Object> choiceToJObject(Choice choice) throws Exception {
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new Dictionary<String, Object>();
+    static HashMap<String, RTObject> choiceToJRTObject(Choice choice) throws Exception {
+        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ jObj = new HashMap<String, RTObject>();
         jObj["text"] = choice.gettext();
         jObj["index"] = choice.getindex();
         jObj["originalChoicePath"] = choice.originalChoicePath;

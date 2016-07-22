@@ -4,10 +4,10 @@
 
 package Ink.Runtime;
 
-import Ink.Runtime.Object;
+import Ink.Runtime.RTObject;
 
 // The value to be assigned is popped off the evaluation stack, so no need to keep it here
-public class VariableAssignment  extends Object 
+public class VariableAssignment  extends RTObject 
 {
     private String __variableName = new String();
     public String getvariableName() {

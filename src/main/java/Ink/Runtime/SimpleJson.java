@@ -8,12 +8,12 @@ import CS2JNet.JavaSupport.language.RefSupport;
 
 public class SimpleJson   
 {
-    public static String dictionaryToText(Dictionary<String, Object> rootObject) throws Exception {
-        return new Writer(rootObject).toString();
+    public static String HashMapToText(HashMap<String, RTObject> rootRTObject) throws Exception {
+        return new Writer(rootRTObject).toString();
     }
 
-    public static Dictionary<String, Object> textToDictionary(String text) throws Exception {
-        return new Reader(text).toDictionary();
+    public static HashMap<String, RTObject> textToHashMap(String text) throws Exception {
+        return new Reader(text).toHashMap();
     }
 
     static class Reader   
@@ -22,21 +22,21 @@ public class SimpleJson
             _text = text;
             _offset = 0;
             skipWhitespace();
-            _rootObject = readObject();
+            _rootRTObject = readRTObject();
         }
 
-        public Dictionary<String, Object> toDictionary() throws Exception {
-            return (Dictionary<String, Object>)_rootObject;
+        public HashMap<String, RTObject> toHashMap() throws Exception {
+            return (HashMap<String, RTObject>)_rootRTObject;
         }
 
         boolean isNumberChar(char c) throws Exception {
             return c >= '0' && c <= '9' || c == '.' || c == '-' || c == '+';
         }
 
-        Object readObject() throws Exception {
+        RTObject readRTObject() throws Exception {
             /* [UNSUPPORTED] 'var' as type is unsupported "var" */ currentChar = _text[_offset];
             if (currentChar == '{')
-                return readDictionary();
+                return readHashMap();
             else if (currentChar == '[')
                 return readArray();
             else if (currentChar == '"')
@@ -50,14 +50,14 @@ public class SimpleJson
             else if (tryRead("null"))
                 return null;
                    
-            throw new System.Exception("Unhandled object type in JSON: " + _text.Substring(_offset, 30));
+            throw new System.Exception("Unhandled RTObject type in JSON: " + _text.Substring(_offset, 30));
         }
 
-        Dictionary<String, Object> readDictionary() throws Exception {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ dict = new Dictionary<String, Object>();
+        HashMap<String, RTObject> readHashMap() throws Exception {
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ dict = new HashMap<String, RTObject>();
             expect("{");
             skipWhitespace();
-            // Empty dictionary?
+            // Empty HashMap?
             if (tryRead("}"))
                 return dict;
              
@@ -66,15 +66,15 @@ public class SimpleJson
                 skipWhitespace();
                 // Key
                 /* [UNSUPPORTED] 'var' as type is unsupported "var" */ key = readString();
-                expect(key != null,"dictionary key");
+                expect(key != null,"HashMap key");
                 skipWhitespace();
                 // :
                 expect(":");
                 skipWhitespace();
                 // Value
-                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ val = readObject();
-                expect(val != null,"dictionary value");
-                // Add to dictionary
+                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ val = readRTObject();
+                expect(val != null,"HashMap value");
+                // Add to HashMap
                 dict[key] = val;
                 skipWhitespace();
             }
@@ -83,8 +83,8 @@ public class SimpleJson
             return dict;
         }
 
-        List<Object> readArray() throws Exception {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ list = new List<Object>();
+        List<RTObject> readArray() throws Exception {
+            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ list = new List<RTObject>();
             expect("[");
             skipWhitespace();
             // Empty list?
@@ -95,7 +95,7 @@ public class SimpleJson
             {
                 skipWhitespace();
                 // Value
-                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ val = readObject();
+                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ val = readRTObject();
                 // Add to array
                 list.Add(val);
                 skipWhitespace();
@@ -131,7 +131,7 @@ public class SimpleJson
             return str;
         }
 
-        Object readNumber() throws Exception {
+        RTObject readNumber() throws Exception {
             /* [UNSUPPORTED] 'var' as type is unsupported "var" */ startOffset = _offset;
             boolean isFloat = false;
             for (;_offset < _text.Length;_offset++)
@@ -223,17 +223,17 @@ public class SimpleJson
 
         String _text = new String();
         int _offset = new int();
-        Object _rootObject = new Object();
+        RTObject _rootRTObject = new RTObject();
     }
 
     static class Writer   
     {
-        public Writer(Object rootObject) throws Exception {
+        public Writer(RTObject rootRTObject) throws Exception {
             _sb = new StringBuilder();
-            writeObject(rootObject);
+            writeRTObject(rootRTObject);
         }
 
-        void writeObject(Object obj) throws Exception {
+        void writeRTObject(RTObject obj) throws Exception {
             if (obj instanceof int)
             {
                 _sb.Append((Integer)obj);
@@ -264,21 +264,21 @@ public class SimpleJson
                 str = str.Replace("\r", "");
                 _sb.AppendFormat("\"{0}\"", str);
             }
-            else if (obj instanceof Dictionary<String, Object>)
+            else if (obj instanceof HashMap<String, RTObject>)
             {
-                WriteDictionary((Dictionary<String, Object>)obj);
+                WriteHashMap((HashMap<String, RTObject>)obj);
             }
-            else if (obj instanceof List<Object>)
+            else if (obj instanceof List<RTObject>)
             {
-                WriteList((List<Object>)obj);
+                WriteList((List<RTObject>)obj);
             }
             else
             {
-                throw new System.Exception("ink's SimpleJson writer doesn't currently support this object: " + obj);
+                throw new System.Exception("ink's SimpleJson writer doesn't currently support this RTObject: " + obj);
             }       
         }
 
-        void writeDictionary(Dictionary<String, Object> dict) throws Exception {
+        void writeHashMap(HashMap<String, RTObject> dict) throws Exception {
             _sb.Append("{");
             boolean isFirst = true;
             for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ keyValue : dict)
@@ -289,13 +289,13 @@ public class SimpleJson
                 _sb.Append("\"");
                 _sb.Append(keyValue.Key);
                 _sb.Append("\":");
-                writeObject(keyValue.Value);
+                writeRTObject(keyValue.Value);
                 isFirst = false;
             }
             _sb.Append("}");
         }
 
-        void writeList(List<Object> list) throws Exception {
+        void writeList(List<RTObject> list) throws Exception {
             _sb.Append("[");
             boolean isFirst = true;
             for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ obj : list)
@@ -303,7 +303,7 @@ public class SimpleJson
                 if (!isFirst)
                     _sb.Append(",");
                  
-                writeObject(obj);
+                writeRTObject(obj);
                 isFirst = false;
             }
             _sb.Append("]");

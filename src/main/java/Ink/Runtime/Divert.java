@@ -6,11 +6,11 @@ package Ink.Runtime;
 
 import CS2JNet.System.StringSupport;
 import Ink.Runtime.Divert;
-import Ink.Runtime.Object;
+import Ink.Runtime.RTObject;
 import Ink.Runtime.Path;
 import Ink.Runtime.PushPopType;
 
-public class Divert  extends Object 
+public class Divert  extends RTObject 
 {
     public Path gettargetPath() throws Exception {
         // Resolve any relative paths to global ones as we come across them
@@ -33,7 +33,7 @@ public class Divert  extends Object
     }
 
     Path _targetPath;
-    public Object gettargetContent() throws Exception {
+    public RTObject gettargetContent() throws Exception {
         if (_targetContent == null)
         {
             _targetContent = ResolvePath(_targetPath);
@@ -42,7 +42,7 @@ public class Divert  extends Object
         return _targetContent;
     }
 
-    Object _targetContent;
+    RTObject _targetContent;
     public String gettargetPathString() throws Exception {
         if (gettargetPath() == null)
             return null;
@@ -120,7 +120,7 @@ public class Divert  extends Object
         this.stackPushType = stackPushType;
     }
 
-    public boolean equals(Object obj) {
+    public boolean equals(RTObject obj) {
         try
         {
             Divert otherDivert = obj instanceof Divert ? (Divert)obj : (Divert)null;

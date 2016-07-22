@@ -1,382 +1,330 @@
-//
-// Translated by CS2J (http://www.cs2j.com): 22/07/2016 12:24:33
-//
-
 package Ink.Runtime;
 
-import CS2JNet.JavaSupport.language.RefSupport;
-import CS2JNet.System.StringSupport;
-import Ink.Runtime.Path;
-import Ink.Runtime.StringExt;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-public class Path  extends IEquatable<Path> 
-{
-    static String parentId = "^";
-    // Immutable Component
-    public static class Component  extends IEquatable<Ink.Runtime.Path.Component> 
-    {
-        private int __index = new int();
-        public int getindex() {
-            return __index;
-        }
+public class Path { // extends IEquatable<Path> {
+	static String parentId = "^";
 
-        public void setindex(int value) {
-            __index = value;
-        }
+	private List<Component> components;
+	private boolean isRelative;
 
-        private String __name = new String();
-        public String getname() {
-            return __name;
-        }
+	public Path() throws Exception {
+		setcomponents(new ArrayList<Component>());
+	}
 
-        public void setname(String value) {
-            __name = value;
-        }
+	public Path(Component head, Path tail) throws Exception {
+		this();
 
-        public boolean getisIndex() throws Exception {
-            return getindex() >= 0;
-        }
+		getcomponents().add(head);
+		getcomponents().addAll(tail.getcomponents());
+	}
 
-        public boolean getisParent() throws Exception {
-            return StringSupport.equals(getname(), Path.parentId);
-        }
+	public Path(Collection<Component> components) throws Exception {
+		this();
+		this.getcomponents().addAll(components);
+	}
 
-        public Component(int index) throws Exception {
-            Debug.Assert(index >= 0);
-            this.setindex(index);
-            this.setname(null);
-        }
+	public Path(String componentsString) throws Exception {
+		this();
+		this.setcomponentsString(componentsString);
+	}
 
-        public Component(String name) throws Exception {
-            Debug.Assert(name != null && name.Length > 0);
-            this.setname(name);
-            this.setindex(-1);
-        }
+	public List<Component> getcomponents() {
+		return components;
+	}
 
-        public static Ink.Runtime.Path.Component toParent() throws Exception {
-            return new Ink.Runtime.Path.Component(parentId);
-        }
+	public void setcomponents(List<Component> value) {
+		components = value;
+	}
 
-        public String toString() {
-            try
-            {
-                if (getisIndex())
-                {
-                    return getindex().ToString();
-                }
-                else
-                {
-                    return getname();
-                } 
-            }
-            catch (RuntimeException __dummyCatchVar0)
-            {
-                throw __dummyCatchVar0;
-            }
-            catch (Exception __dummyCatchVar0)
-            {
-                throw new RuntimeException(__dummyCatchVar0);
-            }
-        
-        }
+	public boolean getisRelative() {
+		return isRelative;
+	}
 
-        public boolean equals(Object obj) {
-            try
-            {
-                return equals(obj instanceof Ink.Runtime.Path.Component ? (Ink.Runtime.Path.Component)obj : (Ink.Runtime.Path.Component)null);
-            }
-            catch (RuntimeException __dummyCatchVar1)
-            {
-                throw __dummyCatchVar1;
-            }
-            catch (Exception __dummyCatchVar1)
-            {
-                throw new RuntimeException(__dummyCatchVar1);
-            }
-        
-        }
+	public void setisRelative(boolean value) {
+		isRelative = value;
+	}
 
-        public boolean equals(Ink.Runtime.Path.Component otherComp) {
-            try
-            {
-                if (otherComp != null && otherComp.getisIndex() == this.getisIndex())
-                {
-                    if (getisIndex())
-                    {
-                        return getindex() == otherComp.getindex();
-                    }
-                    else
-                    {
-                        return StringSupport.equals(getname(), otherComp.getname());
-                    } 
-                }
-                 
-                return false;
-            }
-            catch (RuntimeException __dummyCatchVar2)
-            {
-                throw __dummyCatchVar2;
-            }
-            catch (Exception __dummyCatchVar2)
-            {
-                throw new RuntimeException(__dummyCatchVar2);
-            }
-        
-        }
+	public Component gethead() throws Exception {
+		if (getcomponents().size() > 0) {
+			return getcomponents().get(0);
+		} else {
+			return null;
+		}
+	}
 
-        public int hashCode() {
-            try
-            {
-                if (getisIndex())
-                    return this.getindex();
-                else
-                    return this.getname().GetHashCode(); 
-            }
-            catch (RuntimeException __dummyCatchVar3)
-            {
-                throw __dummyCatchVar3;
-            }
-            catch (Exception __dummyCatchVar3)
-            {
-                throw new RuntimeException(__dummyCatchVar3);
-            }
-        
-        }
-    
-    }
+	public Path gettail() throws Exception {
+		if (getcomponents().size() >= 2) {
+			List<Component> tailComps = getcomponents().subList(1, getcomponents().size() - 1);
 
-    private List<Ink.Runtime.Path.Component> __components = new List<Ink.Runtime.Path.Component>();
-    public List<Ink.Runtime.Path.Component> getcomponents() {
-        return __components;
-    }
+			return new Path(tailComps);
+		} else {
+			return Path.getself();
+		}
+	}
 
-    public void setcomponents(List<Ink.Runtime.Path.Component> value) {
-        __components = value;
-    }
+	public int getlength() throws Exception {
+		return getcomponents().size();
+	}
 
-    private boolean __isRelative = new boolean();
-    public boolean getisRelative() {
-        return __isRelative;
-    }
+	public Component getlastComponent() throws Exception {
+		if (getcomponents().size() > 0) {
+			return getcomponents().get(getcomponents().size() - 1);
+		} else {
+			return null;
+		}
+	}
 
-    public void setisRelative(boolean value) {
-        __isRelative = value;
-    }
+	public boolean getcontainsNamedComponent() throws Exception {
+		for (Component comp : getcomponents()) {
+			if (!comp.getisIndex()) {
+				return true;
+			}
 
-    public Ink.Runtime.Path.Component gethead() throws Exception {
-        if (getcomponents().Count > 0)
-        {
-            return getcomponents().First();
-        }
-        else
-        {
-            return null;
-        } 
-    }
+		}
+		return false;
+	}
 
-    public Path gettail() throws Exception {
-        if (getcomponents().Count >= 2)
-        {
-            List<Ink.Runtime.Path.Component> tailComps = getcomponents().GetRange(1, getcomponents().Count - 1);
-            return new Path(tailComps);
-        }
-        else
-        {
-            return Path.getself();
-        } 
-    }
+	public static Path getself() throws Exception {
+		Path path = new Path();
+		path.setisRelative(true);
+		return path;
+	}
 
-    public int getlength() throws Exception {
-        return getcomponents().Count;
-    }
+	public Path pathByAppendingPath(Path pathToAppend) throws Exception {
+		Path p = new Path();
+		int upwardMoves = 0;
+		for (int i = 0; i < pathToAppend.getcomponents().size(); ++i) {
+			if (pathToAppend.getcomponents().get(i).getisParent()) {
+				upwardMoves++;
+			} else {
+				break;
+			}
+		}
+		for (int i = 0; i < this.getcomponents().size() - upwardMoves; ++i) {
+			p.getcomponents().add(this.getcomponents().get(i));
+		}
+		for (int i = upwardMoves; i < pathToAppend.getcomponents().size(); ++i) {
+			p.getcomponents().add(pathToAppend.getcomponents().get(i));
+		}
+		return p;
+	}
 
-    public Ink.Runtime.Path.Component getlastComponent() throws Exception {
-        if (getcomponents().Count > 0)
-        {
-            return getcomponents().Last();
-        }
-        else
-        {
-            return null;
-        } 
-    }
+	public String getcomponentsString() throws Exception {
+		// String compsStr = String.join(".", getcomponents().toArray());
 
-    public boolean getcontainsNamedComponent() throws Exception {
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ comp : getcomponents())
-        {
-            if (!comp.isIndex)
-            {
-                return true;
-            }
-             
-        }
-        return false;
-    }
+		StringBuilder sb = new StringBuilder();
 
-    public Path() throws Exception {
-        setcomponents(new List<Ink.Runtime.Path.Component>());
-    }
+		sb.append(getcomponents().get(0));
 
-    public Path(Ink.Runtime.Path.Component head, Path tail) throws Exception {
-        this();
-        getcomponents().Add(head);
-        getcomponents().AddRange(tail.getcomponents());
-    }
+		for (int i = 1; i < getcomponents().size(); i++) {
+			sb.append('.');
+			sb.append(getcomponents().get(i));
+		}
 
-    public Path(IEnumerable<Ink.Runtime.Path.Component> components) throws Exception {
-        this();
-        this.getcomponents().AddRange(components);
-    }
+		String compsStr = sb.toString();
 
-    public Path(String componentsString) throws Exception {
-        this();
-        this.setcomponentsString(componentsString);
-    }
+		if (getisRelative())
+			return "." + compsStr;
+		else
+			return compsStr;
+	}
 
-    public static Path getself() throws Exception {
-        Path path = new Path();
-        path.setisRelative(true);
-        return path;
-    }
+	public void setcomponentsString(String value) throws Exception {
+		getcomponents().clear();
+		String componentsStr = value;
+		// When components start with ".", it indicates a relative path, e.g.
+		// .^.^.hello.5
+		// is equivalent to file system style path:
+		// ../../hello/5
+		if (componentsStr.charAt(0) == '.') {
+			setisRelative(true);
+			componentsStr = componentsStr.substring(1);
+		}
 
-    public Path pathByAppendingPath(Path pathToAppend) throws Exception {
-        Path p = new Path();
-        int upwardMoves = 0;
-        for (int i = 0;i < pathToAppend.getcomponents().Count;++i)
-        {
-            if (pathToAppend.getcomponents()[i].isParent)
-            {
-                upwardMoves++;
-            }
-            else
-            {
-                break;
-            } 
-        }
-        for (int i = 0;i < this.getcomponents().Count - upwardMoves;++i)
-        {
-            p.getcomponents().Add(this.getcomponents()[i]);
-        }
-        for (int i = upwardMoves;i < pathToAppend.getcomponents().Count;++i)
-        {
-            p.getcomponents().Add(pathToAppend.getcomponents()[i]);
-        }
-        return p;
-    }
+		String[] componentStrings = componentsStr.split(".");
 
-    public String getcomponentsString() throws Exception {
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ compsStr = StringExt.join(".",getcomponents());
-        if (getisRelative())
-            return "." + compsStr;
-        else
-            return compsStr; 
-    }
+		for (String str : componentStrings) {
+			int index = 0;
 
-    public void setcomponentsString(String value) throws Exception {
-        getcomponents().Clear();
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ componentsStr = value;
-        // When components start with ".", it indicates a relative path, e.g.
-        //   .^.^.hello.5
-        // is equivalent to file system style path:
-        //  ../../hello/5
-        if (componentsStr[0] == '.')
-        {
-            setisRelative(true);
-            componentsStr = componentsStr.Substring(1);
-        }
-         
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ componentStrings = componentsStr.Split('.');
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ str : componentStrings)
-        {
-            int index = new int();
-            RefSupport<int> refVar___0 = new RefSupport<int>();
-            boolean boolVar___0 = int.TryParse(str, refVar___0);
-            index = refVar___0.getValue();
-            if (boolVar___0)
-            {
-                getcomponents().Add(new Ink.Runtime.Path.Component(index));
-            }
-            else
-            {
-                getcomponents().Add(new Ink.Runtime.Path.Component(str));
-            } 
-        }
-    }
+			try {
+				index = Integer.parseInt(str);
+				getcomponents().add(new Component(index));
+			} catch (NumberFormatException e) {
+				getcomponents().add(new Component(str));
+			}
+		}
+	}
 
-    public String toString() {
-        try
-        {
-            return getcomponentsString();
-        }
-        catch (RuntimeException __dummyCatchVar4)
-        {
-            throw __dummyCatchVar4;
-        }
-        catch (Exception __dummyCatchVar4)
-        {
-            throw new RuntimeException(__dummyCatchVar4);
-        }
-    
-    }
+	public String toString() {
+		try {
+			return getcomponentsString();
+		} catch (RuntimeException __dummyCatchVar4) {
+			throw __dummyCatchVar4;
+		} catch (Exception __dummyCatchVar4) {
+			throw new RuntimeException(__dummyCatchVar4);
+		}
 
-    public boolean equals(Object obj) {
-        try
-        {
-            return equals(obj instanceof Path ? (Path)obj : (Path)null);
-        }
-        catch (RuntimeException __dummyCatchVar5)
-        {
-            throw __dummyCatchVar5;
-        }
-        catch (Exception __dummyCatchVar5)
-        {
-            throw new RuntimeException(__dummyCatchVar5);
-        }
-    
-    }
+	}
 
-    public boolean equals(Path otherPath) {
-        try
-        {
-            if (otherPath == null)
-                return false;
-             
-            if (otherPath.getcomponents().Count != this.getcomponents().Count)
-                return false;
-             
-            if (otherPath.getisRelative() != this.getisRelative())
-                return false;
-             
-            return otherPath.getcomponents().SequenceEqual(this.getcomponents());
-        }
-        catch (RuntimeException __dummyCatchVar6)
-        {
-            throw __dummyCatchVar6;
-        }
-        catch (Exception __dummyCatchVar6)
-        {
-            throw new RuntimeException(__dummyCatchVar6);
-        }
-    
-    }
+	public boolean equals(Object obj) {
+		try {
+			return equals(obj instanceof Path ? (Path) obj : (Path) null);
+		} catch (RuntimeException __dummyCatchVar5) {
+			throw __dummyCatchVar5;
+		} catch (Exception __dummyCatchVar5) {
+			throw new RuntimeException(__dummyCatchVar5);
+		}
 
-    public int hashCode() {
-        try
-        {
-            return this.toString().GetHashCode();
-        }
-        catch (RuntimeException __dummyCatchVar7)
-        {
-            throw __dummyCatchVar7;
-        }
-        catch (Exception __dummyCatchVar7)
-        {
-            throw new RuntimeException(__dummyCatchVar7);
-        }
-    
-    }
+	}
+
+	public boolean equals(Path otherPath) {
+		try {
+			if (otherPath == null)
+				return false;
+
+			if (otherPath.getcomponents().size() != this.getcomponents().size())
+				return false;
+
+			if (otherPath.getisRelative() != this.getisRelative())
+				return false;
+			
+			//return otherPath.getcomponents().SequenceEqual(this.getcomponents());
+			for(int i = 0; i < otherPath.getcomponents().size(); i++) {
+				if(!otherPath.getcomponents().get(i).equals(getcomponents().get(i)))
+					 return false;
+			}
+			
+		} catch (RuntimeException __dummyCatchVar6) {
+			throw __dummyCatchVar6;
+		} catch (Exception __dummyCatchVar6) {
+			throw new RuntimeException(__dummyCatchVar6);
+		}
+		
+		return true;
+
+	}
+
+	public int hashCode() {
+		try {
+			return this.toString().hashCode();
+		} catch (RuntimeException __dummyCatchVar7) {
+			throw __dummyCatchVar7;
+		} catch (Exception __dummyCatchVar7) {
+			throw new RuntimeException(__dummyCatchVar7);
+		}
+
+	}
+
+	// Immutable Component
+	public static class Component { // extends
+									// IEquatable<Ink.Runtime.Path.Component> {
+		private int index;
+		private String name;
+
+		public Component(int index) throws Exception {
+			// Debug.Assert(index >= 0);
+			this.setindex(index);
+			this.setname(null);
+		}
+
+		public Component(String name) throws Exception {
+			// Debug.Assert(name != null && name.Length > 0);
+			this.setname(name);
+			this.setindex(-1);
+		}
+
+		public int getindex() {
+			return index;
+		}
+
+		public void setindex(int value) {
+			index = value;
+		}
+
+		public String getname() {
+			return name;
+		}
+
+		public void setname(String value) {
+			name = value;
+		}
+
+		public boolean getisIndex() throws Exception {
+			return getindex() >= 0;
+		}
+
+		public boolean getisParent() throws Exception {
+			return Path.parentId.equals(getname());
+		}
+
+		public static Component toParent() throws Exception {
+			return new Component(parentId);
+		}
+
+		public String toString() {
+			try {
+				if (getisIndex()) {
+					return Integer.toString(getindex());
+				} else {
+					return getname();
+				}
+			} catch (RuntimeException __dummyCatchVar0) {
+				throw __dummyCatchVar0;
+			} catch (Exception __dummyCatchVar0) {
+				throw new RuntimeException(__dummyCatchVar0);
+			}
+
+		}
+
+		public boolean equals(Object obj) {
+			try {
+
+				return equals(obj instanceof Ink.Runtime.Path.Component ? (Ink.Runtime.Path.Component) obj
+						: (Ink.Runtime.Path.Component) null);
+			} catch (RuntimeException __dummyCatchVar1) {
+				throw __dummyCatchVar1;
+			} catch (Exception __dummyCatchVar1) {
+				throw new RuntimeException(__dummyCatchVar1);
+			}
+
+		}
+
+		public boolean equals(Component otherComp) {
+			try {
+				if (otherComp != null && otherComp.getisIndex() == this.getisIndex()) {
+					if (getisIndex()) {
+						return getindex() == otherComp.getindex();
+					} else {
+						return getname().equals(otherComp.getname());
+					}
+				}
+
+				return false;
+			} catch (RuntimeException __dummyCatchVar2) {
+				throw __dummyCatchVar2;
+			} catch (Exception __dummyCatchVar2) {
+				throw new RuntimeException(__dummyCatchVar2);
+			}
+
+		}
+
+		public int hashCode() {
+			try {
+				if (getisIndex())
+					return this.getindex();
+				else
+					return this.getname().hashCode();
+			} catch (RuntimeException __dummyCatchVar3) {
+				throw __dummyCatchVar3;
+			} catch (Exception __dummyCatchVar3) {
+				throw new RuntimeException(__dummyCatchVar3);
+			}
+
+		}
+
+	}
 
 }
-
-
-// TODO: Better way to make a hash code!

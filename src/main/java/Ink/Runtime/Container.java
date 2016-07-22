@@ -1,69 +1,77 @@
-//
-// Translated by CS2J (http://www.cs2j.com): 22/07/2016 12:24:33
-//
-
 package Ink.Runtime;
 
-import CS2JNet.JavaSupport.language.RefSupport;
-import Ink.Runtime.Container;
-import Ink.Runtime.INamedContent;
-import Ink.Runtime.Object;
-import Ink.Runtime.Path;
-import Ink.Runtime.StoryException;
-import Ink.Runtime.StringValue;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
 
-public class Container  extends Object implements INamedContent
-{
-    private String __name = new String();
-    public String getname() {
-        return __name;
-    }
+public class Container extends RTObject implements INamedContent {
+	private String __name = new String();
 
-    public void setname(String value) {
-        __name = value;
-    }
+	List<RTObject> _content = new ArrayList<RTObject>();
+	private HashMap<String, INamedContent> __namedContent = new HashMap<String, INamedContent>();
 
-    public List<Object> getcontent() throws Exception {
-        return _content;
-    }
+	private boolean __visitsShouldBeCounted;
+	private boolean __turnIndexShouldBeCounted;
+	private boolean __countingAtStartOnly;
+	
 
-    public void setcontent(List<Object> value) throws Exception {
-        AddContent(value);
-    }
+	public Container() throws Exception {
+		_content = new ArrayList<RTObject>();
+		setnamedContent(new HashMap<String, INamedContent>());
+	}
 
-    List<Object> _content = new List<Object>();
-    private Dictionary<String, INamedContent> __namedContent = new Dictionary<String, INamedContent>();
-    public Dictionary<String, INamedContent> getnamedContent() {
-        return __namedContent;
-    }
+	public String getname() {
+		return __name;
+	}
 
-    public void setnamedContent(Dictionary<String, INamedContent> value) {
-        __namedContent = value;
-    }
+	public void setname(String value) {
+		__name = value;
+	}
 
-    public Dictionary<String, Object> getnamedOnlyContent() throws Exception {
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ namedOnlyContent = new Dictionary<String, Object>();
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ kvPair : getnamedContent())
+	public List<RTObject> getcontent() throws Exception {
+		return _content;
+	}
+
+	public void setcontent(List<RTObject> value) throws Exception {
+		AddContent(value);
+	}
+
+	public HashMap<String, INamedContent> getnamedContent() {
+		return __namedContent;
+	}
+
+	public void setnamedContent(HashMap<String, INamedContent> value) {
+		__namedContent = value;
+	}
+
+	public HashMap<String, RTObject> getnamedOnlyContent() throws Exception {
+
+		HashMap<String, RTObject> namedOnlyContent = new HashMap<String, RTObject>();
+        
+		for (Entry<String, INamedContent> kvPair : getnamedContent().entrySet())
         {
-            namedOnlyContent[kvPair.Key] = (Object)kvPair.Value;
+            namedOnlyContent.put(kvPair.getKey(),(RTObject)kvPair.getValue());
         }
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ c : getcontent())
+        
+		for (RTObject c : getcontent())
         {
             INamedContent named = c instanceof INamedContent ? (INamedContent)c : (INamedContent)null;
             if (named != null && named.gethasValidName())
             {
-                namedOnlyContent.Remove(named.getname());
+                namedOnlyContent.remove(named.getname());
             }
              
         }
-        if (namedOnlyContent.Count == 0)
+        
+		if (namedOnlyContent.size() == 0)
             namedOnlyContent = null;
          
         return namedOnlyContent;
     }
 
-    public void setnamedOnlyContent(Dictionary<String, Object> value) throws Exception {
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ existingNamedOnly = getnamedOnlyContent();
+	public void setnamedOnlyContent(HashMap<String, RTObject> value) throws Exception {
+		HashMap<String, RTObject> existingNamedOnly = getnamedOnlyContent();
         if (existingNamedOnly != null)
         {
             for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ kvPair : existingNamedOnly)
@@ -84,225 +92,207 @@ public class Container  extends Object implements INamedContent
         }
     }
 
-    private boolean __visitsShouldBeCounted = new boolean();
-    public boolean getvisitsShouldBeCounted() {
-        return __visitsShouldBeCounted;
-    }
+	public boolean getvisitsShouldBeCounted() {
+		return __visitsShouldBeCounted;
+	}
 
-    public void setvisitsShouldBeCounted(boolean value) {
-        __visitsShouldBeCounted = value;
-    }
+	public void setvisitsShouldBeCounted(boolean value) {
+		__visitsShouldBeCounted = value;
+	}
 
-    private boolean __turnIndexShouldBeCounted = new boolean();
-    public boolean getturnIndexShouldBeCounted() {
-        return __turnIndexShouldBeCounted;
-    }
+	public boolean getturnIndexShouldBeCounted() {
+		return __turnIndexShouldBeCounted;
+	}
 
-    public void setturnIndexShouldBeCounted(boolean value) {
-        __turnIndexShouldBeCounted = value;
-    }
+	public void setturnIndexShouldBeCounted(boolean value) {
+		__turnIndexShouldBeCounted = value;
+	}
 
-    private boolean __countingAtStartOnly = new boolean();
-    public boolean getcountingAtStartOnly() {
-        return __countingAtStartOnly;
-    }
+	public boolean getcountingAtStartOnly() {
+		return __countingAtStartOnly;
+	}
 
-    public void setcountingAtStartOnly(boolean value) {
-        __countingAtStartOnly = value;
-    }
+	public void setcountingAtStartOnly(boolean value) {
+		__countingAtStartOnly = value;
+	}
 
-    public enum CountFlags
-    {
-        __dummyEnum__0,
-        Visits,
-        Turns,
-        __dummyEnum__1,
-        CountStartOnly
-    }
-    public int getcountFlags() throws Exception {
-        CountFlags flags = 0;
-        if (getvisitsShouldBeCounted())
-            flags |= CountFlags.Visits;
-         
-        if (getturnIndexShouldBeCounted())
-            flags |= CountFlags.Turns;
-         
-        if (getcountingAtStartOnly())
-            flags |= CountFlags.CountStartOnly;
-         
-        // If we're only storing CountStartOnly, it serves no purpose,
-        // since it's dependent on the other two to be used at all.
-        // (e.g. for setting the fact that *if* a gather or choice's
-        // content is counted, then is should only be counter at the start)
-        // So this is just an optimisation for storage.
-        if (flags == CountFlags.CountStartOnly)
-        {
-            flags = 0;
-        }
-         
-        return ((Enum)flags).ordinal();
-    }
+	public enum CountFlags {
+		__dummyEnum__0, Visits, Turns, __dummyEnum__1, CountStartOnly
+	}
 
-    public void setcountFlags(int value) throws Exception {
-        CountFlags flag = CountFlags.values()[value];
-        if ((flag & CountFlags.Visits) > 0)
-            setvisitsShouldBeCounted(true);
-         
-        if ((flag & CountFlags.Turns) > 0)
-            setturnIndexShouldBeCounted(true);
-         
-        if ((flag & CountFlags.CountStartOnly) > 0)
-            setcountingAtStartOnly(true);
-         
-    }
+	public int getcountFlags() throws Exception {
+		CountFlags flags = 0;
+		
+		if (getvisitsShouldBesizeCounted())
+			flags |= CountFlags.Visits;
 
-    public boolean gethasValidName() throws Exception {
-        return getname() != null && getname().Length > 0;
-    }
+		if (getturnIndexShouldBeCounted())
+			flags |= CountFlags.Turns;
 
-    public Path getpathToFirstLeafContent() throws Exception {
-        if (_pathToFirstLeafContent == null)
-            _pathToFirstLeafContent = path.PathByAppendingPath(getinternalPathToFirstLeafContent());
-         
-        return _pathToFirstLeafContent;
-    }
+		if (getcountingAtStartOnly())
+			flags |= CountFlags.CountStartOnly;
 
-    Path _pathToFirstLeafContent;
-    Path getinternalPathToFirstLeafContent() throws Exception {
-        Path path = new Path();
-        Container container = this;
-        while (container != null)
-        {
-            if (container.getcontent().Count > 0)
-            {
-                path.getcomponents().Add(new Ink.Runtime.Path.Component(0));
-                container = container.getcontent()[0] instanceof Container ? (Container)container.getcontent()[0] : (Container)null;
-            }
-             
-        }
-        return path;
-    }
+		// If we're only storing CountStartOnly, it serves no purpose,
+		// since it's dependent on the other two to be used at all.
+		// (e.g. for setting the fact that *if* a gather or choice's
+		// content is counted, then is should only be counter at the start)
+		// So this is just an optimisation for storage.
+		if (flags == CountFlags.CountStartOnly) {
+			flags = 0;
+		}
 
-    public Container() throws Exception {
-        _content = new List<Object>();
-        setnamedContent(new Dictionary<String, INamedContent>());
-    }
+		return ((Enum) flags).ordinal();
+	}
 
-    public void addContent(Object contentObj) throws Exception {
-        getcontent().Add(contentObj);
-        if (contentObj.getparent())
-        {
-            throw new System.Exception("content is already in " + contentObj.getparent());
-        }
-         
-        contentObj.setparent(this);
-        TryAddNamedContent(contentObj);
-    }
+	public void setcountFlags(int value) throws Exception {
+		CountFlags flag = CountFlags.values()[value];
+		if ((flag & CountFlags.Visits) > 0)
+			setvisitsShouldBeCounted(true);
 
-    public void addContent(IList<Object> contentList) throws Exception {
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ c : contentList)
+		if ((flag & CountFlags.Turns) > 0)
+			setturnIndexShouldBesizeCounted(true);
+
+		if ((flag & CountFlags.CountStartOnly) > 0)
+			setcountingAtStartOnly(true);
+
+	}
+
+	public boolean gethasValidName() throws Exception {
+		return getname() != null && getname().Length > 0;
+	}
+
+	public Path getpathToFirstLeafContent() throws Exception {
+		if (_pathToFirstLeafContent == null)
+			_pathToFirstLeafContent = path.PathByAppendingPath(getinternalPathToFirstLeafContent());
+
+		return _pathToFirstLeafContent;
+	}
+
+	Path _pathToFirstLeafContent;
+
+	Path getinternalPathToFirstLeafContent() throws Exception {
+		Path path = new Path();
+		Container container = this;
+		while (container != null) {
+			if (container.getcontent().size() > 0) {
+				path.getcomponents().Add(new Ink.Runtime.Path.Component(0));
+				container = container.getcontent()[0] instanceof Container ? (Container) container.getcontent()[0]
+						: (Container) null;
+			}
+
+		}
+		return path;
+	}
+
+	public void addContent(RTObject contentObj) throws Exception {
+		getcontent().Add(contentObj);
+		if (contentObj.getparent()) {
+			throw new System.Exception("content is already in " + contentObj.getparent());
+		}
+
+		contentObj.setparent(this);
+		TryAddNamedContent(contentObj);
+	}
+
+	public void addContent(List<RTObject> contentList) throws Exception {
+        for (RTObject c : contentList)
         {
             AddContent(c);
         }
     }
 
-    public void insertContent(Object contentObj, int index) throws Exception {
-        getcontent().Insert(index, contentObj);
-        if (contentObj.getparent())
-        {
-            throw new System.Exception("content is already in " + contentObj.getparent());
-        }
-         
-        contentObj.setparent(this);
-        TryAddNamedContent(contentObj);
-    }
+	public void insertContent(RTObject contentObj, int index) throws Exception {
+		getcontent().Insert(index, contentObj);
+		if (contentObj.getparent()) {
+			throw new System.Exception("content is already in " + contentObj.getparent());
+		}
 
-    public void tryAddNamedContent(Object contentObj) throws Exception {
-        INamedContent namedContentObj = contentObj instanceof INamedContent ? (INamedContent)contentObj : (INamedContent)null;
-        if (namedContentObj != null && namedContentObj.gethasValidName())
-        {
-            addToNamedContentOnly(namedContentObj);
-        }
-         
-    }
+		contentObj.setparent(this);
+		TryAddNamedContent(contentObj);
+	}
 
-    public void addToNamedContentOnly(INamedContent namedContentObj) throws Exception {
-        Debug.Assert(namedContentObj instanceof Object, "Can only add Runtime.Objects to a Runtime.Container");
-        Object runtimeObj = (Object)namedContentObj;
-        runtimeObj.setparent(this);
-        getnamedContent()[namedContentObj.getname()] = namedContentObj;
-    }
+	public void tryAddNamedContent(RTObject contentObj) throws Exception {
+		INamedContent namedContentObj = contentObj instanceof INamedContent ? (INamedContent) contentObj
+				: (INamedContent) null;
+		if (namedContentObj != null && namedContentObj.gethasValidName()) {
+			addToNamedContentOnly(namedContentObj);
+		}
 
-    public void addContentsOfContainer(Container otherContainer) throws Exception {
+	}
+
+	public void addToNamedContentOnly(INamedContent namedContentObj) throws Exception {
+		Debug.Assert(namedContentObj instanceof RTObject, "Can only add Runtime.RTObjects to a Runtime.Container");
+		RTObject runtimeObj = (RTObject) namedContentObj;
+		runtimeObj.setparent(this);
+		getnamedContent()[namedContentObj.getname()] = namedContentObj;
+	}
+
+	public void addContentsOfContainer(Container otherContainer) throws Exception {
         getcontent().AddRange(otherContainer.getcontent());
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ obj : otherContainer.getcontent())
+        for (RTObject obj : otherContainer.getcontent())
         {
             obj.parent = this;
             TryAddNamedContent(obj);
         }
     }
 
-    protected Object contentWithPathComponent(Ink.Runtime.Path.Component component) throws Exception {
-        if (component.getisIndex())
-        {
-            if (component.getindex() >= 0 && component.getindex() < getcontent().Count)
-            {
-                return getcontent()[component.getindex()];
-            }
-            else
-            {
-                return null;
-            } 
-        }
-        else // When path is out of range, quietly return nil
-        // (useful as we step/increment forwards through content)
-        if (component.getisParent())
-        {
-            return this.parent;
-        }
-        else
-        {
-            INamedContent foundContent = null;
-            RefSupport<INamedContent> refVar___0 = new RefSupport<INamedContent>();
-            boolean boolVar___0 = getnamedContent().TryGetValue(component.getname(), refVar___0);
-            foundContent = refVar___0.getValue();
-            if (boolVar___0)
-            {
-                return (Object)foundContent;
-            }
-            else
-            {
-                throw new StoryException("Content '" + component.getname() + "' not found at path: '" + this.path + "'");
-            } 
-        }  
-    }
+	protected RTObject contentWithPathComponent(Ink.Runtime.Path.Component component) throws Exception {
+		if (component.getisIndex()) {
+			if (component.getindex() >= 0 && component.getindex() < getcontent().size()) {
+				return getcontent()[component.getindex()];
+			} else {
+				return null;
+			}
+		} else // When path is out of range, quietly return nil
+		// (useful as we step/increment forwards through content)
+		if (component.getisParent()) {
+			return this.parent;
+		} else {
+			INamedContent foundContent = null;
+			RefSupport<INamedContent> refVar___0 = new RefSupport<INamedContent>();
+			boolean boolVar___0 = getnamedContent().TryGetValue(component.getname(), refVar___0);
+			foundContent = refVar___0.getValue();
+			if (boolVar___0) {
+				return (RTObject) foundContent;
+			} else {
+				throw new StoryException(
+						"Content '" + component.getname() + "' not found at path: '" + this.path + "'");
+			}
+		}
+	}
+	
+	public RTObject contentAtPath(Path path) throws Exception {
+		return contentAtPath(path, -1);
+	}
 
-    public Object contentAtPath(Path path, int partialPathLength) throws Exception {
-        if (partialPathLength == -1)
-            partialPathLength = path.getcomponents().Count;
-         
-        Container currentContainer = this;
-        Object currentObj = this;
-        for (int i = 0;i < partialPathLength;++i)
-        {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ comp = path.getcomponents()[i];
-            if (currentContainer == null)
-                throw new System.Exception("Path continued, but previous object wasn't a container: " + currentObj);
-             
-            currentObj = currentContainer.ContentWithPathComponent(comp);
-            currentContainer = currentObj instanceof Container ? (Container)currentObj : (Container)null;
-        }
-        return currentObj;
-    }
+	public RTObject contentAtPath(Path path, int partialPathLength) throws Exception {
+		if (partialPathLength == -1)
+			partialPathLength = path.getcomponents().size();
 
-    public void buildStringOfHierarchy(StringBuilder sb, int indentation, Object pointedObj) throws Exception {
-        Action appendIndentation = /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "() => {
-            ;
-            for (int i = 0;i < spacesPerIndent * indentation;++i)
-            {
-                sb.Append(" ");
-            }
-        }" */;
+		Container currentContainer = this;
+		RTObject currentObj = this;
+		for (int i = 0; i < partialPathLength; ++i) {
+			/* [UNSUPPORTED] 'var' as type is unsupported "var" */ comp = path.getcomponents()[i];
+			if (currentContainer == null)
+				throw new System.Exception("Path continued, but previous RTObject wasn't a container: " + currentObj);
+
+			currentObj = currentContainer.ContentWithPathComponent(comp);
+			currentContainer = currentObj instanceof Container ? (Container) currentObj : (Container) null;
+		}
+		return currentObj;
+	}
+
+	private final static int spacesPerIndent = 4;
+	
+	private void appendIndetation(StringBuilder sb, int indentation) {
+		for (int i = 0;i < spacesPerIndent * indentation;++i)
+        {
+            sb.Append(" ");
+        }
+	}
+	
+	public void buildStringOfHierarchy(StringBuilder sb, int indentation, RTObject pointedObj) throws Exception {
+        
         appendIndentation();
         sb.Append("[");
         if (this.gethasValidName())
@@ -317,9 +307,10 @@ public class Container  extends Object implements INamedContent
          
         sb.AppendLine();
         indentation++;
-        for (int i = 0;i < getcontent().Count;++i)
+        for (int i = 0;i < getcontent().size();++i)
         {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ obj = getcontent()[i];
+            RTObject obj = getcontent().get(i);
+            
             if (obj instanceof Container)
             {
                 Container container = (Container)obj;
@@ -339,7 +330,7 @@ public class Container  extends Object implements INamedContent
                     sb.Append(obj.ToString());
                 } 
             } 
-            if (i != getcontent().Count - 1)
+            if (i != getcontent().size() - 1)
             {
                 sb.Append(",");
             }
@@ -351,10 +342,12 @@ public class Container  extends Object implements INamedContent
              
             sb.AppendLine();
         }
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ onlyNamed = new Dictionary<String, INamedContent>();
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ objKV : getnamedContent())
+
+        HashMap<String, INamedContent> onlyNamed = new HashMap<String, INamedContent>();
+        
+        for (RTObject objKV : getnamedContent())
         {
-            if (getcontent().Contains((Object)objKV.Value))
+            if (getcontent().Contains((RTObject)objKV.Value))
             {
                 continue;
             }
@@ -363,11 +356,11 @@ public class Container  extends Object implements INamedContent
                 onlyNamed.Add(objKV.Key, objKV.Value);
             } 
         }
-        if (onlyNamed.Count > 0)
+        if (onlyNamed.size() > 0)
         {
             appendIndentation();
             sb.AppendLine("-- named: --");
-            for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ objKV : onlyNamed)
+            for (RTObject objKV : onlyNamed)
             {
                 Debug.Assert(objKV.Value instanceof Container, "Can only print out named Containers");
                 Container container = (Container)objKV.Value;
@@ -381,12 +374,10 @@ public class Container  extends Object implements INamedContent
         sb.Append("]");
     }
 
-    public String buildStringOfHierarchy() throws Exception {
-        /* [UNSUPPORTED] 'var' as type is unsupported "var" */ sb = new StringBuilder();
-        BuildStringOfHierarchy(sb, 0, null);
-        return sb.ToString();
-    }
+	public String buildStringOfHierarchy() throws Exception {
+		StringBuilder sb = new StringBuilder();
+		BuildStringOfHierarchy(sb, 0, null);
+		return sb.ToString();
+	}
 
 }
-
-

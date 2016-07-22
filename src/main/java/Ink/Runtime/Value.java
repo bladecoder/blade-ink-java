@@ -7,13 +7,13 @@ package Ink.Runtime;
 import Ink.Runtime.DivertTargetValue;
 import Ink.Runtime.FloatValue;
 import Ink.Runtime.IntValue;
-import Ink.Runtime.Object;
+import Ink.Runtime.RTObject;
 import Ink.Runtime.Path;
 import Ink.Runtime.StringValue;
 import Ink.Runtime.Value;
 import Ink.Runtime.ValueType;
 
-public abstract class Value  extends Object 
+public abstract class Value  extends RTObject 
 {
     public abstract ValueType getvalueType() throws Exception ;
 
@@ -21,9 +21,9 @@ public abstract class Value  extends Object
 
     public abstract Value cast(ValueType newType) throws Exception ;
 
-    public abstract Object getvalueObject() throws Exception ;
+    public abstract RTObject getvalueRTObject() throws Exception ;
 
-    public static Value create(Object val) throws Exception {
+    public static Value create(RTObject val) throws Exception {
         // Implicitly lose precision from any doubles we get passed in
         if (val instanceof double)
         {
@@ -66,8 +66,8 @@ public abstract class Value  extends Object
         return null;
     }
 
-    public Object copy() throws Exception {
-        return create(getvalueObject());
+    public RTObject copy() throws Exception {
+        return create(getvalueRTObject());
     }
 
 }

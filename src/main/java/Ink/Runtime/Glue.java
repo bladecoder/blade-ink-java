@@ -5,9 +5,9 @@
 package Ink.Runtime;
 
 import Ink.Runtime.GlueType;
-import Ink.Runtime.Object;
+import Ink.Runtime.RTObject;
 
-public class Glue  extends Object 
+public class Glue  extends RTObject 
 {
     private GlueType __glueType = GlueType.Bidirectional;
     public GlueType getglueType() {

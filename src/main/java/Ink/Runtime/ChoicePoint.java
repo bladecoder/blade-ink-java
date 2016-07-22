@@ -1,19 +1,11 @@
-//
-// Translated by CS2J (http://www.cs2j.com): 22/07/2016 12:24:33
-//
-
 package Ink.Runtime;
-
-import Ink.Runtime.Container;
-import Ink.Runtime.Object;
-import Ink.Runtime.Path;
 
 /**
 * The ChoicePoint represents the point within the Story where
 * a Choice instance gets generated. The distinction is made
 * because the text of the Choice can be dynamically generated.
 */
-public class ChoicePoint  extends Object 
+public class ChoicePoint extends RTObject 
 {
     private Path __pathOnChoice;
     public Path getpathOnChoice() {
@@ -36,7 +28,7 @@ public class ChoicePoint  extends Object
         setpathOnChoice(new Path(value));
     }
 
-    private boolean __hasCondition = new boolean();
+    private boolean __hasCondition;
     public boolean gethasCondition() {
         return __hasCondition;
     }
@@ -45,7 +37,7 @@ public class ChoicePoint  extends Object
         __hasCondition = value;
     }
 
-    private boolean __hasStartContent = new boolean();
+    private boolean __hasStartContent;
     public boolean gethasStartContent() {
         return __hasStartContent;
     }
@@ -54,7 +46,7 @@ public class ChoicePoint  extends Object
         __hasStartContent = value;
     }
 
-    private boolean __hasChoiceOnlyContent = new boolean();
+    private boolean __hasChoiceOnlyContent;
     public boolean gethasChoiceOnlyContent() {
         return __hasChoiceOnlyContent;
     }
@@ -63,7 +55,7 @@ public class ChoicePoint  extends Object
         __hasChoiceOnlyContent = value;
     }
 
-    private boolean __onceOnly = new boolean();
+    private boolean __onceOnly;
     public boolean getonceOnly() {
         return __onceOnly;
     }
@@ -72,7 +64,7 @@ public class ChoicePoint  extends Object
         __onceOnly = value;
     }
 
-    private boolean __isInvisibleDefault = new boolean();
+    private boolean __isInvisibleDefault;
     public boolean getisInvisibleDefault() {
         return __isInvisibleDefault;
     }
@@ -120,8 +112,10 @@ public class ChoicePoint  extends Object
     public String toString() {
         try
         {
-            int? targetLineNum = DebugLineNumberOfPath(getpathOnChoice());
+            int targetLineNum = DebugLineNumberOfPath(getpathOnChoice());
+            
             String targetString = getpathOnChoice().toString();
+            
             if (targetLineNum != null)
             {
                 targetString = " line " + targetLineNum;

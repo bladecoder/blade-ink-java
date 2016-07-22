@@ -7,10 +7,10 @@ package Ink.Runtime;
 
 public class StringExt   
 {
-    public static <T>String join(String separator, List<T> objects) throws Exception {
+    public static <T>String join(String separator, List<T> RTObjects) throws Exception {
         /* [UNSUPPORTED] 'var' as type is unsupported "var" */ sb = new StringBuilder();
         /* [UNSUPPORTED] 'var' as type is unsupported "var" */ isFirst = true;
-        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ o : objects)
+        for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ o : RTObjects)
         {
             if (!isFirst)
                 sb.Append(separator);

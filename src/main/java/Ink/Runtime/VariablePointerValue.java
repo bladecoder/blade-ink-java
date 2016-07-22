@@ -73,7 +73,7 @@ public class VariablePointerValue  extends Value<String>
     
     }
 
-    public Object copy() throws Exception {
+    public RTObject copy() throws Exception {
         return new VariablePointerValue(getvariableName(),getcontextIndex());
     }
 

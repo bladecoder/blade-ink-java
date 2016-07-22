@@ -8,7 +8,7 @@ import CS2JNet.JavaSupport.language.RefSupport;
 import CS2JNet.JavaSupport.util.ListSupport;
 import Ink.Runtime.CallStack;
 import Ink.Runtime.Json;
-import Ink.Runtime.Object;
+import Ink.Runtime.RTObject;
 import Ink.Runtime.StoryException;
 import Ink.Runtime.Value;
 import Ink.Runtime.VariableAssignment;
@@ -27,13 +27,13 @@ public class VariablesState  extends IEnumerable<String>
 {
     public static class __MultiVariableChanged   implements VariableChanged
     {
-        public void invoke(String variableName, Object newValue) throws Exception {
+        public void invoke(String variableName, RTObject newValue) throws Exception {
             IList<VariableChanged> copy = new IList<VariableChanged>(), members = this.getInvocationList();
             synchronized (members)
             {
                 copy = new LinkedList<VariableChanged>(members);
             }
-            for (Object __dummyForeachVar0 : copy)
+            for (RTObject __dummyForeachVar0 : copy)
             {
                 VariableChanged d = (VariableChanged)__dummyForeachVar0;
                 d.invoke(variableName, newValue);
@@ -89,7 +89,7 @@ public class VariablesState  extends IEnumerable<String>
 
     public static interface VariableChanged   
     {
-        void invoke(String variableName, Object newValue) throws Exception ;
+        void invoke(String variableName, RTObject newValue) throws Exception ;
 
         System.Collections.Generic.IList<VariableChanged> getInvocationList() throws Exception ;
     
@@ -122,13 +122,13 @@ public class VariablesState  extends IEnumerable<String>
     }
 
     boolean _batchObservingVariableChanges = new boolean();
-    public Object get___idx(String variableName) throws Exception {
-        Object varContents;
+    public RTObject get___idx(String variableName) throws Exception {
+        RTObject varContents;
         boolean boolVar___0 = _globalVariables.TryGetValue(variableName, refVar___0);
         if (boolVar___0)
         {
-            RefSupport<Object> refVar___0 = new RefSupport<Object>();
-            resVar___1 = (varContents instanceof Value ? (Value)varContents : (Value)null).getvalueObject();
+            RefSupport<RTObject> refVar___0 = new RefSupport<RTObject>();
+            resVar___1 = (varContents instanceof Value ? (Value)varContents : (Value)null).getvalueRTObject();
             varContents = refVar___0.getValue();
             return resVar___1;
         }
@@ -136,7 +136,7 @@ public class VariablesState  extends IEnumerable<String>
             return null; 
     }
 
-    public void set___idx(String variableName, Object value) throws Exception {
+    public void set___idx(String variableName, RTObject value) throws Exception {
         Value val = Value.create(value);
         if (val == null)
         {
@@ -165,12 +165,12 @@ public class VariablesState  extends IEnumerable<String>
     }
 
     public VariablesState(CallStack callStack) throws Exception {
-        _globalVariables = new Dictionary<String, Object>();
+        _globalVariables = new HashMap<String, RTObject>();
         _callStack = callStack;
     }
 
     public void copyFrom(VariablesState varState) throws Exception {
-        _globalVariables = new Dictionary<String, Object>(varState._globalVariables);
+        _globalVariables = new HashMap<String, RTObject>(varState._globalVariables);
         variableChangedEvent = varState.variableChangedEvent;
         if (varState.getbatchObservingVariableChanges() != getbatchObservingVariableChanges())
         {
@@ -188,20 +188,20 @@ public class VariablesState  extends IEnumerable<String>
          
     }
 
-    public Dictionary<String, Object> getjsonToken() throws Exception {
-        return Json.dictionaryRuntimeObjsToJObject(_globalVariables);
+    public HashMap<String, RTObject> getjsonToken() throws Exception {
+        return Json.HashMapRuntimeObjsToJRTObject(_globalVariables);
     }
 
-    public void setjsonToken(Dictionary<String, Object> value) throws Exception {
-        _globalVariables = Json.JObjectToDictionaryRuntimeObjs(value);
+    public void setjsonToken(HashMap<String, RTObject> value) throws Exception {
+        _globalVariables = Json.JRTObjectToHashMapRuntimeObjs(value);
     }
 
-    public Object getVariableWithName(String name) throws Exception {
+    public RTObject getVariableWithName(String name) throws Exception {
         return getVariableWithName(name,-1);
     }
 
-    Object getVariableWithName(String name, int contextIndex) throws Exception {
-        Object varValue = getRawVariableWithName(name,contextIndex);
+    RTObject getVariableWithName(String name, int contextIndex) throws Exception {
+        RTObject varValue = getRawVariableWithName(name,contextIndex);
         // Get value from pointer?
         VariablePointerValue varPointer = varValue instanceof VariablePointerValue ? (VariablePointerValue)varValue : (VariablePointerValue)null;
         if (varPointer)
@@ -212,16 +212,16 @@ public class VariablesState  extends IEnumerable<String>
         return varValue;
     }
 
-    Object getRawVariableWithName(String name, int contextIndex) throws Exception {
-        Object varValue = null;
+    RTObject getRawVariableWithName(String name, int contextIndex) throws Exception {
+        RTObject varValue = null;
         // 0 context = global
         if (contextIndex == 0 || contextIndex == -1)
         {
             boolean boolVar___2 = _globalVariables.TryGetValue(name, refVar___1);
             if (boolVar___2)
             {
-                RefSupport<Object> refVar___1 = new RefSupport<Object>();
-                Object resVar___3 = varValue;
+                RefSupport<RTObject> refVar___1 = new RefSupport<RTObject>();
+                RTObject resVar___3 = varValue;
                 varValue = refVar___1.getValue();
                 return resVar___3;
             }
@@ -236,11 +236,11 @@ public class VariablesState  extends IEnumerable<String>
         return varValue;
     }
 
-    public Object valueAtVariablePointer(VariablePointerValue pointer) throws Exception {
+    public RTObject valueAtVariablePointer(VariablePointerValue pointer) throws Exception {
         return getVariableWithName(pointer.getvariableName(),pointer.getcontextIndex());
     }
 
-    public void assign(VariableAssignment varAss, Object value) throws Exception {
+    public void assign(VariableAssignment varAss, RTObject value) throws Exception {
         /* [UNSUPPORTED] 'var' as type is unsupported "var" */ name = varAss.getvariableName();
         int contextIndex = -1;
         // Are we assigning to a global variable?
@@ -293,9 +293,9 @@ public class VariablesState  extends IEnumerable<String>
         } 
     }
 
-    void setGlobal(String variableName, Object value) throws Exception {
-        Object oldValue = null;
-        RefSupport<Object> refVar___2 = new RefSupport<Object>();
+    void setGlobal(String variableName, RTObject value) throws Exception {
+        RTObject oldValue = null;
+        RefSupport<RTObject> refVar___2 = new RefSupport<RTObject>();
         _globalVariables.TryGetValue(variableName, refVar___2);
         oldValue = refVar___2.getValue();
         _globalVariables[variableName] = value;
@@ -348,7 +348,7 @@ public class VariablesState  extends IEnumerable<String>
         return _callStack.getcurrentElementIndex();
     }
 
-    Dictionary<String, Object> _globalVariables = new Dictionary<String, Object>();
+    HashMap<String, RTObject> _globalVariables = new HashMap<String, RTObject>();
     // Used for accessing temporary variables
     CallStack _callStack;
     HashSet<String> _changedVariables = new HashSet<String>();

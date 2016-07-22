@@ -4,9 +4,9 @@
 
 package Ink.Runtime;
 
-import Ink.Runtime.Object;
+import Ink.Runtime.RTObject;
 
-public class Void  extends Object 
+public class Void  extends RTObject 
 {
     public Void() throws Exception {
     }

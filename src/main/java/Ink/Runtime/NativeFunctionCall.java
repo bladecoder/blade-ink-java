@@ -1,23 +1,10 @@
-//
-// Translated by CS2J (http://www.cs2j.com): 22/07/2016 12:24:33
-//
-
 package Ink.Runtime;
 
-import CS2JNet.JavaSupport.language.RefSupport;
-import CS2JNet.JavaSupport.util.ListSupport;
-import Ink.Runtime.NativeFunctionCall;
-import Ink.Runtime.Object;
-import Ink.Runtime.Path;
-import Ink.Runtime.StoryException;
-import Ink.Runtime.Value;
-import Ink.Runtime.ValueType;
-import Ink.Runtime.Void;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class NativeFunctionCall  extends Object 
+public class NativeFunctionCall  extends RTObject 
 {
     public static final String Add = "+";
     public static final String Subtract = "-";
@@ -73,7 +60,7 @@ public class NativeFunctionCall  extends Object
     }
 
     int _numberOfParameters = new int();
-    public Object call(List<Object> parameters) throws Exception {
+    public RTObject call(List<RTObject> parameters) throws Exception {
         if (_prototype)
         {
             return _prototype.Call(parameters);
@@ -119,8 +106,8 @@ public class NativeFunctionCall  extends Object
         int paramCount = parametersOfSingleType.Count;
         if (paramCount == 2 || paramCount == 1)
         {
-            Object opForTypeObj = null;
-            RefSupport<Object> refVar___0 = new RefSupport<Object>();
+            RTObject opForTypeObj = null;
+            RefSupport<RTObject> refVar___0 = new RefSupport<RTObject>();
             boolean boolVar___0 = !_operationFuncs.TryGetValue(valType, refVar___0);
             opForTypeObj = refVar___0.getValue();
             if (boolVar___0)
@@ -135,7 +122,7 @@ public class NativeFunctionCall  extends Object
                 Value<T> val2 = (Value<T>)param2;
                 BinaryOp<T> opForType = (BinaryOp<T>)opForTypeObj;
                 // Return value unknown until it's evaluated
-                Object resultVal = opForType.invoke(val1.getvalue(),val2.getvalue());
+                RTObject resultVal = opForType.invoke(val1.getvalue(),val2.getvalue());
                 return Value.create(resultVal);
             }
             else
@@ -152,7 +139,7 @@ public class NativeFunctionCall  extends Object
         } 
     }
 
-    List<Value> coerceValuesToSingleType(List<Object> parametersIn) throws Exception {
+    List<Value> coerceValuesToSingleType(List<RTObject> parametersIn) throws Exception {
         ValueType valType = ValueType.Int;
         for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ obj : parametersIn)
         {
@@ -169,7 +156,7 @@ public class NativeFunctionCall  extends Object
         }
         // Coerce to this chosen type
         /* [UNSUPPORTED] 'var' as type is unsupported "var" */ parametersOut = new List<Value>();
-        for (Object __dummyForeachVar2 : parametersIn)
+        for (RTObject __dummyForeachVar2 : parametersIn)
         {
             Value val = (Value)__dummyForeachVar2;
             Value castedValue = val.cast(valType);
@@ -198,7 +185,7 @@ public class NativeFunctionCall  extends Object
     static void generateNativeFunctionsIfNecessary() throws Exception {
         if (_nativeFunctions == null)
         {
-            _nativeFunctions = new Dictionary<String, NativeFunctionCall>();
+            _nativeFunctions = new HashMap<String, NativeFunctionCall>();
             // Int operations
             AddIntBinaryOp(Add, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
                 return x + y;
@@ -315,7 +302,7 @@ public class NativeFunctionCall  extends Object
             BinaryOp<Path> divertTargetsEqual = new BinaryOp<Path>() 
               { 
                 // Special case: The only operation you can do on divert target values
-                public System.Object invoke(Path d1, Path d2) throws Exception {
+                public System.RTObject invoke(Path d1, Path d2) throws Exception {
                     return d1.equals(d2) ? 1 : 0;
                 }
 
@@ -331,16 +318,16 @@ public class NativeFunctionCall  extends Object
          
     }
 
-    void addOpFuncForType(ValueType valType, Object op) throws Exception {
+    void addOpFuncForType(ValueType valType, RTObject op) throws Exception {
         if (_operationFuncs == null)
         {
-            _operationFuncs = new Dictionary<ValueType, Object>();
+            _operationFuncs = new HashMap<ValueType, RTObject>();
         }
          
         _operationFuncs[valType] = op;
     }
 
-    static void addOpToNativeFunc(String name, int args, ValueType valType, Object op) throws Exception {
+    static void addOpToNativeFunc(String name, int args, ValueType valType, RTObject op) throws Exception {
         NativeFunctionCall nativeFunc = null;
         // Operations for each data type, for a single operation (e.g. "+")
         RefSupport<NativeFunctionCall> refVar___1 = new RefSupport<NativeFunctionCall>();
@@ -393,14 +380,14 @@ public class NativeFunctionCall  extends Object
 
     static class __MultiBinaryOp <T>  implements BinaryOp<T>
     {
-        public Object invoke(T left, T right) throws Exception {
+        public RTObject invoke(T left, T right) throws Exception {
             IList<BinaryOp<T>> copy = new IList<BinaryOp<T>>(), members = this.getInvocationList();
             synchronized (members)
             {
                 copy = new LinkedList<BinaryOp<T>>(members);
             }
             BinaryOp<T> prev = null;
-            for (Object __dummyForeachVar3 : copy)
+            for (RTObject __dummyForeachVar3 : copy)
             {
                 BinaryOp<T> d = (BinaryOp<T>)__dummyForeachVar3;
                 if (prev != null)
@@ -451,7 +438,7 @@ public class NativeFunctionCall  extends Object
 
     static interface BinaryOp <T>  
     {
-        Object invoke(T left, T right) throws Exception ;
+        RTObject invoke(T left, T right) throws Exception ;
 
         System.Collections.Generic.IList<BinaryOp<T>> getInvocationList() throws Exception ;
     
@@ -459,14 +446,14 @@ public class NativeFunctionCall  extends Object
 
     static class __MultiUnaryOp <T>  implements UnaryOp<T>
     {
-        public Object invoke(T val) throws Exception {
+        public RTObject invoke(T val) throws Exception {
             IList<UnaryOp<T>> copy = new IList<UnaryOp<T>>(), members = this.getInvocationList();
             synchronized (members)
             {
                 copy = new LinkedList<UnaryOp<T>>(members);
             }
             UnaryOp<T> prev = null;
-            for (Object __dummyForeachVar4 : copy)
+            for (RTObject __dummyForeachVar4 : copy)
             {
                 UnaryOp<T> d = (UnaryOp<T>)__dummyForeachVar4;
                 if (prev != null)
@@ -517,7 +504,7 @@ public class NativeFunctionCall  extends Object
 
     static interface UnaryOp <T>  
     {
-        Object invoke(T val) throws Exception ;
+        RTObject invoke(T val) throws Exception ;
 
         System.Collections.Generic.IList<UnaryOp<T>> getInvocationList() throws Exception ;
     
@@ -525,8 +512,8 @@ public class NativeFunctionCall  extends Object
 
     NativeFunctionCall _prototype;
     boolean _isPrototype = new boolean();
-    Dictionary<ValueType, Object> _operationFuncs = new Dictionary<ValueType, Object>();
-    static Dictionary<String, NativeFunctionCall> _nativeFunctions = new Dictionary<String, NativeFunctionCall>();
+    HashMap<ValueType, RTObject> _operationFuncs = new HashMap<ValueType, RTObject>();
+    static HashMap<String, NativeFunctionCall> _nativeFunctions = new HashMap<String, NativeFunctionCall>();
 }
 
 

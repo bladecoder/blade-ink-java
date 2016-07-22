@@ -5,10 +5,10 @@
 package Ink.Runtime;
 
 import Ink.Runtime.Container;
-import Ink.Runtime.Object;
+import Ink.Runtime.RTObject;
 import Ink.Runtime.Path;
 
-public class VariableReference  extends Object 
+public class VariableReference  extends RTObject 
 {
     // Normal named variable
     private String __name = new String();
