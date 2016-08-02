@@ -48,7 +48,7 @@ public class SimpleJson {
 			else if (tryRead("null"))
 				return null;
 
-			throw new Exception("Unhandled RTObject type in JSON: " + _text.substring(_offset, 30));
+			throw new Exception("Unhandled RTObject type in JSON: " + _text.substring(_offset, _offset + 30));
 		}
 
 		HashMap<String, Object> readHashMap() throws Exception {
@@ -114,11 +114,11 @@ public class SimpleJson {
 
 			}
 			expect("\"");
-			String str = _text.substring(startOffset, _offset - startOffset - 1);
-			str = str.replaceAll("\\\\", "\\");
-			str = str.replaceAll("\\\"", "\"");
-			str = str.replaceAll("\\r", "");
-			str = str.replaceAll("\\n", "\n");
+			String str = _text.substring(startOffset, _offset - 1);
+			str = str.replace("\\\\", "\\");
+			str = str.replace("\\\"", "\"");
+			str = str.replace("\\r", "");
+			str = str.replace("\\n", "\n");
 			return str;
 		}
 
@@ -136,7 +136,7 @@ public class SimpleJson {
                 else
                     break; 
             }
-            String numStr = _text.substring(startOffset, _offset - startOffset);
+            String numStr = _text.substring(startOffset, _offset);
             if (isFloat)
             {
                 try {
@@ -238,10 +238,10 @@ public class SimpleJson {
             {
                 String str = (String)obj;
                 // Escape backslashes, quotes and newlines
-                str = str.replaceAll("\\", "\\\\");
-                str = str.replaceAll("\"", "\\\"");
-                str = str.replaceAll("\n", "\\n");
-                str = str.replaceAll("\r", "");
+                str = str.replace("\\", "\\\\");
+                str = str.replace("\"", "\\\"");
+                str = str.replace("\n", "\\n");
+                str = str.replace("\r", "");
                 _sb.append(String.format("\"{0}\"", str));
             }
             else if (obj instanceof HashMap<?, ?>)

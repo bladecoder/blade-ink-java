@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.bladecoder.ink.runtime.ControlCommand.CommandType;
+
 public class Json {
 	public static <T extends RTObject> List<Object> listToJArray(List<T> serialisables) throws Exception {
 		List<Object> jArray = new ArrayList<Object>();
@@ -580,33 +582,28 @@ public class Json {
 	static String[] _controlCommandNames;
 
 	static {
-		try {
-			_controlCommandNames = new String[(com.bladecoder.ink.runtime.ControlCommand.CommandType.TOTAL_VALUES).ordinal()];
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.EvalStart.ordinal()] = "ev";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.EvalOutput.ordinal()] = "out";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.EvalEnd.ordinal()] = "/ev";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.Duplicate.ordinal()] = "du";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.PopEvaluatedValue.ordinal()] = "pop";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.PopFunction.ordinal()] = "~ret";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.PopTunnel.ordinal()] = "->->";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.BeginString.ordinal()] = "str";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.EndString.ordinal()] = "/str";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.NoOp.ordinal()] = "nop";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.ChoiceCount.ordinal()] = "choiceCnt";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.TurnsSince.ordinal()] = "turns";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.VisitIndex.ordinal()] = "visit";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.SequenceShuffleIndex.ordinal()] = "seq";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.StartThread.ordinal()] = "thread";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.Done.ordinal()] = "done";
-			_controlCommandNames[com.bladecoder.ink.runtime.ControlCommand.CommandType.End.ordinal()] = "end";
+		_controlCommandNames = new String[CommandType.values().length - 1];
+		_controlCommandNames[CommandType.EvalStart.ordinal() - 1] = "ev";
+		_controlCommandNames[CommandType.EvalOutput.ordinal() - 1] = "out";
+		_controlCommandNames[CommandType.EvalEnd.ordinal() - 1] = "/ev";
+		_controlCommandNames[CommandType.Duplicate.ordinal() - 1] = "du";
+		_controlCommandNames[CommandType.PopEvaluatedValue.ordinal() - 1] = "pop";
+		_controlCommandNames[CommandType.PopFunction.ordinal() - 1] = "~ret";
+		_controlCommandNames[CommandType.PopTunnel.ordinal() - 1] = "->->";
+		_controlCommandNames[CommandType.BeginString.ordinal() - 1] = "str";
+		_controlCommandNames[CommandType.EndString.ordinal() - 1] = "/str";
+		_controlCommandNames[CommandType.NoOp.ordinal() - 1] = "nop";
+		_controlCommandNames[CommandType.ChoiceCount.ordinal() - 1] = "choiceCnt";
+		_controlCommandNames[CommandType.TurnsSince.ordinal() - 1] = "turns";
+		_controlCommandNames[CommandType.VisitIndex.ordinal() - 1] = "visit";
+		_controlCommandNames[CommandType.SequenceShuffleIndex.ordinal() - 1] = "seq";
+		_controlCommandNames[CommandType.StartThread.ordinal() - 1] = "thread";
+		_controlCommandNames[CommandType.Done.ordinal() - 1] = "done";
+		_controlCommandNames[CommandType.End.ordinal() - 1] = "end";
 
-			for (int i = 0; i < com.bladecoder.ink.runtime.ControlCommand.CommandType.TOTAL_VALUES.ordinal(); ++i) {
-				if (_controlCommandNames[i] == null)
-					throw new Exception("Control command not accounted for in serialisation");
-
-			}
-		} catch (Exception __dummyStaticConstructorCatchVar0) {
-			throw new ExceptionInInitializerError(__dummyStaticConstructorCatchVar0);
+		for (int i = 0; i < CommandType.values().length - 1; ++i) {
+			if (_controlCommandNames[i] == null)
+				throw new ExceptionInInitializerError("Control command not accounted for in serialisation");
 		}
 
 	}

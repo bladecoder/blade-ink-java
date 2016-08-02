@@ -318,7 +318,7 @@ public class Container extends RTObject implements INamedContent {
 				appendIndentation(sb, indentation);
 				if (obj instanceof StringValue) {
 					sb.append("\"");
-					sb.append(obj.toString().replaceAll("\n", "\\n"));
+					sb.append(obj.toString().replace("\n", "\\n"));
 					sb.append("\"");
 				} else {
 					sb.append(obj.toString());

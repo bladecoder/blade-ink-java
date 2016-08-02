@@ -425,7 +425,7 @@ public class StoryState {
 		}
 
 		if (innerStrEnd > innerStrStart) {
-			String innerStrText = str.substring(innerStrStart, innerStrEnd - innerStrStart);
+			String innerStrText = str.substring(innerStrStart, innerStrEnd);
 			listTexts.add(new StringValue(innerStrText));
 		}
 
@@ -433,7 +433,7 @@ public class StoryState {
 			listTexts.add(new StringValue("\n"));
 			if (tailLastNewlineIdx < str.length() - 1) {
 				int numSpaces = (str.length() - tailLastNewlineIdx) - 1;
-				StringValue trailingSpaces = new StringValue(str.substring(tailLastNewlineIdx + 1, numSpaces));
+				StringValue trailingSpaces = new StringValue(str.substring(tailLastNewlineIdx + 1, numSpaces + tailLastNewlineIdx + 1));
 				listTexts.add(trailingSpaces);
 			}
 		}

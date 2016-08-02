@@ -36,7 +36,7 @@ public class Story extends RTObject {
 	/// The minimum legacy version of ink that can be loaded by the current
 	/// version of the code.
 	/// </summary>
-	public static final int inkVersionMinimumCompatible = 12;
+	public static final int inkVersionMinimumCompatible = 11;
 
 	/// <summary>
 	/// The list of Choice Objects available at the current point in
@@ -123,12 +123,12 @@ public class Story extends RTObject {
 		if (versionObj == null)
 			throw new Exception("ink version number not found. Are you sure it's a valid .ink.json file?");
 
-		int formatFromFile = (int) versionObj;
+		int formatFromFile = Integer.parseInt((String)versionObj);
 		if (formatFromFile > inkVersionCurrent) {
 			throw new Exception("Version of ink used to build story was newer than the current verison of the engine");
 		} else if (formatFromFile < inkVersionMinimumCompatible) {
 			throw new Exception(
-					"Version of ink used to build story is too old to be loaded by this verison of the engine");
+					"Version of ink used to build story is too old to be loaded by this version of the engine");
 		} else if (formatFromFile != inkVersionCurrent) {
 			System.out.println(
 					"WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");

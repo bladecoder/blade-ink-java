@@ -28,9 +28,7 @@ public class ControlCommand  extends RTObject
         SequenceShuffleIndex,
         StartThread,
         Done,
-        End,
-        //----
-        TOTAL_VALUES
+        End
     }
     private CommandType __commandType = CommandType.NotSet;
     public CommandType getcommandType() {
