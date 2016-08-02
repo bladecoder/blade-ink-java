@@ -7,7 +7,7 @@ import java.util.List;
 import javax.print.DocFlavor.STRING;
 
 class CallStack {
-	class Element {
+	static class Element {
 		public Container currentContainer;
 		public int currentContentIndex;
 
@@ -66,7 +66,7 @@ class CallStack {
 		}
 	}
 
-	class Thread {
+	static class Thread {
 		public List<Element> callstack;
 		public int threadIndex;
 		public RTObject previousContentRTObject;
@@ -118,7 +118,7 @@ class CallStack {
 		public Thread Copy() {
 			Thread copy = new Thread();
 			copy.threadIndex = threadIndex;
-			for (Element e : getCallStack()) {
+			for (Element e : callstack) {
 				copy.callstack.add(e.Copy());
 			}
 			copy.previousContentRTObject = previousContentRTObject;
@@ -262,6 +262,10 @@ class CallStack {
 			return true;
 
 		return currentElement().type == type;
+	}
+	
+	public void Pop() {
+		Pop(null);
 	}
 
 	public void Pop(PushPopType type) {

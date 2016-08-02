@@ -1,7 +1,14 @@
 package Ink.Runtime;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
+import java.util.Stack;
+
+import Ink.Runtime.CallStack.Element;
 
 /// <summary>
 /// A Story is the core class that represents a complete Ink narrative, and
@@ -32,7 +39,7 @@ public class Story extends RTObject {
 	public static final int inkVersionMinimumCompatible = 12;
 
 	/// <summary>
-	/// The list of Choice objects available at the current point in
+	/// The list of Choice Objects available at the current point in
 	/// the Story. This list will be populated as the Story is stepped
 	/// through with the Continue() method. Once canContinue becomes
 	/// false, this list will be fully populated, and is usually
@@ -42,7 +49,7 @@ public class Story extends RTObject {
 
 		// Don't include invisible choices for external usage.
 		List choices = new ArrayList<Choice>();
-		for (Choice c : _state.getcurrentChoices()) {
+		for (Choice c : _state.currentChoices) {
 			if (!c.getchoicePoint().getisInvisibleDefault()) {
 				c.setindex(choices.size());
 				choices.add(c);
@@ -55,29 +62,29 @@ public class Story extends RTObject {
 	/// The latest line of text to be generated from a Continue() call.
 	/// </summary>
 	public String getCurrentText() {
-		return state.currentText;
+		return _state.currentText();
 	}
 
 	/// <summary>
 	/// Any errors generated during evaluation of the Story.
 	/// </summary>
-	public List<string> getCurrentErrors() {
-		return state.currentErrors;
+	public List<String> getCurrentErrors() {
+		return _state.currentErrors;
 	}
 
 	/// <summary>
 	/// Whether the currentErrors list contains any errors.
 	/// </summary>
 	public boolean hasError() {
-		return _state.hasError;
+		return _state.hasError();
 	}
 
 	/// <summary>
-	/// The VariablesState object contains all the global variables in the
+	/// The VariablesState Object contains all the global variables in the
 	/// story.
 	/// However, note that there's more to the state of a Story than just the
 	/// global variables. This is a convenience accessor to the full state
-	/// object.
+	/// Object.
 	/// </summary>
 	public VariablesState getVariablesState() {
 		return _state.variablesState;
@@ -100,62 +107,65 @@ public class Story extends RTObject {
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
 	// For normal use, use the constructor that takes a json string.
-	internal Story(Container contentContainer) {
+	Story(Container contentContainer) {
 		_mainContentContainer = contentContainer;
-		_externals = new Dictionary<string, ExternalFunction>();
+		_externals = new HashMap<String, ExternalFunction>();
 	}
 
 	/// <summary>
-	/// Construct a Story object using a JSON string compiled through inklecate.
+	/// Construct a Story Object using a JSON String compiled through inklecate.
 	/// </summary>
-	public Story(String jsonString) 
-        {
-		this((Container)null);
-            Dictionary<string, object> rootObject = SimpleJson.TextToDictionary (jsonString);
+	public Story(String jsonString) throws Exception {
+		this((Container) null);
+		HashMap<String, Object> rootObject = SimpleJson.textToHashMap(jsonString);
 
-            object versionObj = rootObject ["inkVersion"];
-            if (versionObj == null)
-                throw new System.Exception ("ink version number not found. Are you sure it's a valid .ink.json file?");
+		Object versionObj = rootObject.get("inkVersion");
+		if (versionObj == null)
+			throw new Exception("ink version number not found. Are you sure it's a valid .ink.json file?");
 
-            int formatFromFile = (int)versionObj;
-            if (formatFromFile > inkVersionCurrent) {
-                throw new System.Exception ("Version of ink used to build story was newer than the current verison of the engine");
-            } else if (formatFromFile < inkVersionMinimumCompatible) {
-                throw new System.Exception ("Version of ink used to build story is too old to be loaded by this verison of the engine");
-            } else if (formatFromFile != inkVersionCurrent) {
-                Console.WriteLine ("WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");
-            }
-                
-            var rootToken = rootObject ["root"];
-            if (rootToken == null)
-                throw new Exception ("Root node for ink not found. Are you sure it's a valid .ink.json file?");
-            
+		int formatFromFile = (int) versionObj;
+		if (formatFromFile > inkVersionCurrent) {
+			throw new Exception("Version of ink used to build story was newer than the current verison of the engine");
+		} else if (formatFromFile < inkVersionMinimumCompatible) {
+			throw new Exception(
+					"Version of ink used to build story is too old to be loaded by this verison of the engine");
+		} else if (formatFromFile != inkVersionCurrent) {
+			System.out.println(
+					"WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");
+		}
 
-            _mainContentContainer = Json.JTokenToRuntimeObject (rootToken) as Container;
+		Object rootToken = rootObject.get("root");
+		if (rootToken == null)
+			throw new Exception("Root node for ink not found. Are you sure it's a valid .ink.json file?");
 
-            ResetState ();
-        }
+		_mainContentContainer = (Container) Json.jTokenToRuntimeRTObject(rootToken);
+
+		ResetState();
+	}
 
 	/// <summary>
 	/// The Story itself in JSON representation.
 	/// </summary>
-	public string ToJsonString() {
-		var rootContainerJsonList = (List<object>) Json.RuntimeObjectToJToken(_mainContentContainer);
+	public String ToJsonString() throws Exception {
+		List<Object> rootContainerJsonList = (List<Object>) Json.runtimeRTObjectToJToken(_mainContentContainer);
 
-		var rootObject = new Dictionary<string, object>();
-		rootObject["inkVersion"] = inkVersionCurrent;
-		rootObject["root"] = rootContainerJsonList;
+		HashMap<String, Object> rootObject = new HashMap<String, Object>();
+		rootObject.put("inkVersion", inkVersionCurrent);
+		rootObject.put("root", rootContainerJsonList);
 
-		return SimpleJson.DictionaryToText(rootObject);
+		return SimpleJson.HashMapToText(rootObject);
 	}
 
 	/// <summary>
 	/// Reset the Story back to its initial state as it was when it was
 	/// first constructed.
 	/// </summary>
-	public void ResetState() {
+	public void ResetState() throws Exception {
 		_state = new StoryState(this);
-		_state.variablesState.variableChangedEvent += VariableStateDidChangeEvent;
+
+		// TODO
+		// _state.variablesState.variableChangedEvent +=
+		// VariableStateDidChangeEvent;
 
 		ResetGlobals();
 	}
@@ -175,13 +185,13 @@ public class Story extends RTObject {
 	/// Doing so without calling ResetCallstack() could cause unexpected
 	/// issues if, for example, the Story was in a tunnel already.
 	/// </summary>
-	public void ResetCallstack() {
+	public void ResetCallstack() throws Exception {
 		_state.ForceEndFlow();
 	}
 
-	void ResetGlobals() {
-		if (_mainContentContainer.namedContent.ContainsKey("global decl")) {
-			var originalPath = state.currentPath;
+	void ResetGlobals() throws Exception {
+		if (_mainContentContainer.getnamedContent().containsKey("global decl")) {
+			Path originalPath = getState().getcurrentPath();
 
 			ChoosePathString("global decl");
 
@@ -189,7 +199,7 @@ public class Story extends RTObject {
 			// since we may be doing this reset at initialisation time.
 			ContinueInternal();
 
-			state.currentPath = originalPath;
+			getState().setcurrentPath(originalPath);
 		}
 	}
 
@@ -201,7 +211,7 @@ public class Story extends RTObject {
 	/// you should call <c>canContinue</c> before calling this function.
 	/// </summary>
 	/// <returns>The line of text content.</returns>
-	public string Continue() {
+	public String Continue() throws StoryException, Exception {
 		// TODO: Should we leave this to the client, since it could be
 		// slow to iterate through all the content an extra time?
 		if (!_hasValidatedExternals)
@@ -210,16 +220,16 @@ public class Story extends RTObject {
 		return ContinueInternal();
 	}
 
-	string ContinueInternal() {
-		if (!canContinue) {
+	String ContinueInternal() throws StoryException, Exception {
+		if (!canContinue()) {
 			throw new StoryException("Can't continue - should check canContinue before calling Continue");
 		}
 
 		_state.ResetOutput();
 
 		_state.didSafeExit = false;
-
-		_state.variablesState.batchObservingVariableChanges = true;
+		// TODO
+		// _state.variablesState.batchObservingVariableChanges = true;
 
 		// _previousContainer = null;
 
@@ -250,13 +260,13 @@ public class Story extends RTObject {
 
 				// Run out of content and we have a default invisible choice
 				// that we can follow?
-				if (!canContinue) {
+				if (!canContinue()) {
 					TryFollowDefaultInvisibleChoice();
 				}
 
-				// Don't save/rewind during string evaluation, which is e.g.
+				// Don't save/rewind during String evaluation, which is e.g.
 				// used for choices
-				if (!state.inStringEvaluation) {
+				if (!getState().inStringEvaluation()) {
 
 					// We previously found a newline, but were we just double
 					// checking that
@@ -265,14 +275,14 @@ public class Story extends RTObject {
 
 						// Cover cases that non-text generated content was
 						// evaluated last step
-						string currText = currentText;
-						int prevTextLength = stateAtLastNewline.currentText.Length;
+						String currText = getCurrentText();
+						int prevTextLength = stateAtLastNewline.currentText().length();
 
 						// Output has been extended?
-						if (!currText.Equals(stateAtLastNewline.currentText)) {
+						if (!currText.equals(stateAtLastNewline.currentText())) {
 
 							// Original newline still exists?
-							if (currText.Length >= prevTextLength && currText[prevTextLength - 1] == '\n') {
+							if (currText.length() >= prevTextLength && currText.charAt(prevTextLength - 1) == '\n') {
 
 								RestoreStateSnapshot(stateAtLastNewline);
 								break;
@@ -290,14 +300,14 @@ public class Story extends RTObject {
 
 					// Current content ends in a newline - approaching end of
 					// our evaluation
-					if (state.outputStreamEndsInNewline) {
+					if (getState().outputStreamEndsInNewline()) {
 
 						// If we can continue evaluation for a bit:
 						// Create a snapshot in case we need to rewind.
 						// We're going to continue stepping in case we see glue
 						// or some
 						// non-text content such as choices.
-						if (canContinue) {
+						if (canContinue()) {
 							stateAtLastNewline = StateSnapshot();
 						}
 
@@ -311,7 +321,7 @@ public class Story extends RTObject {
 
 				}
 
-			} while (canContinue);
+			} while (canContinue());
 
 			// Need to rewind, due to evaluating further than we should?
 			if (stateAtLastNewline != null) {
@@ -319,18 +329,18 @@ public class Story extends RTObject {
 			}
 
 			// Finished a section of content / reached a choice point?
-			if (!canContinue) {
+			if (!canContinue()) {
 
-				if (state.callStack.canPopThread) {
+				if (getState().callStack.canPopThread()) {
 					Error("Thread available to pop, threads should always be flat by the end of evaluation?");
 				}
 
-				if (currentChoices.Count == 0 && !state.didSafeExit) {
-					if (state.callStack.CanPop(PushPopType.Tunnel)) {
+				if (getCurrentChoices().size() == 0 && !getState().didSafeExit) {
+					if (getState().callStack.CanPop(PushPopType.Tunnel)) {
 						Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-					} else if (state.callStack.CanPop(PushPopType.Function)) {
+					} else if (getState().callStack.CanPop(PushPopType.Function)) {
 						Error("unexpectedly reached end of content. Do you need a '~ return'?");
-					} else if (!state.callStack.canPop) {
+					} else if (!getState().callStack.canPop()) {
 						Error("ran out of content. Do you need a '-> DONE' or '-> END'?");
 					} else {
 						Error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
@@ -340,15 +350,15 @@ public class Story extends RTObject {
 			}
 
 		} catch (StoryException e) {
-			AddError(e.Message, e.useEndLineNumber);
+			AddError(e.getMessage(), e.useEndLineNumber);
 		} finally {
 
-			state.didSafeExit = false;
+			getState().didSafeExit = false;
 
-			_state.variablesState.batchObservingVariableChanges = false;
+			_state.variablesState.setbatchObservingVariableChanges(false);
 		}
 
-		return currentText;
+		return getCurrentText();
 	}
 
 	/// <summary>
@@ -357,10 +367,9 @@ public class Story extends RTObject {
 	/// are we mid story rather than at a choice point or at the end.
 	/// </summary>
 	/// <value><c>true</c> if it's possible to call <c>Continue()</c>.</value>
-	public boolean canContinue()
-	{
-                return state.currentContentObject != null && !state.hasError;
-        }
+	public boolean canContinue() throws Exception {
+		return _state.getcurrentContentObject() != null && !_state.hasError();
+	}
 
 	/// <summary>
 	/// Continue the story until the next choice point or until it runs out of
@@ -371,557 +380,579 @@ public class Story extends RTObject {
 	/// </summary>
 	/// <returns>The resulting text evaluated by the ink engine, concatenated
 	/// together.</returns>
-	public string ContinueMaximally() {
-		var sb = new StringBuilder();
+	public String ContinueMaximally() throws StoryException, Exception {
+		StringBuilder sb = new StringBuilder();
 
-		while (canContinue) {
-			sb.Append(Continue());
+		while (canContinue()) {
+			sb.append(Continue());
 		}
 
-		return sb.ToString();
+		return sb.toString();
 	}
 
-	RTObject ContentAtPath(Path path) {
-		return mainContentContainer.ContentAtPath(path);
+	RTObject ContentAtPath(Path path) throws Exception {
+		return mainContentContainer().contentAtPath(path);
 	}
 
-	StoryState StateSnapshot() {
-		return state.Copy();
+	StoryState StateSnapshot() throws Exception {
+		return _state.Copy();
 	}
 
 	void RestoreStateSnapshot(StoryState state) {
 		_state = state;
 	}
 
-	void Step ()
-        {
-            bool shouldAddToStream = true;
+	void Step() throws Exception {
+		boolean shouldAddToStream = true;
 
-            // Get current content
-            var currentContentObj = state.currentContentObject;
-            if (currentContentObj == null) {
-                return;
-            }
-                
-            // Step directly to the first element of content in a container (if necessary)
-            Container currentContainer = currentContentObj as Container;
-            while(currentContainer) {
+		// Get current content
+		RTObject currentContentObj = _state.getcurrentContentObject();
+		if (currentContentObj == null) {
+			return;
+		}
 
-                // Mark container as being entered
-                VisitContainer (currentContainer, atStart:true);
+		// Step directly to the first element of content in a container (if
+		// necessary)
+		Container currentContainer = (Container) currentContentObj;
+		while (currentContainer != null) {
 
-                // No content? the most we can do is step past it
-                if (currentContainer.content.Count == 0)
-                    break;
+			// Mark container as being entered
+			VisitContainer(currentContainer, true);
 
-                currentContentObj = currentContainer.content [0];
-                state.callStack.currentElement.currentContentIndex = 0;
-                state.callStack.currentElement.currentContainer = currentContainer;
+			// No content? the most we can do is step past it
+			if (currentContainer._content.size() == 0)
+				break;
 
-                currentContainer = currentContentObj as Container;
-            }
-            currentContainer = state.callStack.currentElement.currentContainer;
+			currentContentObj = currentContainer._content.get(0);
+			_state.callStack.currentElement().currentContentIndex = 0;
+			_state.callStack.currentElement().currentContainer = currentContainer;
 
-            // Is the current content object:
-            //  - Normal content
-            //  - Or a logic/flow statement - if so, do it
-            // Stop flow if we hit a stack pop when we're unable to pop (e.g. return/done statement in knot
-            // that was diverted to rather than called as a function)
-            bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj);
+			currentContainer = (Container) currentContentObj;
+		}
+		currentContainer = _state.callStack.currentElement().currentContainer;
 
-            // Has flow been forced to end by flow control above?
-            if (state.currentContentObject == null) {
-                return;
-            }
+		// Is the current content Object:
+		// - Normal content
+		// - Or a logic/flow statement - if so, do it
+		// Stop flow if we hit a stack pop when we're unable to pop (e.g.
+		// return/done statement in knot
+		// that was diverted to rather than called as a function)
+		boolean isLogicOrFlowControl = PerformLogicAndFlowControl(currentContentObj);
 
-            if (isLogicOrFlowControl) {
-                shouldAddToStream = false;
-            }
+		// Has flow been forced to end by flow control above?
+		if (_state.getcurrentContentObject() == null) {
+			return;
+		}
 
-            // Choice with condition?
-            var choicePoint = currentContentObj as ChoicePoint;
-            if (choicePoint) {
-                var choice = ProcessChoice (choicePoint);
-                if (choice) {
-                    state.currentChoices.Add (choice);
-                }
+		if (isLogicOrFlowControl) {
+			shouldAddToStream = false;
+		}
 
-                currentContentObj = null;
-                shouldAddToStream = false;
-            }
+		// Choice with condition?
+		ChoicePoint choicePoint = (ChoicePoint) currentContentObj;
+		if (choicePoint != null) {
+			Choice choice = ProcessChoice(choicePoint);
+			if (choice != null) {
+				_state.currentChoices.add(choice);
+			}
 
-            // If the container has no content, then it will be
-            // the "content" itself, but we skip over it.
-            if (currentContentObj is Container) {
-                shouldAddToStream = false;
-            }
+			currentContentObj = null;
+			shouldAddToStream = false;
+		}
 
-            // Content to add to evaluation stack or the output stream
-            if (shouldAddToStream) {
+		// If the container has no content, then it will be
+		// the "content" itself, but we skip over it.
+		if (currentContentObj instanceof Container) {
+			shouldAddToStream = false;
+		}
 
-                // If we're pushing a variable pointer onto the evaluation stack, ensure that it's specific
-                // to our current (possibly temporary) context index. And make a copy of the pointer
-                // so that we're not editing the original runtime object.
-                var varPointer = currentContentObj as VariablePointerValue;
-                if (varPointer && varPointer.contextIndex == -1) {
+		// Content to add to evaluation stack or the output stream
+		if (shouldAddToStream) {
 
-                    // Create new object so we're not overwriting the story's own data
-                    var contextIdx = state.callStack.ContextForVariableNamed(varPointer.variableName);
-                    currentContentObj = new VariablePointerValue (varPointer.variableName, contextIdx);
-                }
+			// If we're pushing a variable pointer onto the evaluation stack,
+			// ensure that it's specific
+			// to our current (possibly temporary) context index. And make a
+			// copy of the pointer
+			// so that we're not editing the original runtime Object.
+			VariablePointerValue varPointer = (VariablePointerValue) currentContentObj;
+			if (varPointer != null && varPointer.getcontextIndex() == -1) {
 
-                // Expression evaluation content
-                if (state.inExpressionEvaluation) {
-                    state.PushEvaluationStack (currentContentObj);
-                }
-                // Output stream content (i.e. not expression evaluation)
-                else {
-                    state.PushToOutputStream (currentContentObj);
-                }
-            }
+				// Create new Object so we're not overwriting the story's own
+				// data
+				int contextIdx = _state.callStack.ContextForVariableNamed(varPointer.getvariableName());
+				currentContentObj = new VariablePointerValue(varPointer.getvariableName(), contextIdx);
+			}
 
-            // Increment the content pointer, following diverts if necessary
-            NextContent ();
+			// Expression evaluation content
+			if (_state.getinExpressionEvaluation()) {
+				_state.PushEvaluationStack(currentContentObj);
+			}
+			// Output stream content (i.e. not expression evaluation)
+			else {
+				_state.PushToOutputStream(currentContentObj);
+			}
+		}
 
-            // Starting a thread should be done after the increment to the content pointer,
-            // so that when returning from the thread, it returns to the content after this instruction.
-            var controlCmd = currentContentObj as ControlCommand;
-            if (controlCmd && controlCmd.commandType == ControlCommand.CommandType.StartThread) {
-                state.callStack.PushThread ();
-            }
-        }
+		// Increment the content pointer, following diverts if necessary
+		NextContent();
+
+		// Starting a thread should be done after the increment to the content
+		// pointer,
+		// so that when returning from the thread, it returns to the content
+		// after this instruction.
+		ControlCommand controlCmd = (ControlCommand) currentContentObj;
+		if (controlCmd != null && controlCmd.getcommandType() == ControlCommand.CommandType.StartThread) {
+			_state.callStack.PushThread();
+		}
+	}
 
 	// Mark a container as having been visited
-	void VisitContainer(Container container, bool atStart) {
-		if (!container.countingAtStartOnly || atStart) {
-			if (container.visitsShouldBeCounted)
+	void VisitContainer(Container container, boolean atStart) {
+		if (!container.getcountingAtStartOnly() || atStart) {
+			if (container.getvisitsShouldBeCounted())
 				IncrementVisitCountForContainer(container);
 
-			if (container.turnIndexShouldBeCounted)
+			if (container.getturnIndexShouldBeCounted())
 				RecordTurnIndexVisitToContainer(container);
 		}
 	}
 
-	void VisitChangedContainersDueToDivert()
-        {
-            var previousContentObject = state.previousContentObject;
-            var newContentObject = state.currentContentObject;
+	void VisitChangedContainersDueToDivert() throws Exception {
+		RTObject previousContentObject = _state.getpreviousContentObject();
+		RTObject newContentObject = _state.getcurrentContentObject();
 
-            if (!newContentObject)
-                return;
-            
-            // First, find the previously open set of containers
-            var prevContainerSet = new HashSet<Container> ();
-            if (previousContentObject) {
-                Container prevAncestor = previousContentObject as Container ?? previousContentObject.parent as Container;
-                while (prevAncestor) {
-                    prevContainerSet.Add (prevAncestor);
-                    prevAncestor = prevAncestor.parent as Container;
-                }
-            }
+		if (newContentObject == null)
+			return;
 
-            // If the new object is a container itself, it will be visited automatically at the next actual
-            // content step. However, we need to walk up the new ancestry to see if there are more new containers
-            Runtime.Object currentChildOfContainer = newContentObject;
-            Container currentContainerAncestor = currentChildOfContainer.parent as Container;
-            while (currentContainerAncestor && !prevContainerSet.Contains(currentContainerAncestor)) {
+		// First, find the previously open set of containers
+		HashSet<Container> prevContainerSet = new HashSet<Container>();
+		if (previousContentObject != null) {
+			Container prevAncestor = (previousContentObject instanceof Container ? (Container) previousContentObject
+					: (Container) previousContentObject.getparent());
+			while (prevAncestor != null) {
+				prevContainerSet.add(prevAncestor);
+				prevAncestor = (Container) prevAncestor.getparent();
+			}
+		}
 
-                // Check whether this ancestor container is being entered at the start,
-                // by checking whether the child object is the first.
-                bool enteringAtStart = currentContainerAncestor.content.Count > 0 
-                    && currentChildOfContainer == currentContainerAncestor.content [0];
+		// If the new Object is a container itself, it will be visited
+		// automatically at the next actual
+		// content step. However, we need to walk up the new ancestry to see if
+		// there are more new containers
+		RTObject currentChildOfContainer = newContentObject;
+		Container currentContainerAncestor = (Container) currentChildOfContainer.getparent();
+		while (currentContainerAncestor != null && !prevContainerSet.contains(currentContainerAncestor)) {
 
-                // Mark a visit to this container
-                VisitContainer (currentContainerAncestor, enteringAtStart);
+			// Check whether this ancestor container is being entered at the
+			// start,
+			// by checking whether the child Object is the first.
+			boolean enteringAtStart = currentContainerAncestor._content.size() > 0
+					&& currentChildOfContainer == currentContainerAncestor._content.get(0);
 
-                currentChildOfContainer = currentContainerAncestor;
-                currentContainerAncestor = currentContainerAncestor.parent as Container;
-            }
-        }
+			// Mark a visit to this container
+			VisitContainer(currentContainerAncestor, enteringAtStart);
 
-	Choice ProcessChoice(ChoicePoint choicePoint)
-        {
-            bool showChoice = true;
+			currentChildOfContainer = currentContainerAncestor;
+			currentContainerAncestor = (Container) currentContainerAncestor.getparent();
+		}
+	}
 
-            // Don't create choice if choice point doesn't pass conditional
-            if (choicePoint.hasCondition) {
-                var conditionValue = state.PopEvaluationStack ();
-                if (!IsTruthy (conditionValue)) {
-                    showChoice = false;
-                }
-            }
+	Choice ProcessChoice(ChoicePoint choicePoint) throws Exception {
+		boolean showChoice = true;
 
-            string startText = "";
-            string choiceOnlyText = "";
+		// Don't create choice if choice point doesn't pass conditional
+		if (choicePoint.gethasCondition()) {
+			RTObject conditionValue = _state.PopEvaluationStack();
+			if (!IsTruthy(conditionValue)) {
+				showChoice = false;
+			}
+		}
 
-            if (choicePoint.hasChoiceOnlyContent) {
-                var choiceOnlyStrVal = state.PopEvaluationStack () as StringValue;
-                choiceOnlyText = choiceOnlyStrVal.value;
-            }
+		String startText = "";
+		String choiceOnlyText = "";
 
-            if (choicePoint.hasStartContent) {
-                var startStrVal = state.PopEvaluationStack () as StringValue;
-                startText = startStrVal.value;
-            }
+		if (choicePoint.gethasChoiceOnlyContent()) {
+			StringValue choiceOnlyStrVal = (StringValue) _state.PopEvaluationStack();
+			choiceOnlyText = choiceOnlyStrVal.value;
+		}
 
-            // Don't create choice if player has already read this content
-            if (choicePoint.onceOnly) {
-                var visitCount = VisitCountForContainer (choicePoint.choiceTarget);
-                if (visitCount > 0) {
-                    showChoice = false;
-                }
-            }
-                
-            var choice = new Choice (choicePoint);
-            choice.threadAtGeneration = state.callStack.currentThread.Copy ();
+		if (choicePoint.gethasStartContent()) {
+			StringValue startStrVal = (StringValue) _state.PopEvaluationStack();
+			startText = startStrVal.value;
+		}
 
-            // We go through the full process of creating the choice above so
-            // that we consume the content for it, since otherwise it'll
-            // be shown on the output stream.
-            if (!showChoice) {
-                return null;
-            }
+		// Don't create choice if player has already read this content
+		if (choicePoint.getonceOnly()) {
+			int visitCount = VisitCountForContainer(choicePoint.getchoiceTarget());
+			if (visitCount > 0) {
+				showChoice = false;
+			}
+		}
 
-            // Set final text for the choice
-            choice.text = startText + choiceOnlyText;
+		Choice choice = new Choice(choicePoint);
+		choice.setthreadAtGeneration(_state.callStack.getcurrentThread().Copy());
 
-            return choice;
-        }
+		// We go through the full process of creating the choice above so
+		// that we consume the content for it, since otherwise it'll
+		// be shown on the output stream.
+		if (!showChoice) {
+			return null;
+		}
 
-	// Does the expression result represented by this object evaluate to true?
+		// Set final text for the choice
+		choice.settext(startText + choiceOnlyText);
+
+		return choice;
+	}
+
+	// Does the expression result represented by this Object evaluate to true?
 	// e.g. is it a Number that's not equal to 1?
-	bool IsTruthy(Runtime.Object obj)
-        {
-            bool truthy = false;
-            if (obj is Value) {
-                var val = (Value)obj;
+	boolean IsTruthy(RTObject obj) throws Exception {
+		boolean truthy = false;
+		if (obj instanceof Value) {
+			Value val = (Value) obj;
 
-                if (val is DivertTargetValue) {
-                    var divTarget = (DivertTargetValue)val;
-                    Error ("Shouldn't use a divert target (to " + divTarget.targetPath + ") as a conditional value. Did you intend a function call 'likeThis()' or a read count check 'likeThis'? (no arrows)");
-                    return false;
-                }
+			if (val instanceof DivertTargetValue) {
+				DivertTargetValue divTarget = (DivertTargetValue) val;
+				Error("Shouldn't use a divert target (to " + divTarget.gettargetPath()
+						+ ") as a conditional value. Did you intend a function call 'likeThis()' or a read count check 'likeThis'? (no arrows)");
+				return false;
+			}
 
-                return val.isTruthy;
-            }
-            return truthy;
-        }
+			return val.getisTruthy();
+		}
+		return truthy;
+	}
 
 	/// <summary>
-	/// Checks whether contentObj is a control or flow object rather than a
+	/// Checks whether contentObj is a control or flow Object rather than a
 	/// piece of content,
 	/// and performs the required command if necessary.
 	/// </summary>
-	/// <returns><c>true</c> if object was logic or flow control, <c>false</c>
+	/// <returns><c>true</c> if Object was logic or flow control, <c>false</c>
 	/// if it's normal content.</returns>
-	/// <param name="contentObj">Content object.</param>
-	bool PerformLogicAndFlowControl(Runtime.Object contentObj)
-        {
-            if( contentObj == null ) {
-                return false;
-            }
-
-            // Divert
-            if (contentObj is Divert) {
-                
-                Divert currentDivert = (Divert)contentObj;
-
-                if (currentDivert.isConditional) {
-                    var conditionValue = state.PopEvaluationStack ();
-
-                    // False conditional? Cancel divert
-                    if (!IsTruthy (conditionValue))
-                        return true;
-                }
-
-                if (currentDivert.hasVariableTarget) {
-                    var varName = currentDivert.variableDivertName;
-
-                    var varContents = state.variablesState.GetVariableWithName (varName);
-
-                    if (!(varContents is DivertTargetValue)) {
-
-                        var intContent = varContents as IntValue;
-
-                        string errorMessage = "Tried to divert to a target from a variable, but the variable (" + varName + ") didn't contain a divert target, it ";
-                        if (intContent && intContent.value == 0) {
-                            errorMessage += "was empty/null (the value 0).";
-                        } else {
-                            errorMessage += "contained '" + varContents + "'.";
-                        }
+	/// <param name="contentObj">Content Object.</param>
+	boolean PerformLogicAndFlowControl(RTObject contentObj) throws Exception {
+		if (contentObj == null) {
+			return false;
+		}
+
+		// Divert
+		if (contentObj instanceof Divert) {
+
+			Divert currentDivert = (Divert) contentObj;
+
+			if (currentDivert.getisConditional()) {
+				RTObject conditionValue = _state.PopEvaluationStack();
+
+				// False conditional? Cancel divert
+				if (!IsTruthy(conditionValue))
+					return true;
+			}
+
+			if (currentDivert.gethasVariableTarget()) {
+				String varName = currentDivert.getvariableDivertName();
+
+				RTObject varContents = _state.variablesState.getVariableWithName(varName);
 
-                        Error (errorMessage);
-                    }
-
-                    var target = (DivertTargetValue)varContents;
-                    state.divertedTargetObject = ContentAtPath(target.targetPath);
-
-                } else if (currentDivert.isExternal) {
-                    CallExternalFunction (currentDivert.targetPathString, currentDivert.externalArgs);
-                    return true;
-                } else {
-                    state.divertedTargetObject = currentDivert.targetContent;
-                }
+				if (!(varContents instanceof DivertTargetValue)) {
+
+					IntValue intContent = (IntValue) varContents;
 
-                if (currentDivert.pushesToStack) {
-                    state.callStack.Push (currentDivert.stackPushType);
-                }
-
-                if (state.divertedTargetObject == null && !currentDivert.isExternal) {
-
-                    // Human readable name available - runtime divert is part of a hard-written divert that to missing content
-                    if (currentDivert && currentDivert.debugMetadata.sourceName != null) {
-                        Error ("Divert target doesn't exist: " + currentDivert.debugMetadata.sourceName);
-                    } else {
-                        Error ("Divert resolution failed: " + currentDivert);
-                    }
-                }
-
-                return true;
-            } 
-
-            // Start/end an expression evaluation? Or print out the result?
-            else if( contentObj is ControlCommand ) {
-                var evalCommand = (ControlCommand) contentObj;
-
-                switch (evalCommand.commandType) {
-
-                case ControlCommand.CommandType.EvalStart:
-                    Assert (state.inExpressionEvaluation == false, "Already in expression evaluation?");
-                    state.inExpressionEvaluation = true;
-                    break;
-
-                case ControlCommand.CommandType.EvalEnd:
-                    Assert (state.inExpressionEvaluation == true, "Not in expression evaluation mode");
-                    state.inExpressionEvaluation = false;
-                    break;
-
-                case ControlCommand.CommandType.EvalOutput:
-
-                    // If the expression turned out to be empty, there may not be anything on the stack
-                    if (state.evaluationStack.Count > 0) {
-                        
-                        var output = state.PopEvaluationStack ();
-
-                        // Functions may evaluate to Void, in which case we skip output
-                        if (!(output is Void)) {
-                            // TODO: Should we really always blanket convert to string?
-                            // It would be okay to have numbers in the output stream the
-                            // only problem is when exporting text for viewing, it skips over numbers etc.
-                            var text = new StringValue (output.ToString ());
-
-                            state.PushToOutputStream (text);
-                        }
-
-                    }
-                    break;
-
-                case ControlCommand.CommandType.NoOp:
-                    break;
-
-                case ControlCommand.CommandType.Duplicate:
-                    state.PushEvaluationStack (state.PeekEvaluationStack ());
-                    break;
-
-                case ControlCommand.CommandType.PopEvaluatedValue:
-                    state.PopEvaluationStack ();
-                    break;
-
-                case ControlCommand.CommandType.PopFunction:
-                case ControlCommand.CommandType.PopTunnel:
-
-                    var popType = evalCommand.commandType == ControlCommand.CommandType.PopFunction ?
-                        PushPopType.Function : PushPopType.Tunnel;
-                    
-                    if (state.callStack.currentElement.type != popType || !state.callStack.canPop) {
-
-                        var names = new Dictionary<PushPopType, string> ();
-                        names [PushPopType.Function] = "function return statement (~ return)";
-                        names [PushPopType.Tunnel] = "tunnel onwards statement (->->)";
-
-                        string expected = names [state.callStack.currentElement.type];
-                        if (!state.callStack.canPop) {
-                            expected = "end of flow (-> END or choice)";
-                        }
-
-                        var errorMsg = string.Format ("Found {0}, when expected {1}", names [popType], expected);
-
-                        Error (errorMsg);
-                    } 
-
-                    else {
-                        state.callStack.Pop ();
-                    }
-                    break;
-
-                case ControlCommand.CommandType.BeginString:
-                    state.PushToOutputStream (evalCommand);
-
-                    Assert (state.inExpressionEvaluation == true, "Expected to be in an expression when evaluating a string");
-                    state.inExpressionEvaluation = false;
-                    break;
-
-                case ControlCommand.CommandType.EndString:
-                    
-                    // Since we're iterating backward through the content,
-                    // build a stack so that when we build the string,
-                    // it's in the right order
-                    var contentStackForString = new Stack<Runtime.Object> ();
-
-                    int outputCountConsumed = 0;
-                    for (int i = state.outputStream.Count - 1; i >= 0; --i) {
-                        var obj = state.outputStream [i];
-
-                        outputCountConsumed++;
-
-                        var command = obj as ControlCommand;
-                        if (command != null && command.commandType == ControlCommand.CommandType.BeginString) {
-                            break;
-                        }
-
-                        if( obj is StringValue )
-                            contentStackForString.Push (obj);
-                    }
-
-                    // Consume the content that was produced for this string
-                    state.outputStream.RemoveRange (state.outputStream.Count - outputCountConsumed, outputCountConsumed);
-
-                    // Build string out of the content we collected
-                    var sb = new StringBuilder ();
-                    foreach (var c in contentStackForString) {
-                        sb.Append (c.ToString ());
-                    }
-
-                    // Return to expression evaluation (from content mode)
-                    state.inExpressionEvaluation = true;
-                    state.PushEvaluationStack (new StringValue (sb.ToString ()));
-                    break;
-
-                case ControlCommand.CommandType.ChoiceCount:
-                    var choiceCount = currentChoices.Count;
-                    state.PushEvaluationStack (new Runtime.IntValue (choiceCount));
-                    break;
-
-                case ControlCommand.CommandType.TurnsSince:
-                    var target = state.PopEvaluationStack();
-                    if( !(target is DivertTargetValue) ) {
-                        string extraNote = "";
-                        if( target is IntValue )
-                            extraNote = ". Did you accidentally pass a read count ('knot_name') instead of a target ('-> knot_name')?";
-                        Error("TURNS_SINCE expected a divert target (knot, stitch, label name), but saw "+target+extraNote);
-                        break;
-                    }
-                        
-                    var divertTarget = target as DivertTargetValue;
-                    var container = ContentAtPath (divertTarget.targetPath) as Container;
-                    int turnCount = TurnsSinceForContainer (container);
-                    state.PushEvaluationStack (new IntValue (turnCount));
-                    break;
-
-                case ControlCommand.CommandType.VisitIndex:
-                    var count = VisitCountForContainer(state.currentContainer) - 1; // index not count
-                    state.PushEvaluationStack (new IntValue (count));
-                    break;
-
-                case ControlCommand.CommandType.SequenceShuffleIndex:
-                    var shuffleIndex = NextSequenceShuffleIndex ();
-                    state.PushEvaluationStack (new IntValue (shuffleIndex));
-                    break;
-
-                case ControlCommand.CommandType.StartThread:
-                    // Handled in main step function
-                    break;
-
-                case ControlCommand.CommandType.Done:
-                    
-                    // We may exist in the context of the initial
-                    // act of creating the thread, or in the context of
-                    // evaluating the content.
-                    if (state.callStack.canPopThread) {
-                        state.callStack.PopThread ();
-                    } 
-
-                    // In normal flow - allow safe exit without warning
-                    else {
-                        state.didSafeExit = true;
-                    }
-
-                    break;
-                
-                // Force flow to end completely
-                case ControlCommand.CommandType.End:
-                    state.ForceEndFlow ();
-                    break;
-
-                default:
-                    Error ("unhandled ControlCommand: " + evalCommand);
-                    break;
-                }
-
-                return true;
-            }
-
-            // Variable assignment
-            else if( contentObj is VariableAssignment ) {
-                var varAss = (VariableAssignment) contentObj;
-                var assignedVal = state.PopEvaluationStack();
-
-                // When in temporary evaluation, don't create new variables purely within
-                // the temporary context, but attempt to create them globally
-                //var prioritiseHigherInCallStack = _temporaryEvaluationContainer != null;
-
-                state.variablesState.Assign (varAss, assignedVal);
-
-                return true;
-            }
-
-            // Variable reference
-            else if( contentObj is VariableReference ) {
-                var varRef = (VariableReference)contentObj;
-                Runtime.Object foundValue = null;
-
-
-                // Explicit read count value
-                if (varRef.pathForCount != null) {
-
-                    var container = varRef.containerForCount;
-                    int count = VisitCountForContainer (container);
-                    foundValue = new IntValue (count);
-                }
-
-                // Normal variable reference
-                else {
-
-                    foundValue = state.variablesState.GetVariableWithName (varRef.name);
-
-                    if (foundValue == null) {
-                        Error("Uninitialised variable: " + varRef.name);
-                        foundValue = new IntValue (0);
-                    }
-                }
-
-                state.evaluationStack.Add( foundValue );
-
-                return true;
-            }
-
-            // Native function call
-            else if( contentObj is NativeFunctionCall ) {
-                var func = (NativeFunctionCall) contentObj;
-                var funcParams = state.PopEvaluationStack(func.numberOfParameters);
-                var result = func.Call(funcParams);
-                state.evaluationStack.Add(result);
-                return true;
-            }
-
-            // No control content, must be ordinary content
-            return false;
-        }
+					String errorMessage = "Tried to divert to a target from a variable, but the variable (" + varName
+							+ ") didn't contain a divert target, it ";
+					if (intContent != null && intContent.value == 0) {
+						errorMessage += "was empty/null (the value 0).";
+					} else {
+						errorMessage += "contained '" + varContents + "'.";
+					}
+
+					Error(errorMessage);
+				}
+
+				DivertTargetValue target = (DivertTargetValue) varContents;
+				_state.divertedTargetObject = ContentAtPath(target.gettargetPath());
+
+			} else if (currentDivert.getisExternal()) {
+				CallExternalFunction(currentDivert.gettargetPathString(), currentDivert.getexternalArgs());
+				return true;
+			} else {
+				_state.divertedTargetObject = currentDivert.gettargetContent();
+			}
+
+			if (currentDivert.getpushesToStack()) {
+				_state.callStack.Push(currentDivert.stackPushType);
+			}
+
+			if (_state.divertedTargetObject == null && !currentDivert.getisExternal()) {
+
+				// Human readable name available - runtime divert is part of a
+				// hard-written divert that to missing content
+				if (currentDivert != null && currentDivert.debugMetadata.sourceName != null) {
+					Error("Divert target doesn't exist: " + currentDivert.debugMetadata.sourceName);
+				} else {
+					Error("Divert resolution failed: " + currentDivert);
+				}
+			}
+
+			return true;
+		}
+
+		// Start/end an expression evaluation? Or print out the result?
+		else if (contentObj instanceof ControlCommand) {
+			ControlCommand evalCommand = (ControlCommand) contentObj;
+
+			int choiceCount;
+			switch (evalCommand.getcommandType()) {
+
+			case EvalStart:
+				Assert(_state.getinExpressionEvaluation() == false, "Already in expression evaluation?");
+				_state.setinExpressionEvaluation(true);
+				break;
+
+			case EvalEnd:
+				Assert(_state.getinExpressionEvaluation() == true, "Not in expression evaluation mode");
+				_state.setinExpressionEvaluation(false);
+				break;
+
+			case EvalOutput:
+
+				// If the expression turned out to be empty, there may not be
+				// anything on the stack
+				if (_state.evaluationStack.size() > 0) {
+
+					RTObject output = _state.PopEvaluationStack();
+
+					// Functions may evaluate to Void, in which case we skip
+					// output
+					if (!(output instanceof Void)) {
+						// TODO: Should we really always blanket convert to
+						// string?
+						// It would be okay to have numbers in the output stream
+						// the
+						// only problem is when exporting text for viewing, it
+						// skips over numbers etc.
+						StringValue text = new StringValue(output.toString());
+
+						_state.PushToOutputStream(text);
+					}
+
+				}
+				break;
+
+			case NoOp:
+				break;
+
+			case Duplicate:
+				_state.PushEvaluationStack(_state.PeekEvaluationStack());
+				break;
+
+			case PopEvaluatedValue:
+				_state.PopEvaluationStack();
+				break;
+
+			case PopFunction:
+			case PopTunnel:
+
+				PushPopType popType = evalCommand.getcommandType() == ControlCommand.CommandType.PopFunction
+						? PushPopType.Function : PushPopType.Tunnel;
+
+				if (_state.callStack.currentElement().type != popType || !_state.callStack.canPop()) {
+
+					HashMap<PushPopType, String> names = new HashMap<PushPopType, String>();
+					names.put(PushPopType.Function, "function return statement (~ return)");
+					names.put(PushPopType.Tunnel, "tunnel onwards statement (->->)");
+
+					String expected = names.get(_state.callStack.currentElement().type);
+					if (!_state.callStack.canPop()) {
+						expected = "end of flow (-> END or choice)";
+					}
+
+					String errorMsg = String.format("Found {0}, when expected {1}", names.get(popType), expected);
+
+					Error(errorMsg);
+				}
+
+				else {
+					_state.callStack.Pop();
+				}
+				break;
+
+			case BeginString:
+				_state.PushToOutputStream(evalCommand);
+
+				Assert(_state.getinExpressionEvaluation() == true,
+						"Expected to be in an expression when evaluating a string");
+				_state.setinExpressionEvaluation(false);
+				break;
+
+			case EndString:
+
+				// Since we're iterating backward through the content,
+				// build a stack so that when we build the string,
+				// it's in the right order
+				Stack<RTObject> contentStackForString = new Stack<RTObject>();
+
+				int outputCountConsumed = 0;
+				for (int i = _state.outputStream().size() - 1; i >= 0; --i) {
+					RTObject obj = _state.outputStream().get(i);
+
+					outputCountConsumed++;
+
+					ControlCommand command = (ControlCommand) obj;
+					if (command != null && command.getcommandType() == ControlCommand.CommandType.BeginString) {
+						break;
+					}
+
+					if (obj instanceof StringValue)
+						contentStackForString.push(obj);
+				}
+
+				// Consume the content that was produced for this string
+				_state.outputStream().subList(_state.outputStream().size() - outputCountConsumed, outputCountConsumed)
+						.clear();
+
+				// Build String out of the content we collected
+				StringBuilder sb = new StringBuilder();
+				for (RTObject c : contentStackForString) {
+					sb.append(c.toString());
+				}
+
+				// Return to expression evaluation (from content mode)
+				_state.setinExpressionEvaluation(true);
+				_state.PushEvaluationStack(new StringValue(sb.toString()));
+				break;
+
+			case ChoiceCount:
+				choiceCount = getCurrentChoices().size();
+				_state.PushEvaluationStack(new IntValue(choiceCount));
+				break;
+
+			case TurnsSince:
+				RTObject target = _state.PopEvaluationStack();
+				if (!(target instanceof DivertTargetValue)) {
+					String extraNote = "";
+					if (target instanceof IntValue)
+						extraNote = ". Did you accidentally pass a read count ('knot_name') instead of a target ('-> knot_name')?";
+					Error("TURNS_SINCE expected a divert target (knot, stitch, label name), but saw " + target
+							+ extraNote);
+					break;
+				}
+
+				DivertTargetValue divertTarget = (DivertTargetValue) target;
+				Container container = (Container) ContentAtPath(divertTarget.gettargetPath());
+				int turnCount = TurnsSinceForContainer(container);
+				_state.PushEvaluationStack(new IntValue(turnCount));
+				break;
+
+			case VisitIndex:
+				int count = VisitCountForContainer(_state.currentContainer()) - 1; // index
+																					// not
+																					// count
+				_state.PushEvaluationStack(new IntValue(count));
+				break;
+
+			case SequenceShuffleIndex:
+				int shuffleIndex = NextSequenceShuffleIndex();
+				_state.PushEvaluationStack(new IntValue(shuffleIndex));
+				break;
+
+			case StartThread:
+				// Handled in main step function
+				break;
+
+			case Done:
+
+				// We may exist in the context of the initial
+				// act of creating the thread, or in the context of
+				// evaluating the content.
+				if (_state.callStack.canPopThread()) {
+					_state.callStack.PopThread();
+				}
+
+				// In normal flow - allow safe exit without warning
+				else {
+					_state.didSafeExit = true;
+				}
+
+				break;
+
+			// Force flow to end completely
+			case End:
+				_state.ForceEndFlow();
+				break;
+
+			default:
+				Error("unhandled ControlCommand: " + evalCommand);
+				break;
+			}
+
+			return true;
+		}
+
+		// Variable assignment
+		else if (contentObj instanceof VariableAssignment) {
+			VariableAssignment varAss = (VariableAssignment) contentObj;
+			RTObject assignedVal = _state.PopEvaluationStack();
+
+			// When in temporary evaluation, don't create new variables purely
+			// within
+			// the temporary context, but attempt to create them globally
+			// var prioritiseHigherInCallStack = _temporaryEvaluationContainer
+			// != null;
+
+			_state.variablesState.assign(varAss, assignedVal);
+
+			return true;
+		}
+
+		// Variable reference
+		else if (contentObj instanceof VariableReference) {
+			VariableReference varRef = (VariableReference) contentObj;
+			RTObject foundValue = null;
+
+			// Explicit read count value
+			if (varRef.getpathForCount() != null) {
+
+				Container container = varRef.getcontainerForCount();
+				int count = VisitCountForContainer(container);
+				foundValue = new IntValue(count);
+			}
+
+			// Normal variable reference
+			else {
+
+				foundValue = _state.variablesState.getVariableWithName(varRef.getname());
+
+				if (foundValue == null) {
+					Error("Uninitialised variable: " + varRef.getname());
+					foundValue = new IntValue(0);
+				}
+			}
+
+			_state.evaluationStack.add(foundValue);
+
+			return true;
+		}
+
+		// Native function call
+		else if (contentObj instanceof NativeFunctionCall) {
+			NativeFunctionCall func = (NativeFunctionCall) contentObj;
+			List<RTObject> funcParams = _state.PopEvaluationStack(func._numberOfParameters);
+			// TODO
+			// var result = func.Call(funcParams);
+			// _state.evaluationStack.add(result);
+			return true;
+		}
+
+		// No control content, must be ordinary content
+		return false;
+	}
 
 	/// <summary>
 	/// Change the current position of the story to the given path.
 	/// From here you can call Continue() to evaluate the next line.
-	/// The path string is a dot-separated path as used internally by the
+	/// The path String is a dot-separated path as used ly by the
 	/// engine.
 	/// These examples should work:
 	///
@@ -937,50 +968,49 @@ public class Story extends RTObject {
 	/// </summary>
 	/// <param name="path">A dot-separted path string, as specified
 	/// above.</param>
-	public void ChoosePathString(string path) {
+	public void ChoosePathString(String path) throws Exception {
 		ChoosePath(new Path(path));
 	}
 
-	void ChoosePath(Path path)
-        {
-            state.SetChosenPath (path);
+	void ChoosePath(Path path) throws Exception {
+		_state.SetChosenPath(path);
 
-            // Take a note of newly visited containers for read counts etc
-            VisitChangedContainersDueToDivert ();
-        }
+		// Take a note of newly visited containers for read counts etc
+		VisitChangedContainersDueToDivert();
+	}
 
 	/// <summary>
 	/// Chooses the Choice from the currentChoices list with the given
 	/// index. Internally, this sets the current content path to that
 	/// pointed to by the Choice, ready to continue story evaluation.
 	/// </summary>
-	public void ChooseChoiceIndex(int choiceIdx) {
-		var choices = currentChoices;
-		Assert(choiceIdx >= 0 && choiceIdx < choices.Count, "choice out of range");
+	public void ChooseChoiceIndex(int choiceIdx) throws Exception {
+		List<Choice> choices = getCurrentChoices();
+		Assert(choiceIdx >= 0 && choiceIdx < choices.size(), "choice out of range");
 
 		// Replace callstack with the one from the thread at the choosing point,
 		// so that we can jump into the right place in the flow.
 		// This is important in case the flow was forked by a new thread, which
 		// can create multiple leading edges for the story, each of
 		// which has its own context.
-		var choiceToChoose = choices[choiceIdx];
-		state.callStack.currentThread = choiceToChoose.threadAtGeneration;
+		Choice choiceToChoose = choices.get(choiceIdx);
+		_state.callStack.setCurrentThread(choiceToChoose.getthreadAtGeneration());
 
-		ChoosePath(choiceToChoose.choicePoint.choiceTarget.path);
+		ChoosePath(choiceToChoose.getchoicePoint().getchoiceTarget().path);
 	}
 
 	// Evaluate a "hot compiled" piece of ink content, as used by the REPL-like
 	// CommandLinePlayer.
-	RTObject EvaluateExpression(Runtime.Container exprContainer) {
-		int startCallStackHeight = state.callStack.elements.Count;
+	RTObject EvaluateExpression(Container exprContainer) throws StoryException, Exception {
+		int startCallStackHeight = _state.callStack.getElements().size();
 
-		state.callStack.Push(PushPopType.Tunnel);
+		_state.callStack.Push(PushPopType.Tunnel);
 
 		_temporaryEvaluationContainer = exprContainer;
 
-		state.GoToStart();
+		_state.GoToStart();
 
-		int evalStackHeight = state.evaluationStack.Count;
+		int evalStackHeight = _state.evaluationStack.size();
 
 		Continue();
 
@@ -989,13 +1019,13 @@ public class Story extends RTObject {
 		// Should have fallen off the end of the Container, which should
 		// have auto-popped, but just in case we didn't for some reason,
 		// manually pop to restore the state (including currentPath).
-		if (state.callStack.elements.Count > startCallStackHeight) {
-			state.callStack.Pop();
+		if (_state.callStack.getElements().size() > startCallStackHeight) {
+			_state.callStack.Pop();
 		}
 
-		int endStackHeight = state.evaluationStack.Count;
+		int endStackHeight = _state.evaluationStack.size();
 		if (endStackHeight > evalStackHeight) {
-			return state.PopEvaluationStack();
+			return _state.PopEvaluationStack();
 		} else {
 			return null;
 		}
@@ -1013,55 +1043,56 @@ public class Story extends RTObject {
 	/// </summary>
 	public boolean allowExternalFunctionFallbacks;
 
-	void CallExternalFunction(string funcName, int numberOfArguments)
-        {
-            ExternalFunction func = null;
-            Container fallbackFunctionContainer = null;
+	void CallExternalFunction(String funcName, int numberOfArguments) throws Exception {
+		Container fallbackFunctionContainer = null;
 
-            var foundExternal = _externals.TryGetValue (funcName, out func);
+		ExternalFunction func = _externals.get(funcName);
 
-            // Try to use fallback function?
-            if (!foundExternal) {
-                if (allowExternalFunctionFallbacks) {
-                    fallbackFunctionContainer = ContentAtPath (new Path (funcName)) as Container;
-                    Assert (fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName + "' which has not been bound, and fallback ink function could not be found.");
+		// Try to use fallback function?
+		if (func == null) {
+			if (allowExternalFunctionFallbacks) {
+				fallbackFunctionContainer = (Container) ContentAtPath(new Path(funcName));
+				Assert(fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName
+						+ "' which has not been bound, and fallback ink function could not be found.");
 
-                    // Divert direct into fallback function and we're done
-                    state.callStack.Push (PushPopType.Function);
-                    state.divertedTargetObject = fallbackFunctionContainer;
-                    return;
+				// Divert direct into fallback function and we're done
+				_state.callStack.Push(PushPopType.Function);
+				_state.divertedTargetObject = fallbackFunctionContainer;
+				return;
 
-                } else {
-                    Assert (false, "Trying to call EXTERNAL function '" + funcName + "' which has not been bound (and ink fallbacks disabled).");
-                }
-            }
+			} else {
+				Assert(false, "Trying to call EXTERNAL function '" + funcName
+						+ "' which has not been bound (and ink fallbacks disabled).");
+			}
+		}
 
-            // Pop arguments
-            var arguments = new List<object>();
-            for (int i = 0; i < numberOfArguments; ++i) {
-                var poppedObj = state.PopEvaluationStack () as Value;
-                var valueObj = poppedObj.valueObject;
-                arguments.Add (valueObj);
-            }
+		// Pop arguments
+		ArrayList<Object> arguments = new ArrayList<Object>();
+		for (int i = 0; i < numberOfArguments; ++i) {
+			Value<?> poppedObj = (Value<?>) _state.PopEvaluationStack();
+			RTObject valueObj = poppedObj.getvalueObject();
+			arguments.add(valueObj);
+		}
 
-            // Reverse arguments from the order they were popped,
-            // so they're the right way round again.
-            arguments.Reverse ();
+		// Reverse arguments from the order they were popped,
+		// so they're the right way round again.
+		Collections.reverse(arguments);
 
-            // Run the function!
-            object funcResult = func (arguments.ToArray());
+		// Run the function!
+		Object funcResult = func.call(arguments.toArray());
 
-            // Convert return value (if any) to the a type that the ink engine can use
-            Runtime.Object returnObj = null;
-            if (funcResult != null) {
-                returnObj = Value.Create (funcResult);
-                Assert (returnObj != null, "Could not create ink value from returned object of type " + funcResult.GetType());
-            } else {
-                returnObj = new Runtime.Void ();
-            }
-                
-            state.PushEvaluationStack (returnObj);
-        }
+		// Convert return value (if any) to the a type that the ink engine can
+		// use
+		RTObject returnObj = null;
+		if (funcResult != null) {
+			returnObj = Value.create(funcResult);
+			 Assert (returnObj != null, "Could not create ink value from returned Object of type " + funcResult.getClass().getCanonicalName());
+		} else {
+			returnObj = new Void();
+		}
+
+		_state.PushEvaluationStack(returnObj);
+	}
 
 	/// <summary>
 	/// General purpose delegate definition for bound EXTERNAL function
@@ -1070,255 +1101,261 @@ public class Story extends RTObject {
 	/// with three arguments or less - see the overloads of
 	/// BindExternalFunction.
 	/// </summary>
-//	public delegate object	ExternalFunction(object[] args);
+	public interface ExternalFunction {
+		Object call(Object[] args);
+	}
 
 	/// <summary>
-	/// Most general form of function binding that returns an object
-	/// and takes an array of object parameters.
+	/// Most general form of function binding that returns an Object
+	/// and takes an array of Object parameters.
 	/// The only way to bind a function with more than 3 arguments.
 	/// </summary>
 	/// <param name="funcName">EXTERNAL ink function name to bind to.</param>
 	/// <param name="func">The C# function to bind.</param>
-	public void BindExternalFunctionGeneral(String funcName, ExternalFunction func) {
-		Assert(!_externals.ContainsKey(funcName), "Function '" + funcName + "' has already been bound.");
-		_externals[funcName] = func;
+	public void BindExternalFunctionGeneral(String funcName, ExternalFunction func) throws Exception {
+		Assert(!_externals.containsKey(funcName), "Function '" + funcName + "' has already been bound.");
+		_externals.put(funcName, func);
 	}
-// TODO
-//	Object TryCoerce<T>(Object value)
-//	{  
-//            if (value == null)
-//                return null;
-//
-//            if (value.GetType () == typeof(T))
-//                return (T) value;
-//
-//            if (value is float && typeof(T) == typeof(int)) {
-//                int intVal = (int)Math.Round ((float)value);
-//                return intVal;
-//            }
-//
-//            if (value is int && typeof(T) == typeof(float)) {
-//                float floatVal = (float)(int)value;
-//                return floatVal;
-//            }
-//
-//            if (value is int && typeof(T) == typeof(bool)) {
-//                int intVal = (int)value;
-//                return intVal == 0 ? false : true;
-//            }
-//
-//            if (typeof(T) == typeof(string)) {
-//                return value.ToString ();
-//            }
-//
-//            Assert (false, "Failed to cast " + value.GetType ().Name + " to " + typeof(T).Name);
-//
-//            return null;
-//        }
-//
-//	// Convenience overloads for standard functions and actions of various
-//	// arities
-//	// Is there a better way of doing this?!
-//
-//	/// <summary>
-//	/// Bind a C# function to an ink EXTERNAL function declaration.
-//	/// </summary>
-//	/// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-//	/// <param name="func">The C# function to bind.</param>
-//	public void BindExternalFunction(string funcName, Func<object> func)
-//        {
-//			Assert(func != null, "Can't bind a null function");
-//
-//            BindExternalFunctionGeneral (funcName, (object[] args) => {
-//                Assert(args.Length == 0, "External function expected no arguments");
-//                return func();
-//            });
-//        }
-//
-//	/// <summary>
-//	/// Bind a C# Action to an ink EXTERNAL function declaration.
-//	/// </summary>
-//	/// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-//	/// <param name="act">The C# action to bind.</param>
-//	public void BindExternalFunction(string funcName, Action act)
-//        {
-//			Assert(act != null, "Can't bind a null function");
-//
-//            BindExternalFunctionGeneral (funcName, (object[] args) => {
-//                Assert(args.Length == 0, "External function expected no arguments");
-//                act();
-//                return null;
-//            });
-//        }
-//
-//	/// <summary>
-//	/// Bind a C# function to an ink EXTERNAL function declaration.
-//	/// </summary>
-//	/// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-//	/// <param name="func">The C# function to bind.</param>
-//	public void BindExternalFunction<T>(String funcName, Func<T,object>func)
-//	{
-//			Assert(func != null, "Can't bind a null function");
-//
-//            BindExternalFunctionGeneral (funcName, (object[] args) => {
-//                Assert(args.Length == 1, "External function expected one argument");
-//                return func( (T)TryCoerce<T>(args[0]) );
-//            });
-//        }
-//
-//	/// <summary>
-//	/// Bind a C# action to an ink EXTERNAL function declaration.
-//	/// </summary>
-//	/// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-//	/// <param name="act">The C# action to bind.</param>
-//	public void BindExternalFunction<T>(String funcName, Action<T>act)
-//	{
-//			Assert(act != null, "Can't bind a null function");
-//
-//            BindExternalFunctionGeneral (funcName, (object[] args) => {
-//                Assert(args.Length == 1, "External function expected one argument");
-//                act( (T)TryCoerce<T>(args[0]) );
-//                return null;
-//            });
-//        }
-//
-//	/// <summary>
-//	/// Bind a C# function to an ink EXTERNAL function declaration.
-//	/// </summary>
-//	/// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-//	/// <param name="func">The C# function to bind.</param>
-//	public void BindExternalFunction<T1,T2>(
-//	String funcName, Func<T1,T2,object>func)
-//	{
-//			Assert(func != null, "Can't bind a null function");
-//
-//            BindExternalFunctionGeneral (funcName, (object[] args) => {
-//                Assert(args.Length == 2, "External function expected two arguments");
-//                return func(
-//                    (T1)TryCoerce<T1>(args[0]), 
-//                    (T2)TryCoerce<T2>(args[1])
-//                );
-//            });
-//        }
-//
-//	/// <summary>
-//	/// Bind a C# action to an ink EXTERNAL function declaration.
-//	/// </summary>
-//	/// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-//	/// <param name="act">The C# action to bind.</param>
-//	public void BindExternalFunction<T1,T2>(
-//	String funcName, Action<T1,T2>act)
-//	{
-//			Assert(act != null, "Can't bind a null function");
-//
-//            BindExternalFunctionGeneral (funcName, (object[] args) => {
-//                Assert(args.Length == 2, "External function expected two arguments");
-//                act(
-//                    (T1)TryCoerce<T1>(args[0]), 
-//                    (T2)TryCoerce<T2>(args[1])
-//                );
-//                return null;
-//            });
-//        }
-//
-//	/// <summary>
-//	/// Bind a C# function to an ink EXTERNAL function declaration.
-//	/// </summary>
-//	/// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-//	/// <param name="func">The C# function to bind.</param>
-//	public void BindExternalFunction<T1,T2,T3>(
-//	string funcName, Func<T1,T2,T3,object>func)
-//	{
-//			Assert(func != null, "Can't bind a null function");
-//
-//            BindExternalFunctionGeneral (funcName, (object[] args) => {
-//                Assert(args.Length == 3, "External function expected two arguments");
-//                return func(
-//                    (T1)TryCoerce<T1>(args[0]), 
-//                    (T2)TryCoerce<T2>(args[1]),
-//                    (T3)TryCoerce<T3>(args[2])
-//                );
-//            });
-//        }
-//
-//	/// <summary>
-//	/// Bind a C# action to an ink EXTERNAL function declaration.
-//	/// </summary>
-//	/// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-//	/// <param name="act">The C# action to bind.</param>
-//	public void BindExternalFunction<T1,T2,T3>(
-//	string funcName, Action<T1,T2,T3>act)
-//	{
-//			Assert(act != null, "Can't bind a null function");
-//
-//            BindExternalFunctionGeneral (funcName, (object[] args) => {
-//                Assert(args.Length == 3, "External function expected two arguments");
-//                act(
-//                    (T1)TryCoerce<T1>(args[0]), 
-//                    (T2)TryCoerce<T2>(args[1]),
-//                    (T3)TryCoerce<T3>(args[2])
-//                );
-//                return null;
-//            });
-//        }
+	// TODO
+	// Object TryCoerce<T>(Object value)
+	// {
+	// if (value == null)
+	// return null;
+	//
+	// if (value.GetType () == typeof(T))
+	// return (T) value;
+	//
+	// if (value is float && typeof(T) == typeof(int)) {
+	// int intVal = (int)Math.Round ((float)value);
+	// return intVal;
+	// }
+	//
+	// if (value is int && typeof(T) == typeof(float)) {
+	// float floatVal = (float)(int)value;
+	// return floatVal;
+	// }
+	//
+	// if (value is int && typeof(T) == typeof(bool)) {
+	// int intVal = (int)value;
+	// return intVal == 0 ? false : true;
+	// }
+	//
+	// if (typeof(T) == typeof(string)) {
+	// return value.toString ();
+	// }
+	//
+	// Assert (false, "Failed to cast " + value.GetType ().Name + " to " +
+	// typeof(T).Name);
+	//
+	// return null;
+	// }
+	//
+	// // Convenience overloads for standard functions and actions of various
+	// // arities
+	// // Is there a better way of doing this?!
+	//
+	// /// <summary>
+	// /// Bind a C# function to an ink EXTERNAL function declaration.
+	// /// </summary>
+	// /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+	// /// <param name="func">The C# function to bind.</param>
+	// public void BindExternalFunction(String funcName, Func<Object> func)
+	// {
+	// Assert(func != null, "Can't bind a null function");
+	//
+	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
+	// Assert(args.Length == 0, "External function expected no arguments");
+	// return func();
+	// });
+	// }
+	//
+	// /// <summary>
+	// /// Bind a C# Action to an ink EXTERNAL function declaration.
+	// /// </summary>
+	// /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+	// /// <param name="act">The C# action to bind.</param>
+	// public void BindExternalFunction(String funcName, Action act)
+	// {
+	// Assert(act != null, "Can't bind a null function");
+	//
+	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
+	// Assert(args.Length == 0, "External function expected no arguments");
+	// act();
+	// return null;
+	// });
+	// }
+	//
+	// /// <summary>
+	// /// Bind a C# function to an ink EXTERNAL function declaration.
+	// /// </summary>
+	// /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+	// /// <param name="func">The C# function to bind.</param>
+	// public void BindExternalFunction<T>(String funcName, Func<T,Object>func)
+	// {
+	// Assert(func != null, "Can't bind a null function");
+	//
+	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
+	// Assert(args.Length == 1, "External function expected one argument");
+	// return func( (T)TryCoerce<T>(args[0]) );
+	// });
+	// }
+	//
+	// /// <summary>
+	// /// Bind a C# action to an ink EXTERNAL function declaration.
+	// /// </summary>
+	// /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+	// /// <param name="act">The C# action to bind.</param>
+	// public void BindExternalFunction<T>(String funcName, Action<T>act)
+	// {
+	// Assert(act != null, "Can't bind a null function");
+	//
+	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
+	// Assert(args.Length == 1, "External function expected one argument");
+	// act( (T)TryCoerce<T>(args[0]) );
+	// return null;
+	// });
+	// }
+	//
+	// /// <summary>
+	// /// Bind a C# function to an ink EXTERNAL function declaration.
+	// /// </summary>
+	// /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+	// /// <param name="func">The C# function to bind.</param>
+	// public void BindExternalFunction<T1,T2>(
+	// String funcName, Func<T1,T2,Object>func)
+	// {
+	// Assert(func != null, "Can't bind a null function");
+	//
+	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
+	// Assert(args.Length == 2, "External function expected two arguments");
+	// return func(
+	// (T1)TryCoerce<T1>(args[0]),
+	// (T2)TryCoerce<T2>(args[1])
+	// );
+	// });
+	// }
+	//
+	// /// <summary>
+	// /// Bind a C# action to an ink EXTERNAL function declaration.
+	// /// </summary>
+	// /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+	// /// <param name="act">The C# action to bind.</param>
+	// public void BindExternalFunction<T1,T2>(
+	// String funcName, Action<T1,T2>act)
+	// {
+	// Assert(act != null, "Can't bind a null function");
+	//
+	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
+	// Assert(args.Length == 2, "External function expected two arguments");
+	// act(
+	// (T1)TryCoerce<T1>(args[0]),
+	// (T2)TryCoerce<T2>(args[1])
+	// );
+	// return null;
+	// });
+	// }
+	//
+	// /// <summary>
+	// /// Bind a C# function to an ink EXTERNAL function declaration.
+	// /// </summary>
+	// /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+	// /// <param name="func">The C# function to bind.</param>
+	// public void BindExternalFunction<T1,T2,T3>(
+	// String funcName, Func<T1,T2,T3,Object>func)
+	// {
+	// Assert(func != null, "Can't bind a null function");
+	//
+	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
+	// Assert(args.Length == 3, "External function expected two arguments");
+	// return func(
+	// (T1)TryCoerce<T1>(args[0]),
+	// (T2)TryCoerce<T2>(args[1]),
+	// (T3)TryCoerce<T3>(args[2])
+	// );
+	// });
+	// }
+	//
+	// /// <summary>
+	// /// Bind a C# action to an ink EXTERNAL function declaration.
+	// /// </summary>
+	// /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+	// /// <param name="act">The C# action to bind.</param>
+	// public void BindExternalFunction<T1,T2,T3>(
+	// String funcName, Action<T1,T2,T3>act)
+	// {
+	// Assert(act != null, "Can't bind a null function");
+	//
+	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
+	// Assert(args.Length == 3, "External function expected two arguments");
+	// act(
+	// (T1)TryCoerce<T1>(args[0]),
+	// (T2)TryCoerce<T2>(args[1]),
+	// (T3)TryCoerce<T3>(args[2])
+	// );
+	// return null;
+	// });
+	// }
 
 	/// <summary>
 	/// Remove a binding for a named EXTERNAL ink function.
 	/// </summary>
-	public void UnbindExternalFunction(string funcName) {
-		Assert(_externals.ContainsKey(funcName), "Function '" + funcName + "' has not been bound.");
-		_externals.Remove(funcName);
+	public void UnbindExternalFunction(String funcName) throws Exception {
+		Assert(_externals.containsKey(funcName), "Function '" + funcName + "' has not been bound.");
+		_externals.remove(funcName);
 	}
 
 	/// <summary>
 	/// Check that all EXTERNAL ink functions have a valid bound C# function.
 	/// Note that this is automatically called on the first call to Continue().
 	/// </summary>
-	public void ValidateExternalBindings() {
+	public void ValidateExternalBindings() throws Exception {
 		ValidateExternalBindings(_mainContentContainer);
 		_hasValidatedExternals = true;
 	}
 
-	void ValidateExternalBindings(Container c)
-        {
-            foreach (var innerContent in c.content) {
-                ValidateExternalBindings (innerContent);
-            }
-            foreach (var innerKeyValue in c.namedContent) {
-                ValidateExternalBindings (innerKeyValue.Value as Runtime.Object);
-            }
-        }
+	void ValidateExternalBindings(Container c) throws Exception {
+		for (RTObject innerContent : c._content) {
+			ValidateExternalBindings(innerContent);
+		}
+		for (INamedContent innerKeyValue : c.getnamedContent().values()) {
+			ValidateExternalBindings((RTObject) innerKeyValue);
+		}
+	}
 
-	void ValidateExternalBindings(Runtime.Object o)
-        {
-            var container = o as Container;
-            if (container) {
-                ValidateExternalBindings (container);
-                return;
-            }
+	void ValidateExternalBindings(RTObject o) throws Exception {
+		Container container = (Container) o;
+		if (container != null) {
+			ValidateExternalBindings(container);
+			return;
+		}
 
-            var divert = o as Divert;
-            if (divert && divert.isExternal) {
-                var name = divert.targetPathString;
+		Divert divert = (Divert) o;
+		if (divert != null && divert.getisExternal()) {
+			String name = divert.gettargetPathString();
 
-                if (!_externals.ContainsKey (name)) {
+			if (!_externals.containsKey(name)) {
 
-                    INamedContent fallbackFunction = null;
-                    bool fallbackFound = mainContentContainer.namedContent.TryGetValue (name, out fallbackFunction);
+				INamedContent fallbackFunction = mainContentContainer().getnamedContent().get(name);
 
-                    if (!allowExternalFunctionFallbacks)
-                        Error ("Missing function binding for external '" + name + "' (ink fallbacks disabled)");
-                    else if( !fallbackFound ) {
-                        Error ("Missing function binding for external '" + name + "', and no fallback ink function found.");
-                    }
-                }
-            }
-        }
+				if (!allowExternalFunctionFallbacks)
+					Error("Missing function binding for external '" + name + "' (ink fallbacks disabled)");
+				else if (fallbackFunction == null) {
+					Error("Missing function binding for external '" + name + "', and no fallback ink function found.");
+				}
+			}
+		}
+	}
 
 	/// <summary>
 	/// Delegate definition for variable observation - see ObserveVariable.
 	/// </summary>
-	public delegate void VariableObserver(string variableName, object newValue);
+	// TODO
+	// public delegate void VariableObserver(String variableName, Object
+	// newValue);
+	
+	public interface VariableObserver {
+		Object call(String variableName, Object newValue);
+	}
 
 	/// <summary>
 	/// When the named global variable changes it's value, the observer will be
@@ -1335,16 +1372,18 @@ public class Story extends RTObject {
 	/// observe.</param>
 	/// <param name="observer">A delegate function to call when the variable
 	/// changes.</param>
-	public void ObserveVariable(string variableName, VariableObserver observer) {
-		if (_variableObservers == null)
-			_variableObservers = new Dictionary<string, VariableObserver>();
-
-		if (_variableObservers.ContainsKey(variableName)) {
-			_variableObservers[variableName] += observer;
-		} else {
-			_variableObservers[variableName] = observer;
-		}
-	}
+	// TODO
+	// public void ObserveVariable(String variableName, VariableObserver
+	// observer) {
+	// if (_variableObservers == null)
+	// _variableObservers = new HashMap<String, VariableObserver>();
+	//
+	// if (_variableObservers.ContainsKey(variableName)) {
+	// _variableObservers[variableName] += observer;
+	// } else {
+	// _variableObservers[variableName] = observer;
+	// }
+	// }
 
 	/// <summary>
 	/// Convenience function to allow multiple variables to be observed with the
@@ -1356,12 +1395,15 @@ public class Story extends RTObject {
 	/// <param name="variableNames">The set of variables to observe.</param>
 	/// <param name="observer">The delegate function to call when any of the
 	/// named variables change.</param>
-	public void ObserveVariables(IList<string> variableNames, VariableObserver observer)
-        {
-            foreach (var varName in variableNames) {
-                ObserveVariable (varName, observer);
-            }
-        }
+
+	// TODO
+	// public void ObserveVariables(IList<String> variableNames,
+	// VariableObserver observer)
+	// {
+	// foreach (var varName in variableNames) {
+	// ObserveVariable (varName, observer);
+	// }
+	// }
 
 	/// <summary>
 	/// Removes the variable observer, to stop getting variable change
@@ -1375,45 +1417,48 @@ public class Story extends RTObject {
 	/// <param name="observer">The observer to stop observing.</param>
 	/// <param name="specificVariableName">(Optional) Specific variable name to
 	/// stop observing.</param>
-	public void RemoveVariableObserver(VariableObserver observer, string specificVariableName = null)
-        {
-            if (_variableObservers == null)
-                return;
-
-            // Remove observer for this specific variable
-            if (specificVariableName != null) {
-                if (_variableObservers.ContainsKey (specificVariableName)) {
-                    _variableObservers [specificVariableName] -= observer;
-                }
-            } 
-
-            // Remove observer for all variables
-            else {
-
-	foreach (var keyValue in _variableObservers) {
-                    var varName = keyValue.Key;
-                    _variableObservers [varName] -= observer;
-                }
-            }
-
-	}
-
-	void VariableStateDidChangeEvent(string variableName, Runtime.Object newValueObj)
-        {
-            if (_variableObservers == null)
-                return;
-            
-            VariableObserver observers = null;
-            if (_variableObservers.TryGetValue (variableName, out observers)) {
-
-                if (!(newValueObj is Value)) {
-                    throw new System.Exception ("Tried to get the value of a variable that isn't a standard type");
-                }
-                var val = newValueObj as Value;
-
-                observers (variableName, val.valueObject);
-            }
-        }
+	// public void RemoveVariableObserver(VariableObserver observer, String
+	// specificVariableName = null)
+	// {
+	// if (_variableObservers == null)
+	// return;
+	//
+	// // Remove observer for this specific variable
+	// if (specificVariableName != null) {
+	// if (_variableObservers.ContainsKey (specificVariableName)) {
+	// _variableObservers [specificVariableName] -= observer;
+	// }
+	// }
+	//
+	// // Remove observer for all variables
+	// else {
+	//
+	// foreach (var keyValue in _variableObservers) {
+	// var varName = keyValue.Key;
+	// _variableObservers [varName] -= observer;
+	// }
+	// }
+	//
+	// }
+	//
+	// void VariableStateDidChangeEvent(String variableName, RTObject
+	// newValueObj)
+	// {
+	// if (_variableObservers == null)
+	// return;
+	//
+	// VariableObserver observers = null;
+	// if (_variableObservers.TryGetValue (variableName, out observers)) {
+	//
+	// if (!(newValueObj is Value)) {
+	// throw new System.Exception ("Tried to get the value of a variable that
+	// isn't a standard type");
+	// }
+	// var val = newValueObj as Value;
+	//
+	// observers (variableName, val.valueObject);
+	// }
+	// }
 
 	/// <summary>
 	/// Useful when debugging a (very short) story, to visualise the state of
@@ -1425,34 +1470,31 @@ public class Story extends RTObject {
 	/// since
 	/// it can end up generate a large quantity of text otherwise.
 	/// </summary>
-	public virtual string
+	public String BuildStringOfHierarchy() throws Exception {
+		StringBuilder sb = new StringBuilder();
 
-	BuildStringOfHierarchy()
-        {
-            var sb = new StringBuilder ();
+		_mainContentContainer.buildStringOfHierarchy(sb, 0, _state.getcurrentContentObject());
 
-            mainContentContainer.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
+		return sb.toString();
+	}
 
-            return sb.ToString ();
-        }
-
-	private void NextContent() {
+	private void NextContent() throws Exception {
 		// Setting previousContentObject is critical for
 		// VisitChangedContainersDueToDivert
-		state.previousContentObject = state.currentContentObject;
+		_state.setpreviousContentObject(_state.getcurrentContentObject());
 
 		// Divert step?
-		if (state.divertedTargetObject != null) {
+		if (_state.divertedTargetObject != null) {
 
-			state.currentContentObject = state.divertedTargetObject;
-			state.divertedTargetObject = null;
+			_state.setcurrentContentObject(_state.divertedTargetObject);
+			_state.divertedTargetObject = null;
 
 			// Internally uses state.previousContentObject and
 			// state.currentContentObject
 			VisitChangedContainersDueToDivert();
 
 			// Diverted location has valid content?
-			if (state.currentContentObject != null) {
+			if (_state.getcurrentContentObject() != null) {
 				return;
 			}
 
@@ -1462,250 +1504,294 @@ public class Story extends RTObject {
 			// to the end of a container - e.g. a Conditional that's re-joining
 		}
 
-		bool successfulPointerIncrement = IncrementContentPointer();
+		boolean successfulPointerIncrement = IncrementContentPointer();
 
 		// Ran out of content? Try to auto-exit from a function,
 		// or finish evaluating the content of a thread
 		if (!successfulPointerIncrement) {
 
-			bool didPop = false;
+			boolean didPop = false;
 
-			if (state.callStack.CanPop(PushPopType.Function)) {
+			if (_state.callStack.CanPop(PushPopType.Function)) {
 
 				// Pop from the call stack
-				state.callStack.Pop(PushPopType.Function);
+				_state.callStack.Pop(PushPopType.Function);
 
 				// This pop was due to dropping off the end of a function that
 				// didn't return anything,
 				// so in this case, we make sure that the evaluator has
 				// something to chomp on if it needs it
-				if (state.inExpressionEvaluation) {
-					state.PushEvaluationStack(new Runtime.Void());
+				if (_state.getinExpressionEvaluation()) {
+					_state.PushEvaluationStack(new Void());
 				}
 
 				didPop = true;
 			}
 
-			else if (state.callStack.canPopThread) {
-				state.callStack.PopThread();
+			else if (_state.callStack.canPopThread()) {
+				_state.callStack.PopThread();
 
 				didPop = true;
 			}
 
 			// Step past the point where we last called out
-			if (didPop && state.currentContentObject != null) {
+			if (didPop && _state.getcurrentContentObject() != null) {
 				NextContent();
 			}
 		}
 	}
 
-	bool IncrementContentPointer()
-        {
-            bool successfulIncrement = true;
+	boolean IncrementContentPointer() {
+		boolean successfulIncrement = true;
 
-            var currEl = state.callStack.currentElement;
-            currEl.currentContentIndex++;
+		Element currEl = _state.callStack.currentElement();
+		currEl.currentContentIndex++;
 
-            // Each time we step off the end, we fall out to the next container, all the
-            // while we're in indexed rather than named content
-            while (currEl.currentContentIndex >= currEl.currentContainer.content.Count) {
+		// Each time we step off the end, we fall out to the next container, all
+		// the
+		// while we're in indexed rather than named content
+		while (currEl.currentContentIndex >= currEl.currentContainer._content.size()) {
 
-                successfulIncrement = false;
+			successfulIncrement = false;
 
-                Container nextAncestor = currEl.currentContainer.parent as Container;
-                if (!nextAncestor) {
-                    break;
-                }
+			Container nextAncestor = (Container) currEl.currentContainer.getparent();
+			if (nextAncestor == null) {
+				break;
+			}
 
-                var indexInAncestor = nextAncestor.content.IndexOf (currEl.currentContainer);
-                if (indexInAncestor == -1) {
-                    break;
-                }
+			int indexInAncestor = nextAncestor._content.indexOf(currEl.currentContainer);
+			if (indexInAncestor == -1) {
+				break;
+			}
 
-                currEl.currentContainer = nextAncestor;
-                currEl.currentContentIndex = indexInAncestor + 1;
+			currEl.currentContainer = nextAncestor;
+			currEl.currentContentIndex = indexInAncestor + 1;
 
-                successfulIncrement = true;
-            }
+			successfulIncrement = true;
+		}
 
-            if (!successfulIncrement)
-                currEl.currentContainer = null;
+		if (!successfulIncrement)
+			currEl.currentContainer = null;
 
-            return successfulIncrement;
-        }
+		return successfulIncrement;
+	}
 
-	bool TryFollowDefaultInvisibleChoice()
-        {
-            var allChoices = _state.currentChoices;
+	boolean TryFollowDefaultInvisibleChoice() throws Exception {
+		List<Choice> allChoices = _state.currentChoices;
 
-            // Is a default invisible choice the ONLY choice?
-            var invisibleChoices = allChoices.Where (c => c.choicePoint.isInvisibleDefault).ToList();
-            if (invisibleChoices.Count == 0 || allChoices.Count > invisibleChoices.Count)
-                return false;
+		// Is a default invisible choice the ONLY choice?
+		// var invisibleChoices = allChoices.Where (c =>
+		// c.choicePoint.isInvisibleDefault).ToList();
+		ArrayList<Choice> invisibleChoices = new ArrayList<Choice>();
+		for (Choice c : allChoices) {
+			if (c.getchoicePoint().getisInvisibleDefault()) {
+				invisibleChoices.add(c);
+			}
+		}
 
-            var choice = invisibleChoices [0];
+		if (invisibleChoices.size() == 0 || allChoices.size() > invisibleChoices.size())
+			return false;
 
-            ChoosePath (choice.choicePoint.choiceTarget.path);
+		Choice choice = invisibleChoices.get(0);
 
-            return true;
-        }
+		ChoosePath(choice.getchoicePoint().getchoiceTarget().path);
 
-	int VisitCountForContainer(Container container)
-        {
-            if( !container.visitsShouldBeCounted ) {
-                Error ("Read count for target ("+container.name+" - on "+container.debugMetadata+") unknown. The story may need to be compiled with countAllVisits flag (-c).");
-                return 0;
-            }
+		return true;
+	}
 
-            int count = 0;
-            var containerPathStr = container.path.ToString();
-            state.visitCounts.TryGetValue (containerPathStr, out count);
-            return count;
-        }
+	int VisitCountForContainer(Container container) throws Exception {
+		if (!container.getvisitsShouldBeCounted()) {
+			Error("Read count for target (" + container.getname() + " - on " + container.debugMetadata
+					+ ") unknown. The story may need to be compiled with countAllVisits flag (-c).");
+			return 0;
+		}
+
+		int count = 0;
+		String containerPathStr = container.path.toString();
+		count = _state.visitCounts.get(containerPathStr);
+		return count;
+	}
 
 	void IncrementVisitCountForContainer(Container container) {
-		int count=0;var containerPathStr=container.path.ToString();state.visitCounts.TryGetValue(containerPathStr,out count);count++;state.visitCounts[containerPathStr]=count;
+		int count = 0;
+		String containerPathStr = container.path.toString();
+		count = _state.visitCounts.get(containerPathStr);
+		count++;
+		_state.visitCounts.put(containerPathStr, count);
 	}
 
 	void RecordTurnIndexVisitToContainer(Container container) {
-		var containerPathStr = container.path.ToString();
-		state.turnIndices[containerPathStr] = state.currentTurnIndex;
+		String containerPathStr = container.path.toString();
+		_state.turnIndices.put(containerPathStr, _state.currentTurnIndex);
 	}
 
-	int TurnsSinceForContainer(Container container) {
-		if(!container.turnIndexShouldBeCounted){Error("TURNS_SINCE() for target ("+container.name+" - on "+container.debugMetadata+") unknown. The story may need to be compiled with countAllVisits flag (-c).");}
+	int TurnsSinceForContainer(Container container) throws Exception {
+		if (!container.getturnIndexShouldBeCounted()) {
+			Error("TURNS_SINCE() for target (" + container.getname() + " - on " + container.debugMetadata
+					+ ") unknown. The story may need to be compiled with countAllVisits flag (-c).");
+		}
 
-		int index=0;var containerPathStr=container.path.ToString();if(state.turnIndices.TryGetValue(containerPathStr,out index)){return state.currentTurnIndex-index;}else{return-1;}
+		String containerPathStr = container.path.toString();
+		Integer index = _state.turnIndices.get(containerPathStr);
+		if (index != null) {
+			return _state.currentTurnIndex - index;
+		} else {
+			return -1;
+		}
 	}
 
 	// Note that this is O(n), since it re-evaluates the shuffle indices
 	// from a consistent seed each time.
 	// TODO: Is this the best algorithm it can be?
-	int NextSequenceShuffleIndex() {
-		var numElementsIntVal=state.PopEvaluationStack()as IntValue;if(numElementsIntVal==null){Error("expected number of elements in sequence for shuffle index");return 0;}
+	int NextSequenceShuffleIndex() throws Exception {
+		IntValue numElementsIntVal = (IntValue) _state.PopEvaluationStack();
 
-		var seqContainer=state.currentContainer;
+		if (numElementsIntVal == null) {
+			Error("expected number of elements in sequence for shuffle index");
+			return 0;
+		}
 
-		int numElements=numElementsIntVal.value;
+		Container seqContainer = _state.currentContainer();
 
-		var seqCountVal=state.PopEvaluationStack()as IntValue;var seqCount=seqCountVal.value;var loopIndex=seqCount/numElements;var iterationIndex=seqCount%numElements;
+		int numElements = numElementsIntVal.value;
+
+		IntValue seqCountVal = (IntValue) _state.PopEvaluationStack();
+		Integer seqCount = seqCountVal.value;
+		int loopIndex = seqCount / numElements;
+		int iterationIndex = seqCount % numElements;
 
 		// Generate the same shuffle based on:
 		// - The hash of this container, to make sure it's consistent
 		// each time the runtime returns to the sequence
 		// - How many times the runtime has looped around this full shuffle
-		var seqPathStr=seqContainer.path.ToString();int sequenceHash=0;foreach(char c in seqPathStr){sequenceHash+=c;}var randomSeed=sequenceHash+loopIndex+state.storySeed;var random=new Random(randomSeed);
+		String seqPathStr = seqContainer.path.toString();
+		int sequenceHash = 0;
+		for (char c : seqPathStr.toCharArray()) {
+			sequenceHash += c;
+		}
 
-		var unpickedIndices=new List<int>();for(int i=0;i<numElements;++i){unpickedIndices.Add(i);}
+		int randomSeed = sequenceHash + loopIndex + _state.storySeed;
 
-		for(int i=0;i<=iterationIndex;++i){var chosen=random.Next()%unpickedIndices.Count;var chosenIndex=unpickedIndices[chosen];unpickedIndices.RemoveAt(chosen);
+		Random random = new Random(randomSeed);
 
-		if(i==iterationIndex){return chosenIndex;}}
+		ArrayList<Integer> unpickedIndices = new ArrayList<Integer>();
+		for (int i = 0; i < numElements; ++i) {
+			unpickedIndices.add(i);
+		}
 
-		throw new System.Exception("Should never reach here");
+		for (int i = 0; i <= iterationIndex; ++i) {
+			int chosen = random.nextInt() % unpickedIndices.size();
+			int chosenIndex = unpickedIndices.get(chosen);
+			unpickedIndices.remove(chosen);
+
+			if (i == iterationIndex) {
+				return chosenIndex;
+			}
+		}
+
+		throw new Exception("Should never reach here");
 	}
 
 	// Throw an exception that gets caught and causes AddError to be called,
 	// then exits the flow.
-	void Error(string message, bool useEndLineNumber = false)
-        {
-            var e = new StoryException (message);
-            e.useEndLineNumber = useEndLineNumber;
-            throw e;
-        }
+	void Error(String message, boolean useEndLineNumber) throws Exception {
+		StoryException e = new StoryException(message);
+		e.useEndLineNumber = useEndLineNumber;
+		throw e;
+	}
 
-	void AddError(string message, bool useEndLineNumber) {
-		var dm = currentDebugMetadata;
+	void Error(String message) throws Exception
+    {
+		Error(message, false);
+    }
+
+	void AddError(String message, boolean useEndLineNumber) throws Exception {
+		DebugMetadata dm = currentDebugMetadata();
 
 		if (dm != null) {
 			int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
-			message = string.Format("RUNTIME ERROR: '{0}' line {1}: {2}", dm.fileName, lineNum, message);
+			message = String.format("RUNTIME ERROR: '{0}' line {1}: {2}", dm.fileName, lineNum, message);
 		} else {
 			message = "RUNTIME ERROR: " + message;
 		}
 
-		state.AddError(message);
+		_state.AddError(message);
 
 		// In a broken state don't need to know about any other errors.
-		state.ForceEndFlow();
+		_state.ForceEndFlow();
 	}
 
-	void Assert(bool condition, string message = null, params object[] formatParams)
-        {
-            if (condition == false) {
-                if (message == null) {
-                    message = "Story assert";
-                }
-                if (formatParams != null && formatParams.Count() > 0) {
-                    message = string.Format (message, formatParams);
-                }
-                    
-                throw new System.Exception (message + " " + currentDebugMetadata);
-            }
-        }
+	void Assert(boolean condition, Object... formatParams) throws Exception {
+		Assert(condition, null, formatParams);
+	}
 
-        DebugMetadata currentDebugMetadata
-        {
-            get {
-                DebugMetadata dm;
+	void Assert(boolean condition, String message, Object... formatParams) throws Exception {
+		if (condition == false) {
+			if (message == null) {
+				message = "Story assert";
+			}
+			if (formatParams != null && formatParams.length > 0) {
+				message = String.format(message, formatParams);
+			}
 
-                // Try to get from the current path first
-                var currentContent = state.currentContentObject;
-                if (currentContent) {
-                    dm = currentContent.debugMetadata;
-                    if (dm != null) {
-                        return dm;
-                    }
-                }
-                    
-                // Move up callstack if possible
-                for (int i = state.callStack.elements.Count - 1; i >= 0; --i) {
-                    var currentObj = state.callStack.elements [i].currentObject;
-                    if (currentObj && currentObj.debugMetadata != null) {
-                        return currentObj.debugMetadata;
-                    }
-                }
+			throw new Exception(message + " " + currentDebugMetadata());
+		}
+	}
 
-                // Current/previous path may not be valid if we've just had an error,
-                // or if we've simply run out of content.
-                // As a last resort, try to grab something from the output stream
-                for (int i = state.outputStream.Count - 1; i >= 0; --i) {
-                    var outputObj = state.outputStream [i];
-                    dm = outputObj.debugMetadata;
-                    if (dm != null) {
-                        return dm;
-                    }
-                }
+	DebugMetadata currentDebugMetadata() throws Exception {
+		DebugMetadata dm;
 
-                return null;
-            }
-        }
+		// Try to get from the current path first
+		RTObject currentContent = _state.getcurrentContentObject();
+		if (currentContent != null) {
+			dm = currentContent.debugMetadata;
+			if (dm != null) {
+				return dm;
+			}
+		}
 
-        int currentLineNumber 
-        {
-            get {
-                var dm = currentDebugMetadata;
-                if (dm != null) {
-                    return dm.startLineNumber;
-                }
-                return 0;
-            }
-        }
+		// Move up callstack if possible
+		for (int i = _state.callStack.getElements().size() - 1; i >= 0; --i) {
+			RTObject currentObj = _state.callStack.getElements().get(i).currentRTObject;
+			if (currentObj != null && currentObj.debugMetadata != null) {
+				return currentObj.debugMetadata;
+			}
+		}
 
-        internal Container mainContentContainer {
-            get {
-                if (_temporaryEvaluationContainer) {
-                    return _temporaryEvaluationContainer;
-                } else {
-                    return _mainContentContainer;
-                }
-            }
-        }
+		// Current/previous path may not be valid if we've just had an error,
+		// or if we've simply run out of content.
+		// As a last resort, try to grab something from the output stream
+		for (int i = _state.outputStream().size() - 1; i >= 0; --i) {
+			RTObject outputObj = _state.outputStream().get(i);
+			dm = outputObj.debugMetadata;
+			if (dm != null) {
+				return dm;
+			}
+		}
+
+		return null;
+	}
+
+	int currentLineNumber() throws Exception {
+		DebugMetadata dm = currentDebugMetadata();
+		if (dm != null) {
+			return dm.startLineNumber;
+		}
+		return 0;
+	}
+
+	Container mainContentContainer() {
+		if (_temporaryEvaluationContainer != null) {
+			return _temporaryEvaluationContainer;
+		} else {
+			return _mainContentContainer;
+		}
+	}
 
 	private Container _mainContentContainer;
 
-	Dictionary<string, ExternalFunction> _externals;
-	Dictionary<string, VariableObserver> _variableObservers;
+	HashMap<String, ExternalFunction> _externals;
+	HashMap<String, VariableObserver> _variableObservers;
 	boolean _hasValidatedExternals;
 
 	Container _temporaryEvaluationContainer;
