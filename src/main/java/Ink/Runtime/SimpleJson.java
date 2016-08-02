@@ -1,333 +1,306 @@
-//
-// Translated by CS2J (http://www.cs2j.com): 22/07/2016 12:24:33
-//
-
 package Ink.Runtime;
 
-import CS2JNet.JavaSupport.language.RefSupport;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
 
-public class SimpleJson   
-{
-    public static String HashMapToText(HashMap<String, RTObject> rootRTObject) throws Exception {
-        return new Writer(rootRTObject).toString();
-    }
+public class SimpleJson {
+	public static String HashMapToText(HashMap<String, Object> rootObject) throws Exception {
+		return new Writer(rootObject).toString();
+	}
 
-    public static HashMap<String, RTObject> textToHashMap(String text) throws Exception {
-        return new Reader(text).toHashMap();
-    }
+	public static HashMap<String, Object> textToHashMap(String text) throws Exception {
+		return new Reader(text).toHashMap();
+	}
 
-    static class Reader   
-    {
-        public Reader(String text) throws Exception {
-            _text = text;
-            _offset = 0;
-            skipWhitespace();
-            _rootRTObject = readRTObject();
-        }
+	static class Reader {
+		public Reader(String text) throws Exception {
+			_text = text;
+			_offset = 0;
+			skipWhitespace();
+			_rootObject = readObject();
+		}
 
-        public HashMap<String, RTObject> toHashMap() throws Exception {
-            return (HashMap<String, RTObject>)_rootRTObject;
-        }
+		public HashMap<String, Object> toHashMap() throws Exception {
+			return (HashMap<String, Object>) _rootObject;
+		}
 
-        boolean isNumberChar(char c) throws Exception {
-            return c >= '0' && c <= '9' || c == '.' || c == '-' || c == '+';
-        }
+		boolean isNumberChar(char c) throws Exception {
+			return c >= '0' && c <= '9' || c == '.' || c == '-' || c == '+';
+		}
 
-        RTObject readRTObject() throws Exception {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ currentChar = _text[_offset];
-            if (currentChar == '{')
-                return readHashMap();
-            else if (currentChar == '[')
-                return readArray();
-            else if (currentChar == '"')
-                return readString();
-            else if (IsNumberChar(currentChar))
-                return readNumber();
-            else if (tryRead("true"))
-                return true;
-            else if (tryRead("false"))
-                return false;
-            else if (tryRead("null"))
-                return null;
-                   
-            throw new System.Exception("Unhandled RTObject type in JSON: " + _text.Substring(_offset, 30));
-        }
+		Object readObject() throws Exception {
+			char currentChar = _text.charAt(_offset);
 
-        HashMap<String, RTObject> readHashMap() throws Exception {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ dict = new HashMap<String, RTObject>();
-            expect("{");
-            skipWhitespace();
-            // Empty HashMap?
-            if (tryRead("}"))
-                return dict;
-             
-            do
-            {
-                skipWhitespace();
-                // Key
-                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ key = readString();
-                expect(key != null,"HashMap key");
-                skipWhitespace();
-                // :
-                expect(":");
-                skipWhitespace();
-                // Value
-                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ val = readRTObject();
-                expect(val != null,"HashMap value");
-                // Add to HashMap
-                dict[key] = val;
-                skipWhitespace();
-            }
-            while (tryRead(","));
-            expect("}");
-            return dict;
-        }
+			if (currentChar == '{')
+				return readHashMap();
+			else if (currentChar == '[')
+				return readArray();
+			else if (currentChar == '"')
+				return readString();
+			else if (isNumberChar(currentChar))
+				return readNumber();
+			else if (tryRead("true"))
+				return true;
+			else if (tryRead("false"))
+				return false;
+			else if (tryRead("null"))
+				return null;
 
-        List<RTObject> readArray() throws Exception {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ list = new List<RTObject>();
-            expect("[");
-            skipWhitespace();
-            // Empty list?
-            if (tryRead("]"))
-                return list;
-             
-            do
-            {
-                skipWhitespace();
-                // Value
-                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ val = readRTObject();
-                // Add to array
-                list.Add(val);
-                skipWhitespace();
-            }
-            while (tryRead(","));
-            expect("]");
-            return list;
-        }
+			throw new Exception("Unhandled RTObject type in JSON: " + _text.substring(_offset, 30));
+		}
 
-        String readString() throws Exception {
-            expect("\"");
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ startOffset = _offset;
-            for (;_offset < _text.Length;_offset++)
-            {
-                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ c = _text[_offset];
-                // Escaping. Escaped character will be skipped over in next loop.
-                if (c == '\\')
-                {
-                    _offset++;
-                }
-                else if (c == '"')
-                {
-                    break;
-                }
-                  
-            }
-            expect("\"");
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ str = _text.Substring(startOffset, _offset - startOffset - 1);
-            str = str.Replace("\\\\", "\\");
-            str = str.Replace("\\\"", "\"");
-            str = str.Replace("\\r", "");
-            str = str.Replace("\\n", "\n");
-            return str;
-        }
+		HashMap<String, Object> readHashMap() throws Exception {
+			HashMap<String, Object> dict = new HashMap<String, Object>();
+			expect("{");
+			skipWhitespace();
+			// Empty HashMap?
+			if (tryRead("}"))
+				return dict;
 
-        RTObject readNumber() throws Exception {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ startOffset = _offset;
+			do {
+				skipWhitespace();
+				// Key
+				String key = readString();
+				expect(key != null, "HashMap key");
+				skipWhitespace();
+				// :
+				expect(":");
+				skipWhitespace();
+				// Value
+				String val = readObject().toString();
+				expect(val != null, "HashMap value");
+				// Add to HashMap
+				dict.put(key, val);
+				skipWhitespace();
+			} while (tryRead(","));
+			expect("}");
+			return dict;
+		}
+
+		List<Object> readArray() throws Exception {
+			List<Object> list = new ArrayList<Object>();
+			expect("[");
+			skipWhitespace();
+			// Empty list?
+			if (tryRead("]"))
+				return list;
+
+			do {
+				skipWhitespace();
+				// Value
+				Object val = readObject();
+				// Add to array
+				list.add(val);
+				skipWhitespace();
+			} while (tryRead(","));
+			expect("]");
+			return list;
+		}
+
+		String readString() throws Exception {
+			expect("\"");
+			int startOffset = _offset;
+			for (; _offset < _text.length(); _offset++) {
+				char c = _text.charAt(_offset);
+				// Escaping. Escaped character will be skipped over in next
+				// loop.
+				if (c == '\\') {
+					_offset++;
+				} else if (c == '"') {
+					break;
+				}
+
+			}
+			expect("\"");
+			String str = _text.substring(startOffset, _offset - startOffset - 1);
+			str = str.replaceAll("\\\\", "\\");
+			str = str.replaceAll("\\\"", "\"");
+			str = str.replaceAll("\\r", "");
+			str = str.replaceAll("\\n", "\n");
+			return str;
+		}
+
+		Object readNumber() throws Exception {
+            int startOffset = _offset;
             boolean isFloat = false;
-            for (;_offset < _text.Length;_offset++)
+            for (;_offset < _text.length();_offset++)
             {
-                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ c = _text[_offset];
+                char c = _text.charAt(_offset);
                 if (c == '.')
                     isFloat = true;
                  
-                if (IsNumberChar(c))
+                if (isNumberChar(c))
                     continue;
                 else
                     break; 
             }
-            String numStr = _text.Substring(startOffset, _offset - startOffset);
+            String numStr = _text.substring(startOffset, _offset - startOffset);
             if (isFloat)
             {
-                float f = new float();
-                RefSupport<float> refVar___0 = new RefSupport<float>();
-                boolean boolVar___0 = float.TryParse(numStr, refVar___0);
-                f = refVar___0.getValue();
-                if (boolVar___0)
-                {
-                    return f;
+                try {
+                	float f = Float.parseFloat(numStr);
+            		return f;
+                }catch (NumberFormatException e) {
+                	
                 }
-                 
             }
             else
             {
-                int i = new int();
-                RefSupport<int> refVar___1 = new RefSupport<int>();
-                boolean boolVar___1 = int.TryParse(numStr, refVar___1);
-                i = refVar___1.getValue();
-                if (boolVar___1)
-                {
-                    return i;
-                }
+            	 try {
+                 	int i = Integer.parseInt(numStr);
+             		return i;
+                 }catch (NumberFormatException e) {
+                 	
+                 }
                  
             } 
-            throw new System.Exception("Failed to parse number value");
+            
+            throw new Exception("Failed to parse number value");
         }
 
-        boolean tryRead(String textToRead) throws Exception {
-            if (_offset + textToRead.Length > _text.Length)
-                return false;
-             
-            for (int i = 0;i < textToRead.Length;i++)
+		boolean tryRead(String textToRead) throws Exception {
+			if (_offset + textToRead.length() > _text.length())
+				return false;
+
+			for (int i = 0; i < textToRead.length(); i++) {
+				if (textToRead.charAt(i) != _text.charAt(_offset + i))
+					return false;
+
+			}
+			_offset += textToRead.length();
+			return true;
+		}
+
+		void expect(String expectedStr) throws Exception {
+			if (!tryRead(expectedStr))
+				expect(false, expectedStr);
+
+		}
+
+		void expect(boolean condition, String message) throws Exception {
+			if (!condition) {
+				if (message == null) {
+					message = "Unexpected token";
+				} else {
+					message = "Expected " + message;
+				}
+				message += " at offset " + _offset;
+				throw new Exception(message);
+			}
+
+		}
+
+		void skipWhitespace() throws Exception {
+			while (_offset < _text.length()) {
+				char c = _text.charAt(_offset);
+				if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
+					_offset++;
+				else
+					break;
+			}
+		}
+
+		String _text;
+		int _offset;
+		Object _rootObject ;
+	}
+
+	static class Writer {
+		public Writer(Object rootObject) throws Exception {
+			_sb = new StringBuilder();
+			writeObject(rootObject);
+		}
+
+		void writeObject(Object obj) throws Exception {
+            if (obj instanceof Integer)
             {
-                if (textToRead[i] != _text[_offset + i])
-                    return false;
+                _sb.append((Integer)obj);
+            }
+            else if (obj instanceof Float)
+            {
+                String floatStr = obj.toString();
+                _sb.append(floatStr);
+                if (!floatStr.contains("."))
+                    _sb.append(".0");
                  
             }
-            _offset += textToRead.Length;
-            return true;
-        }
-
-        void expect(String expectedStr) throws Exception {
-            if (!tryRead(expectedStr))
-                expect(false,expectedStr);
-             
-        }
-
-        void expect(boolean condition, String message) throws Exception {
-            if (!condition)
+            else if (obj instanceof Boolean)
             {
-                if (message == null)
-                {
-                    message = "Unexpected token";
-                }
-                else
-                {
-                    message = "Expected " + message;
-                } 
-                message += " at offset " + _offset;
-                throw new System.Exception(message);
-            }
-             
-        }
-
-        void skipWhitespace() throws Exception {
-            while (_offset < _text.Length)
-            {
-                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ c = _text[_offset];
-                if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
-                    _offset++;
-                else
-                    break; 
-            }
-        }
-
-        String _text = new String();
-        int _offset = new int();
-        RTObject _rootRTObject = new RTObject();
-    }
-
-    static class Writer   
-    {
-        public Writer(RTObject rootRTObject) throws Exception {
-            _sb = new StringBuilder();
-            writeRTObject(rootRTObject);
-        }
-
-        void writeRTObject(RTObject obj) throws Exception {
-            if (obj instanceof int)
-            {
-                _sb.Append((Integer)obj);
-            }
-            else if (obj instanceof float)
-            {
-                String floatStr = obj.ToString();
-                _sb.Append(floatStr);
-                if (!floatStr.Contains("."))
-                    _sb.Append(".0");
-                 
-            }
-            else if (obj instanceof boolean)
-            {
-                _sb.Append((Boolean)obj == true ? "true" : "false");
+                _sb.append((Boolean)obj == true ? "true" : "false");
             }
             else if (obj == null)
             {
-                _sb.Append("null");
+                _sb.append("null");
             }
             else if (obj instanceof String)
             {
                 String str = (String)obj;
                 // Escape backslashes, quotes and newlines
-                str = str.Replace("\\", "\\\\");
-                str = str.Replace("\"", "\\\"");
-                str = str.Replace("\n", "\\n");
-                str = str.Replace("\r", "");
-                _sb.AppendFormat("\"{0}\"", str);
+                str = str.replaceAll("\\", "\\\\");
+                str = str.replaceAll("\"", "\\\"");
+                str = str.replaceAll("\n", "\\n");
+                str = str.replaceAll("\r", "");
+                _sb.append(String.format("\"{0}\"", str));
             }
-            else if (obj instanceof HashMap<String, RTObject>)
+            else if (obj instanceof HashMap<?, ?>)
             {
-                WriteHashMap((HashMap<String, RTObject>)obj);
+                writeHashMap((HashMap<String, Object>)obj);
             }
-            else if (obj instanceof List<RTObject>)
+            else if (obj instanceof List<?>)
             {
-                WriteList((List<RTObject>)obj);
+                writeList((List<Object>)obj);
             }
             else
             {
-                throw new System.Exception("ink's SimpleJson writer doesn't currently support this RTObject: " + obj);
+                throw new Exception("ink's SimpleJson writer doesn't currently support this RTObject: " + obj);
             }       
         }
 
-        void writeHashMap(HashMap<String, RTObject> dict) throws Exception {
-            _sb.Append("{");
+		void writeHashMap(HashMap<String, Object> dict) throws Exception {
+            _sb.append("{");
             boolean isFirst = true;
-            for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ keyValue : dict)
+            for (Entry<String,Object> keyValue : dict.entrySet())
             {
                 if (!isFirst)
-                    _sb.Append(",");
+                    _sb.append(",");
                  
-                _sb.Append("\"");
-                _sb.Append(keyValue.Key);
-                _sb.Append("\":");
-                writeRTObject(keyValue.Value);
+                _sb.append("\"");
+                _sb.append(keyValue.getKey());
+                _sb.append("\":");
+                writeObject(keyValue.getValue());
                 isFirst = false;
             }
-            _sb.Append("}");
+            _sb.append("}");
         }
 
-        void writeList(List<RTObject> list) throws Exception {
-            _sb.Append("[");
+		void writeList(List<Object> list) throws Exception {
+            _sb.append("[");
             boolean isFirst = true;
-            for (/* [UNSUPPORTED] 'var' as type is unsupported "var" */ obj : list)
+            for (Object obj : list)
             {
                 if (!isFirst)
-                    _sb.Append(",");
+                    _sb.append(",");
                  
-                writeRTObject(obj);
+                writeObject(obj);
                 isFirst = false;
             }
-            _sb.Append("]");
+            _sb.append("]");
         }
 
-        public String toString() {
-            try
-            {
-                return _sb.ToString();
-            }
-            catch (RuntimeException __dummyCatchVar0)
-            {
-                throw __dummyCatchVar0;
-            }
-            catch (Exception __dummyCatchVar0)
-            {
-                throw new RuntimeException(__dummyCatchVar0);
-            }
-        
-        }
+		public String toString() {
+			try {
+				return _sb.toString();
+			} catch (RuntimeException __dummyCatchVar0) {
+				throw __dummyCatchVar0;
+			} catch (Exception __dummyCatchVar0) {
+				throw new RuntimeException(__dummyCatchVar0);
+			}
 
-        StringBuilder _sb = new StringBuilder();
-    }
+		}
+
+		StringBuilder _sb = new StringBuilder();
+	}
 
 }
-
-

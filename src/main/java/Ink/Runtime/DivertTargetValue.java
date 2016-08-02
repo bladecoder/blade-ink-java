@@ -5,25 +5,27 @@
 package Ink.Runtime;
 
 import Ink.Runtime.Path;
-import Ink.Runtime.Value;
+import Ink.Runtime.AbstractValue;
 import Ink.Runtime.ValueType;
 
 public class DivertTargetValue  extends Value<Path> 
 {
     public Path gettargetPath() throws Exception {
-        return this.getvalue();
+        return this.getValue();
     }
 
     public void settargetPath(Path value) throws Exception {
-        this.setvalue(value);
+        this.setValue(value);
     }
 
+    @Override
     public ValueType getvalueType() throws Exception {
         return ValueType.DivertTarget;
     }
 
+    @Override
     public boolean getisTruthy() throws Exception {
-        throw new System.Exception("Shouldn't be checking the truthiness of a divert target");
+        throw new Exception("Shouldn't be checking the truthiness of a divert target");
     }
 
     public DivertTargetValue(Path targetPath) throws Exception {
@@ -34,11 +36,11 @@ public class DivertTargetValue  extends Value<Path>
         super(null);
     }
 
-    public Value cast(ValueType newType) throws Exception {
+    public AbstractValue cast(ValueType newType) throws Exception {
         if (newType == getvalueType())
             return this;
          
-        throw new System.Exception("Unexpected type cast of Value to new ValueType");
+        throw new Exception("Unexpected type cast of Value to new ValueType");
     }
 
     public String toString() {

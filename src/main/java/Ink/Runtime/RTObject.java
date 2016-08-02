@@ -18,7 +18,7 @@ public class RTObject {
 
 	Path path;
 
-	public RTObject() throws Exception {
+	public RTObject() {
 	}
 
 	// TODO: Come up with some clever solution for not having
@@ -90,10 +90,10 @@ public class RTObject {
 					if (namedChild != null && namedChild.gethasValidName()) {
 						comps.push(new Ink.Runtime.Path.Component(namedChild.getname()));
 					} else {
-						comps.push(new Ink.Runtime.Path.Component(container.getcontent().IndexOf(child)));
+						comps.push(new Ink.Runtime.Path.Component(container.getcontent().indexOf(child)));
 					}
 					child = container;
-					container = container.getParent() instanceof Container ? (Container) container.parent : (Container) null;
+					container = container.getparent() instanceof Container ? (Container) container.getparent() : (Container) null;
 				}
 				path = new Path(comps);
 			}
@@ -142,7 +142,7 @@ public class RTObject {
 		if (lastSharedPathCompIndex == -1)
 			return globalPath;
 
-		int numUpwardsMoves = (ownPath.getcomponents().Count - 1) - lastSharedPathCompIndex;
+		int numUpwardsMoves = (ownPath.getcomponents().size() - 1) - lastSharedPathCompIndex;
 		ArrayList<Component> newPathComps = new ArrayList<Ink.Runtime.Path.Component>();
 		for (int up = 0; up < numUpwardsMoves; ++up)
 			newPathComps.add(Ink.Runtime.Path.Component.toParent());
@@ -180,15 +180,16 @@ public class RTObject {
 	}
 
 	public RTObject copy() throws Exception {
-		throw new UnsupportedOperationException(GetType().Name + " doesn't support copying");
+		throw new UnsupportedOperationException(this.getClass().getTypeName() + " doesn't support copying");
 	}
 
-	public <T extends RTObject> void setChild(RefSupport<T> obj, T value) throws Exception {
-		if (obj.getValue())
+	public void setChild(RefSupport<RTObject> obj, RTObject value) throws Exception {
+		if (obj.getValue() != null)
 			obj.getValue().parent = null;
 
 		obj.setValue(value);
-		if (obj.getValue())
+		
+		if (obj.getValue() != null)
 			obj.getValue().parent = this;
 
 	}

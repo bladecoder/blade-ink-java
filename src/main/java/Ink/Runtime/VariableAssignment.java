@@ -18,7 +18,8 @@ public class VariableAssignment  extends RTObject
         __variableName = value;
     }
 
-    private boolean __isNewDeclaration = new boolean();
+    private boolean __isNewDeclaration;
+    
     public boolean getisNewDeclaration() {
         return __isNewDeclaration;
     }
@@ -27,7 +28,8 @@ public class VariableAssignment  extends RTObject
         __isNewDeclaration = value;
     }
 
-    private boolean __isGlobal = new boolean();
+    private boolean __isGlobal;
+    
     public boolean getisGlobal() {
         return __isGlobal;
     }

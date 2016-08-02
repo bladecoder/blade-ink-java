@@ -31,14 +31,14 @@ public class VariableReference  extends RTObject
     }
 
     public Container getcontainerForCount() throws Exception {
-        return this.ResolvePath(getpathForCount()) instanceof Container ? (Container)this.ResolvePath(getpathForCount()) : (Container)null;
+        return this.resolvePath(getpathForCount()) instanceof Container ? (Container)this.resolvePath(getpathForCount()) : (Container)null;
     }
 
     public String getpathStringForCount() throws Exception {
         if (getpathForCount() == null)
             return null;
          
-        return CompactPathString(getpathForCount());
+        return compactPathString(getpathForCount());
     }
 
     public void setpathStringForCount(String value) throws Exception {
@@ -61,12 +61,12 @@ public class VariableReference  extends RTObject
         {
             if (getname() != null)
             {
-                return String.Format("var({0})", getname());
+                return String.format("var({0})", getname());
             }
             else
             {
-                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ pathStr = getpathStringForCount();
-                return String.Format("read_count({0})", pathStr);
+                String pathStr = getpathStringForCount();
+                return String.format("read_count({0})", pathStr);
             } 
         }
         catch (RuntimeException __dummyCatchVar0)

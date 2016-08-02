@@ -19,7 +19,7 @@ public class DebugMetadata
         {
             if (fileName != null)
             {
-                return String.Format("line {0} of {1}", startLineNumber, fileName);
+                return String.format("line {0} of {1}", startLineNumber, fileName);
             }
             else
             {

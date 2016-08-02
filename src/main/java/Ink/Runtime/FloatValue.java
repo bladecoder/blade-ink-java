@@ -9,43 +9,38 @@ import Ink.Runtime.StringValue;
 import Ink.Runtime.Value;
 import Ink.Runtime.ValueType;
 
-public class FloatValue  extends Value<float> 
-{
-    public ValueType getvalueType() throws Exception {
-        return ValueType.Float;
-    }
+public class FloatValue extends Value<Float> {
+	public ValueType getvalueType() throws Exception {
+		return ValueType.Float;
+	}
 
-    public boolean getisTruthy() throws Exception {
-        return getvalue() != 0.0f;
-    }
+	public boolean getisTruthy() throws Exception {
+		return getValue() != 0.0f;
+	}
 
-    public FloatValue(float val) throws Exception {
-        super(val);
-    }
+	public FloatValue(float val) throws Exception {
+		super(val);
+	}
 
-    public FloatValue() throws Exception {
-        this(0.0f);
-    }
+	public FloatValue() throws Exception {
+		this(0.0f);
+	}
 
-    public Value cast(ValueType newType) throws Exception {
-        if (newType == getvalueType())
-        {
-            return this;
-        }
-         
-        if (newType == ValueType.Int)
-        {
-            return new IntValue((int)this.getvalue());
-        }
-         
-        if (newType == ValueType.String)
-        {
-            return new StringValue("" + this.getvalue());
-        }
-         
-        throw new System.Exception("Unexpected type cast of Value to new ValueType");
-    }
+	@Override
+	public AbstractValue cast(ValueType newType) throws Exception {
+		if (newType == getvalueType()) {
+			return this;
+		}
+
+		if (newType == ValueType.Int) {
+			return new IntValue(this.getValue().intValue());
+		}
+
+		if (newType == ValueType.String) {
+			return new StringValue(this.getValue().toString());
+		}
+
+		throw new Exception("Unexpected type cast of Value to new ValueType");
+	}
 
 }
-
-

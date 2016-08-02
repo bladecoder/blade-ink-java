@@ -17,11 +17,11 @@ public class ChoicePoint extends RTObject
     }
 
     public Container getchoiceTarget() throws Exception {
-        return this.ResolvePath(getpathOnChoice()) instanceof Container ? (Container)this.ResolvePath(getpathOnChoice()) : (Container)null;
+        return this.resolvePath(getpathOnChoice()) instanceof Container ? (Container)this.resolvePath(getpathOnChoice()) : (Container)null;
     }
 
     public String getpathStringOnChoice() throws Exception {
-        return CompactPathString(getpathOnChoice());
+        return compactPathString(getpathOnChoice());
     }
 
     public void setpathStringOnChoice(String value) throws Exception {
@@ -112,7 +112,7 @@ public class ChoicePoint extends RTObject
     public String toString() {
         try
         {
-            int targetLineNum = DebugLineNumberOfPath(getpathOnChoice());
+            Integer targetLineNum = debugLineNumberOfPath(getpathOnChoice());
             
             String targetString = getpathOnChoice().toString();
             

@@ -13,26 +13,29 @@ import Ink.Runtime.VariablePointerValue;
 public class VariablePointerValue  extends Value<String> 
 {
     public String getvariableName() throws Exception {
-        return this.getvalue();
+        return this.getValue();
     }
 
     public void setvariableName(String value) throws Exception {
-        this.setvalue(value);
+        this.setValue(value);
     }
 
+    @Override
     public ValueType getvalueType() throws Exception {
         return ValueType.VariablePointer;
     }
 
+    @Override
     public boolean getisTruthy() throws Exception {
-        throw new System.Exception("Shouldn't be checking the truthiness of a variable pointer");
+        throw new Exception("Shouldn't be checking the truthiness of a variable pointer");
     }
 
     // Where the variable is located
     // -1 = default, unknown, yet to be determined
     // 0  = in global scope
     // 1+ = callstack element index + 1 (so that the first doesn't conflict with special global scope)
-    private int __contextIndex = new int();
+    private int __contextIndex;
+    
     public int getcontextIndex() {
         return __contextIndex;
     }
@@ -45,16 +48,21 @@ public class VariablePointerValue  extends Value<String>
         super(variableName);
         this.setcontextIndex(contextIndex);
     }
+    
+    public VariablePointerValue(String variableName) throws Exception {
+        this(variableName, -1);
+    }
 
     public VariablePointerValue() throws Exception {
         this(null);
     }
 
-    public Value cast(ValueType newType) throws Exception {
+    @Override
+	public AbstractValue cast(ValueType newType) throws Exception {
         if (newType == getvalueType())
             return this;
          
-        throw new System.Exception("Unexpected type cast of Value to new ValueType");
+        throw new Exception("Unexpected type cast of Value to new ValueType");
     }
 
     public String toString() {

@@ -1,22 +1,14 @@
-//
-// Translated by CS2J (http://www.cs2j.com): 22/07/2016 12:24:34
-//
-
 package Ink.Runtime;
 
-import Ink.Runtime.FloatValue;
-import Ink.Runtime.StringValue;
-import Ink.Runtime.Value;
-import Ink.Runtime.ValueType;
-
-public class IntValue  extends Value<int> 
+public class IntValue  extends Value<Integer> 
 {
+	@Override
     public ValueType getvalueType() throws Exception {
         return ValueType.Int;
     }
 
     public boolean getisTruthy() throws Exception {
-        return getvalue() != 0;
+        return getValue() != 0;
     }
 
     public IntValue(int intVal) throws Exception {
@@ -27,7 +19,8 @@ public class IntValue  extends Value<int>
         this(0);
     }
 
-    public Value cast(ValueType newType) throws Exception {
+    @Override
+    public AbstractValue cast(ValueType newType) throws Exception {
         if (newType == getvalueType())
         {
             return this;
@@ -35,15 +28,15 @@ public class IntValue  extends Value<int>
          
         if (newType == ValueType.Float)
         {
-            return new FloatValue((float)this.getvalue());
+            return new FloatValue((float)this.getValue());
         }
          
         if (newType == ValueType.String)
         {
-            return new StringValue("" + this.getvalue());
+            return new StringValue(this.getValue().toString());
         }
          
-        throw new System.Exception("Unexpected type cast of Value to new ValueType");
+        throw new Exception("Unexpected type cast of Value to new ValueType");
     }
 
 }

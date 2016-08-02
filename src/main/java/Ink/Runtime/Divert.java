@@ -1,184 +1,157 @@
-//
-// Translated by CS2J (http://www.cs2j.com): 22/07/2016 12:24:33
-//
-
 package Ink.Runtime;
 
-import CS2JNet.System.StringSupport;
-import Ink.Runtime.Divert;
-import Ink.Runtime.RTObject;
-import Ink.Runtime.Path;
-import Ink.Runtime.PushPopType;
+public class Divert extends RTObject {
+	public Path gettargetPath() throws Exception {
+		// Resolve any relative paths to global ones as we come across them
+		if (_targetPath != null && _targetPath.getisRelative()) {
+			RTObject targetObj = gettargetContent();
 
-public class Divert  extends RTObject 
-{
-    public Path gettargetPath() throws Exception {
-        // Resolve any relative paths to global ones as we come across them
-        if (_targetPath != null && _targetPath.getisRelative())
-        {
-            /* [UNSUPPORTED] 'var' as type is unsupported "var" */ targetObj = gettargetContent();
-            if (targetObj)
-            {
-                _targetPath = targetObj.path;
-            }
-             
-        }
-         
-        return _targetPath;
-    }
+			if (targetObj != null) {
+				_targetPath = targetObj.path;
+			}
 
-    public void settargetPath(Path value) throws Exception {
-        _targetPath = value;
-        _targetContent = null;
-    }
+		}
 
-    Path _targetPath;
-    public RTObject gettargetContent() throws Exception {
-        if (_targetContent == null)
-        {
-            _targetContent = ResolvePath(_targetPath);
-        }
-         
-        return _targetContent;
-    }
+		return _targetPath;
+	}
 
-    RTObject _targetContent;
-    public String gettargetPathString() throws Exception {
-        if (gettargetPath() == null)
-            return null;
-         
-        return CompactPathString(gettargetPath());
-    }
+	public void settargetPath(Path value) throws Exception {
+		_targetPath = value;
+		_targetContent = null;
+	}
 
-    public void settargetPathString(String value) throws Exception {
-        if (value == null)
-        {
-            settargetPath(null);
-        }
-        else
-        {
-            settargetPath(new Path(value));
-        } 
-    }
+	Path _targetPath;
 
-    private String __variableDivertName = new String();
-    public String getvariableDivertName() {
-        return __variableDivertName;
-    }
+	public RTObject gettargetContent() throws Exception {
+		if (_targetContent == null) {
+			_targetContent = resolvePath(_targetPath);
+		}
 
-    public void setvariableDivertName(String value) {
-        __variableDivertName = value;
-    }
+		return _targetContent;
+	}
 
-    public boolean gethasVariableTarget() throws Exception {
-        return getvariableDivertName() != null;
-    }
+	RTObject _targetContent;
 
-    private boolean __pushesToStack = new boolean();
-    public boolean getpushesToStack() {
-        return __pushesToStack;
-    }
+	public String gettargetPathString() throws Exception {
+		if (gettargetPath() == null)
+			return null;
 
-    public void setpushesToStack(boolean value) {
-        __pushesToStack = value;
-    }
+		return compactPathString(gettargetPath());
+	}
 
-    public PushPopType stackPushType = PushPopType.Tunnel;
-    private boolean __isExternal = new boolean();
-    public boolean getisExternal() {
-        return __isExternal;
-    }
+	public void settargetPathString(String value) throws Exception {
+		if (value == null) {
+			settargetPath(null);
+		} else {
+			settargetPath(new Path(value));
+		}
+	}
 
-    public void setisExternal(boolean value) {
-        __isExternal = value;
-    }
+	private String __variableDivertName = new String();
 
-    private int __externalArgs = new int();
-    public int getexternalArgs() {
-        return __externalArgs;
-    }
+	public String getvariableDivertName() {
+		return __variableDivertName;
+	}
 
-    public void setexternalArgs(int value) {
-        __externalArgs = value;
-    }
+	public void setvariableDivertName(String value) {
+		__variableDivertName = value;
+	}
 
-    private boolean __isConditional = new boolean();
-    public boolean getisConditional() {
-        return __isConditional;
-    }
+	public boolean gethasVariableTarget() throws Exception {
+		return getvariableDivertName() != null;
+	}
 
-    public void setisConditional(boolean value) {
-        __isConditional = value;
-    }
+	private boolean __pushesToStack;
 
-    public Divert() throws Exception {
-        setpushesToStack(false);
-    }
+	public boolean getpushesToStack() {
+		return __pushesToStack;
+	}
 
-    public Divert(PushPopType stackPushType) throws Exception {
-        setpushesToStack(true);
-        this.stackPushType = stackPushType;
-    }
+	public void setpushesToStack(boolean value) {
+		__pushesToStack = value;
+	}
 
-    public boolean equals(RTObject obj) {
-        try
-        {
-            Divert otherDivert = obj instanceof Divert ? (Divert)obj : (Divert)null;
-            if (otherDivert)
-            {
-                if (this.gethasVariableTarget() == otherDivert.gethasVariableTarget())
-                {
-                    if (this.gethasVariableTarget())
-                    {
-                        return StringSupport.equals(this.getvariableDivertName(), otherDivert.getvariableDivertName());
-                    }
-                    else
-                    {
-                        return this.gettargetPath().equals(otherDivert.gettargetPath());
-                    } 
-                }
-                 
-            }
-             
-            return false;
-        }
-        catch (RuntimeException __dummyCatchVar0)
-        {
-            throw __dummyCatchVar0;
-        }
-        catch (Exception __dummyCatchVar0)
-        {
-            throw new RuntimeException(__dummyCatchVar0);
-        }
-    
-    }
+	public PushPopType stackPushType = PushPopType.Tunnel;
+	private boolean __isExternal;
 
-    public int hashCode() {
-        try
-        {
-            if (gethasVariableTarget())
-            {
-                ;
-                return getvariableDivertName().GetHashCode() + variableTargetSalt;
-            }
-            else
-            {
-                ;
-                return gettargetPath().hashCode() + pathTargetSalt;
-            } 
-        }
-        catch (RuntimeException __dummyCatchVar1)
-        {
-            throw __dummyCatchVar1;
-        }
-        catch (Exception __dummyCatchVar1)
-        {
-            throw new RuntimeException(__dummyCatchVar1);
-        }
-    
-    }
+	public boolean getisExternal() {
+		return __isExternal;
+	}
 
-    public String toString() {
+	public void setisExternal(boolean value) {
+		__isExternal = value;
+	}
+
+	private int __externalArgs;
+
+	public int getexternalArgs() {
+		return __externalArgs;
+	}
+
+	public void setexternalArgs(int value) {
+		__externalArgs = value;
+	}
+
+	private boolean __isConditional;
+
+	public boolean getisConditional() {
+		return __isConditional;
+	}
+
+	public void setisConditional(boolean value) {
+		__isConditional = value;
+	}
+
+	public Divert() throws Exception {
+		setpushesToStack(false);
+	}
+
+	public Divert(PushPopType stackPushType) throws Exception {
+		setpushesToStack(true);
+		this.stackPushType = stackPushType;
+	}
+
+	public boolean equals(RTObject obj) {
+		try {
+			Divert otherDivert = obj instanceof Divert ? (Divert) obj : (Divert) null;
+			if (otherDivert != null) {
+				if (this.gethasVariableTarget() == otherDivert.gethasVariableTarget()) {
+					if (this.gethasVariableTarget()) {
+						return this.getvariableDivertName().equals(otherDivert.getvariableDivertName());
+					} else {
+						return this.gettargetPath().equals(otherDivert.gettargetPath());
+					}
+				}
+
+			}
+
+			return false;
+		} catch (RuntimeException __dummyCatchVar0) {
+			throw __dummyCatchVar0;
+		} catch (Exception __dummyCatchVar0) {
+			throw new RuntimeException(__dummyCatchVar0);
+		}
+
+	}
+
+	public int hashCode() {
+		try {
+			if (gethasVariableTarget()) {
+				int variableTargetSalt = 12345;
+				return getvariableDivertName().hashCode() + variableTargetSalt;
+			} else {
+				int pathTargetSalt = 54321;
+				return gettargetPath().hashCode() + pathTargetSalt;
+			}
+		} catch (RuntimeException __dummyCatchVar1) {
+			throw __dummyCatchVar1;
+		} catch (Exception __dummyCatchVar1) {
+			throw new RuntimeException(__dummyCatchVar1);
+		}
+
+	}
+
+	public String toString() {
         try
         {
             if (gethasVariableTarget())
@@ -191,31 +164,31 @@ public class Divert  extends RTObject
             }
             else
             {
-                /* [UNSUPPORTED] 'var' as type is unsupported "var" */ sb = new StringBuilder();
+            	StringBuilder sb = new StringBuilder();
                 String targetStr = gettargetPath().toString();
-                int? targetLineNum = DebugLineNumberOfPath(gettargetPath());
+                Integer targetLineNum = debugLineNumberOfPath(gettargetPath());
                 if (targetLineNum != null)
                 {
                     targetStr = "line " + targetLineNum;
                 }
                  
-                sb.Append("Divert");
+                sb.append("Divert");
                 if (getpushesToStack())
                 {
                     if (stackPushType == PushPopType.Function)
                     {
-                        sb.Append(" function");
+                        sb.append(" function");
                     }
                     else
                     {
-                        sb.Append(" tunnel");
+                        sb.append(" tunnel");
                     } 
                 }
                  
-                sb.Append(" (");
-                sb.Append(targetStr);
-                sb.Append(")");
-                return sb.ToString();
+                sb.append(" (");
+                sb.append(targetStr);
+                sb.append(")");
+                return sb.toString();
             }  
         }
         catch (RuntimeException __dummyCatchVar2)
@@ -230,5 +203,3 @@ public class Divert  extends RTObject
     }
 
 }
-
-

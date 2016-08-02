@@ -133,7 +133,7 @@ public class ControlCommand  extends RTObject
     public String toString() {
         try
         {
-            return getcommandType().ToString();
+            return getcommandType().toString();
         }
         catch (RuntimeException __dummyCatchVar0)
         {
