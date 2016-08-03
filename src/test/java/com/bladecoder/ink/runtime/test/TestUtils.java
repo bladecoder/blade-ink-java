@@ -40,21 +40,22 @@ public class TestUtils {
 		Story story = new Story(json);
 
 		StringBuffer text = new StringBuffer();
-		
+
 		System.out.println(story.BuildStringOfHierarchy());
 
-		// 2) Game content, line by line
-		while (story.canContinue()) {
-			String line = story.Continue();
-			System.out.println(line);
-			text.append(line);
-			
-			
+		while (story.canContinue() || story.getCurrentChoices().size() > 0) {
+			// 2) Game content, line by line
+			while (story.canContinue()) {
+				String line = story.Continue();
+				System.out.println(line);
+				text.append(line);
+			}
+
 			if (story.hasError()) {
-                for (String errorMsg : story.getCurrentErrors()) {
-                	System.out.println(errorMsg);
-                }
-            }
+				for (String errorMsg : story.getCurrentErrors()) {
+					System.out.println(errorMsg);
+				}
+			}
 
 			// 3) Display story.currentChoices list, allow player to choose one
 			if (story.getCurrentChoices().size() > 0) {
