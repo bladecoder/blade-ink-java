@@ -129,7 +129,9 @@ public class StoryState {
 		StringBuilder sb = new StringBuilder();
 
 		for (RTObject outputObj : _outputStream) {
-			StringValue textContent = (StringValue) outputObj;
+			StringValue textContent = 
+					outputObj instanceof StringValue?(StringValue) outputObj:null;
+			
 			if (textContent != null) {
 				sb.append(textContent.value);
 			}
@@ -345,7 +347,9 @@ public class StoryState {
 	// in dealing with them later.
 
 	void PushToOutputStream(RTObject obj) throws Exception {
-		StringValue text = (StringValue) obj;
+		StringValue text = 		
+				obj instanceof StringValue?(StringValue) obj:null;
+		
 		if (text != null) {
 			List<StringValue> listText = TrySplittingHeadTailWhitespace(text);
 			if (listText != null) {
@@ -442,8 +446,10 @@ public class StoryState {
 	}
 
 	void PushToOutputStreamIndividual(RTObject obj) throws Exception {
-		Glue glue = (Glue) obj;
-		StringValue text = (StringValue) obj;
+		Glue glue = 
+				obj instanceof Glue?(Glue) obj:null;
+		StringValue text = 
+				obj instanceof StringValue?(StringValue) obj:null;
 
 		boolean includeInOutput = true;
 
@@ -514,9 +520,12 @@ public class StoryState {
 		int i = _outputStream.size() - 1;
 		while (i >= 0) {
 			RTObject obj = _outputStream.get(i);
-			ControlCommand cmd = (ControlCommand) obj;
-			StringValue txt = (StringValue) obj;
-			Glue glue = (Glue) obj;
+			ControlCommand cmd = 
+					obj instanceof ControlCommand?(ControlCommand) obj:null;
+			StringValue txt = 
+					obj instanceof StringValue?(StringValue) obj:null;
+			Glue glue = 
+					obj instanceof Glue?(Glue) obj:null;
 
 			if (cmd != null || (txt != null && txt.getisNonWhitespace())) {
 				foundNonWhitespace = true;
@@ -536,7 +545,8 @@ public class StoryState {
 		if (removeWhitespaceFrom >= 0) {
 			i = removeWhitespaceFrom;
 			while (i < _outputStream.size()) {
-				StringValue text = (StringValue) _outputStream.get(i);
+				StringValue text = 
+						_outputStream.get(i) instanceof StringValue?(StringValue) _outputStream.get(i):null;
 				if (text != null) {
 					_outputStream.remove(i);
 				} else {
@@ -554,7 +564,9 @@ public class StoryState {
 	void TrimFromExistingGlue() throws Exception {
 		int i = currentGlueIndex();
 		while (i < _outputStream.size()) {
-			StringValue txt = (StringValue) _outputStream.get(i);
+			StringValue txt = 
+					_outputStream.get(i) instanceof StringValue?(StringValue) _outputStream.get(i):null;
+					
 			if (txt != null && !txt.getisNonWhitespace())
 				_outputStream.remove(i);
 			else
@@ -578,7 +590,8 @@ public class StoryState {
 	int currentGlueIndex() {
 		for (int i = _outputStream.size() - 1; i >= 0; i--) {
 			RTObject c = _outputStream.get(i);
-			Glue glue = (Glue) c;
+			Glue glue = 
+					c instanceof Glue?(Glue) c:null;
 			if (glue != null)
 				return i;
 			else if (c instanceof ControlCommand) // e.g. BeginString
@@ -595,7 +608,9 @@ public class StoryState {
                         RTObject obj = _outputStream.get(i);
                         if (obj instanceof ControlCommand) // e.g. BeginString
                             break;
-                        StringValue text = (StringValue)_outputStream.get(i);
+                        StringValue text = 
+                        		_outputStream.get(i) instanceof StringValue?(StringValue) _outputStream.get(i):null;
+
                         if (text != null) {
                             if (text.getisNewline())
                                 return true;
@@ -620,7 +635,9 @@ public class StoryState {
 	boolean inStringEvaluation()
 	{
                 for (int i = _outputStream.size() - 1; i >= 0; i--) {
-                	ControlCommand cmd = (ControlCommand) _outputStream.get(i);
+                	ControlCommand cmd = 
+                			_outputStream.get(i) instanceof ControlCommand?(ControlCommand) _outputStream.get(i):null;
+
                     if (cmd != null && cmd.getcommandType() == ControlCommand.CommandType.BeginString) {
                         return true;
                     }
@@ -650,7 +667,7 @@ public class StoryState {
 			throw new Exception("trying to pop too many objects");
 		}
 
-		List<RTObject> popped = new ArrayList<RTObject>(evaluationStack.subList(evaluationStack.size() - numberOfObjects, numberOfObjects));
+		List<RTObject> popped = new ArrayList<RTObject>(evaluationStack.subList(evaluationStack.size() - numberOfObjects, evaluationStack.size()));
 		evaluationStack.subList(evaluationStack.size() - numberOfObjects, numberOfObjects).clear();
 		return popped;
 	}

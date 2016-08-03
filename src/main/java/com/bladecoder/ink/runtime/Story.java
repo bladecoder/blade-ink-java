@@ -36,7 +36,7 @@ public class Story extends RTObject {
 	/// The minimum legacy version of ink that can be loaded by the current
 	/// version of the code.
 	/// </summary>
-	public static final int inkVersionMinimumCompatible = 11;
+	public static final int inkVersionMinimumCompatible = 12;
 
 	/// <summary>
 	/// The list of Choice Objects available at the current point in
@@ -48,13 +48,14 @@ public class Story extends RTObject {
 	public List<Choice> getCurrentChoices() {
 
 		// Don't include invisible choices for external usage.
-		List choices = new ArrayList<Choice>();
+		List<Choice> choices = new ArrayList<Choice>();
 		for (Choice c : _state.currentChoices) {
 			if (!c.getchoicePoint().getisInvisibleDefault()) {
 				c.setindex(choices.size());
 				choices.add(c);
 			}
 		}
+		
 		return choices;
 	}
 
@@ -123,7 +124,8 @@ public class Story extends RTObject {
 		if (versionObj == null)
 			throw new Exception("ink version number not found. Are you sure it's a valid .ink.json file?");
 
-		int formatFromFile = Integer.parseInt((String)versionObj);
+		int formatFromFile = versionObj instanceof String ? Integer.parseInt((String) versionObj) : (int) versionObj;
+
 		if (formatFromFile > inkVersionCurrent) {
 			throw new Exception("Version of ink used to build story was newer than the current verison of the engine");
 		} else if (formatFromFile < inkVersionMinimumCompatible) {
@@ -138,7 +140,8 @@ public class Story extends RTObject {
 		if (rootToken == null)
 			throw new Exception("Root node for ink not found. Are you sure it's a valid .ink.json file?");
 
-		_mainContentContainer = (Container) Json.jTokenToRuntimeRTObject(rootToken);
+		_mainContentContainer = Json.jTokenToRuntimeRTObject(rootToken) instanceof Container
+				? (Container) Json.jTokenToRuntimeRTObject(rootToken) : null;
 
 		ResetState();
 	}
@@ -413,7 +416,8 @@ public class Story extends RTObject {
 
 		// Step directly to the first element of content in a container (if
 		// necessary)
-		Container currentContainer = (Container) currentContentObj;
+		Container currentContainer = currentContentObj instanceof Container ? (Container) currentContentObj : null;
+
 		while (currentContainer != null) {
 
 			// Mark container as being entered
@@ -427,7 +431,7 @@ public class Story extends RTObject {
 			_state.callStack.currentElement().currentContentIndex = 0;
 			_state.callStack.currentElement().currentContainer = currentContainer;
 
-			currentContainer = (Container) currentContentObj;
+			currentContainer = currentContentObj instanceof Container ? (Container) currentContentObj : null;
 		}
 		currentContainer = _state.callStack.currentElement().currentContainer;
 
@@ -449,7 +453,7 @@ public class Story extends RTObject {
 		}
 
 		// Choice with condition?
-		ChoicePoint choicePoint = (ChoicePoint) currentContentObj;
+		ChoicePoint choicePoint = currentContentObj instanceof ChoicePoint ? (ChoicePoint) currentContentObj : null;
 		if (choicePoint != null) {
 			Choice choice = ProcessChoice(choicePoint);
 			if (choice != null) {
@@ -474,7 +478,9 @@ public class Story extends RTObject {
 			// to our current (possibly temporary) context index. And make a
 			// copy of the pointer
 			// so that we're not editing the original runtime Object.
-			VariablePointerValue varPointer = (VariablePointerValue) currentContentObj;
+			VariablePointerValue varPointer = currentContentObj instanceof VariablePointerValue
+					? (VariablePointerValue) currentContentObj : null;
+
 			if (varPointer != null && varPointer.getcontextIndex() == -1) {
 
 				// Create new Object so we're not overwriting the story's own
@@ -500,7 +506,8 @@ public class Story extends RTObject {
 		// pointer,
 		// so that when returning from the thread, it returns to the content
 		// after this instruction.
-		ControlCommand controlCmd = (ControlCommand) currentContentObj;
+		ControlCommand controlCmd = currentContentObj instanceof ControlCommand ? (ControlCommand) currentContentObj
+				: null;
 		if (controlCmd != null && controlCmd.getcommandType() == ControlCommand.CommandType.StartThread) {
 			_state.callStack.PushThread();
 		}
@@ -527,11 +534,19 @@ public class Story extends RTObject {
 		// First, find the previously open set of containers
 		HashSet<Container> prevContainerSet = new HashSet<Container>();
 		if (previousContentObject != null) {
-			Container prevAncestor = (previousContentObject instanceof Container ? (Container) previousContentObject
-					: (Container) previousContentObject.getparent());
+
+			Container prevAncestor = null;
+
+			if (previousContentObject instanceof Container) {
+				prevAncestor = (Container) previousContentObject;
+			} else if (previousContentObject.getparent() instanceof Container) {
+				prevAncestor = (Container) previousContentObject.getparent();
+			}
+
 			while (prevAncestor != null) {
 				prevContainerSet.add(prevAncestor);
-				prevAncestor = (Container) prevAncestor.getparent();
+				prevAncestor = prevAncestor.getparent() instanceof Container ? (Container) prevAncestor.getparent()
+						: null;
 			}
 		}
 
@@ -540,7 +555,9 @@ public class Story extends RTObject {
 		// content step. However, we need to walk up the new ancestry to see if
 		// there are more new containers
 		RTObject currentChildOfContainer = newContentObject;
-		Container currentContainerAncestor = (Container) currentChildOfContainer.getparent();
+		Container currentContainerAncestor = currentChildOfContainer.getparent() instanceof Container
+				? (Container) currentChildOfContainer.getparent() : null;
+
 		while (currentContainerAncestor != null && !prevContainerSet.contains(currentContainerAncestor)) {
 
 			// Check whether this ancestor container is being entered at the
@@ -553,7 +570,9 @@ public class Story extends RTObject {
 			VisitContainer(currentContainerAncestor, enteringAtStart);
 
 			currentChildOfContainer = currentContainerAncestor;
-			currentContainerAncestor = (Container) currentContainerAncestor.getparent();
+			currentContainerAncestor = currentContainerAncestor.getparent() instanceof Container
+					? (Container) currentContainerAncestor.getparent() : null;
+
 		}
 	}
 
@@ -657,7 +676,7 @@ public class Story extends RTObject {
 
 				if (!(varContents instanceof DivertTargetValue)) {
 
-					IntValue intContent = (IntValue) varContents;
+					IntValue intContent = varContents instanceof IntValue ? (IntValue) varContents : null;
 
 					String errorMessage = "Tried to divert to a target from a variable, but the variable (" + varName
 							+ ") didn't contain a divert target, it ";
@@ -799,7 +818,8 @@ public class Story extends RTObject {
 
 					outputCountConsumed++;
 
-					ControlCommand command = (ControlCommand) obj;
+					ControlCommand command = obj instanceof ControlCommand ? (ControlCommand) obj : null;
+
 					if (command != null && command.getcommandType() == ControlCommand.CommandType.BeginString) {
 						break;
 					}
@@ -839,8 +859,11 @@ public class Story extends RTObject {
 					break;
 				}
 
-				DivertTargetValue divertTarget = (DivertTargetValue) target;
-				Container container = (Container) ContentAtPath(divertTarget.gettargetPath());
+				DivertTargetValue divertTarget = target instanceof DivertTargetValue ? (DivertTargetValue) target
+						: null;
+				Container container = ContentAtPath(divertTarget.gettargetPath()) instanceof Container
+						? (Container) ContentAtPath(divertTarget.gettargetPath()) : null;
+
 				int turnCount = TurnsSinceForContainer(container);
 				_state.PushEvaluationStack(new IntValue(turnCount));
 				break;
@@ -996,7 +1019,7 @@ public class Story extends RTObject {
 		Choice choiceToChoose = choices.get(choiceIdx);
 		_state.callStack.setCurrentThread(choiceToChoose.getthreadAtGeneration());
 
-		ChoosePath(choiceToChoose.getchoicePoint().getchoiceTarget().path);
+		ChoosePath(choiceToChoose.getchoicePoint().getchoiceTarget().getpath());
 	}
 
 	// Evaluate a "hot compiled" piece of ink content, as used by the REPL-like
@@ -1051,7 +1074,11 @@ public class Story extends RTObject {
 		// Try to use fallback function?
 		if (func == null) {
 			if (allowExternalFunctionFallbacks) {
-				fallbackFunctionContainer = (Container) ContentAtPath(new Path(funcName));
+				
+				RTObject contentAtPath = ContentAtPath(new Path(funcName));
+				fallbackFunctionContainer =  contentAtPath instanceof Container
+						? (Container) contentAtPath : null;
+
 				Assert(fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName
 						+ "' which has not been bound, and fallback ink function could not be found.");
 
@@ -1086,7 +1113,8 @@ public class Story extends RTObject {
 		RTObject returnObj = null;
 		if (funcResult != null) {
 			returnObj = Value.create(funcResult);
-			 Assert (returnObj != null, "Could not create ink value from returned Object of type " + funcResult.getClass().getCanonicalName());
+			Assert(returnObj != null, "Could not create ink value from returned Object of type "
+					+ funcResult.getClass().getCanonicalName());
 		} else {
 			returnObj = new Void();
 		}
@@ -1318,18 +1346,24 @@ public class Story extends RTObject {
 			ValidateExternalBindings(innerContent);
 		}
 		for (INamedContent innerKeyValue : c.getnamedContent().values()) {
-			ValidateExternalBindings((RTObject) innerKeyValue);
+			ValidateExternalBindings(
+					innerKeyValue instanceof RTObject?(RTObject)innerKeyValue:null
+					);
 		}
 	}
 
 	void ValidateExternalBindings(RTObject o) throws Exception {
-		Container container = (Container) o;
+		Container container = 
+				o instanceof Container?(Container) o:null;
+		
 		if (container != null) {
 			ValidateExternalBindings(container);
 			return;
 		}
 
-		Divert divert = (Divert) o;
+		Divert divert = 
+				o instanceof Divert?(Divert) o:null;
+		
 		if (divert != null && divert.getisExternal()) {
 			String name = divert.gettargetPathString();
 
@@ -1352,7 +1386,7 @@ public class Story extends RTObject {
 	// TODO
 	// public delegate void VariableObserver(String variableName, Object
 	// newValue);
-	
+
 	public interface VariableObserver {
 		Object call(String variableName, Object newValue);
 	}
@@ -1554,7 +1588,9 @@ public class Story extends RTObject {
 
 			successfulIncrement = false;
 
-			Container nextAncestor = (Container) currEl.currentContainer.getparent();
+			Container nextAncestor = 
+					currEl.currentContainer.getparent() instanceof Container?(Container) currEl.currentContainer.getparent():null;
+			
 			if (nextAncestor == null) {
 				break;
 			}
@@ -1606,10 +1642,9 @@ public class Story extends RTObject {
 			return 0;
 		}
 
-		int count = 0;
-		String containerPathStr = container.path.toString();
-		count = _state.visitCounts.get(containerPathStr);
-		return count;
+		String containerPathStr = container.getpath().toString();
+		Integer count = _state.visitCounts.get(containerPathStr);
+		return count==null?0:count;
 	}
 
 	void IncrementVisitCountForContainer(Container container) {
@@ -1644,7 +1679,10 @@ public class Story extends RTObject {
 	// from a consistent seed each time.
 	// TODO: Is this the best algorithm it can be?
 	int NextSequenceShuffleIndex() throws Exception {
-		IntValue numElementsIntVal = (IntValue) _state.PopEvaluationStack();
+		RTObject popEvaluationStack = _state.PopEvaluationStack();
+		
+		IntValue numElementsIntVal = 
+				popEvaluationStack instanceof IntValue?(IntValue) popEvaluationStack:null;
 
 		if (numElementsIntVal == null) {
 			Error("expected number of elements in sequence for shuffle index");
@@ -1700,10 +1738,9 @@ public class Story extends RTObject {
 		throw e;
 	}
 
-	void Error(String message) throws Exception
-    {
+	void Error(String message) throws Exception {
 		Error(message, false);
-    }
+	}
 
 	void AddError(String message, boolean useEndLineNumber) throws Exception {
 		DebugMetadata dm = currentDebugMetadata();

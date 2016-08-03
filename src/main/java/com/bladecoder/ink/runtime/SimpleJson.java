@@ -63,14 +63,14 @@ public class SimpleJson {
 				skipWhitespace();
 				// Key
 				String key = readString();
-				expect(key != null, "HashMap key");
+				expect(key != null, "dictionary key");
 				skipWhitespace();
 				// :
 				expect(":");
 				skipWhitespace();
 				// Value
-				String val = readObject().toString();
-				expect(val != null, "HashMap value");
+				Object val = readObject();
+				expect(val != null, "dictionary value");
 				// Add to HashMap
 				dict.put(key, val);
 				skipWhitespace();

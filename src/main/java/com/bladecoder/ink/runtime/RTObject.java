@@ -16,7 +16,7 @@ public class RTObject {
 	 */
 	private RTObject parent;
 
-	Path path;
+	protected Path path;
 
 	public RTObject() {
 	}
@@ -50,7 +50,7 @@ public class RTObject {
 	}
 
 	public Integer debugLineNumberOfPath(Path path) throws Exception {
-		if (path == null)
+		if (path == null || path.getisRelative())
 			return null;
 
 		// Try to get a line number from debug metadata

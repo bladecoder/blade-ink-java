@@ -160,7 +160,7 @@ public class Json {
 				// Control commands (would looking up in a hash set be faster?)
 				String cmdName = _controlCommandNames[i];
 				if (str.equals(cmdName)) {
-					return new ControlCommand(com.bladecoder.ink.runtime.ControlCommand.CommandType.values()[i]);
+					return new ControlCommand(CommandType.values()[i + 1]);
 				}
 
 			}
@@ -259,9 +259,7 @@ public class Json {
 				if (external) {
 					propValue = obj.get("exArgs");
 					if (propValue != null) {
-						RefSupport<RTObject> refVar___9 = new RefSupport<RTObject>();
 						divert.setexternalArgs((Integer) propValue);
-						propValue = refVar___9.getValue();
 					}
 
 				}
@@ -531,7 +529,7 @@ public class Json {
 
 	static Container jArrayToContainer(List<Object> jArray) throws Exception {
 		Container container = new Container();
-		container.setcontent(jArrayToRuntimeObjList(jArray));
+		container.setcontent(jArrayToRuntimeObjList(jArray, true));
 		// Final RTObject in the array is always a combination of
 		// - named content
 		// - a "#" key with the countFlags

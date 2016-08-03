@@ -32,7 +32,10 @@ class CallStack {
 				return;
 			}
 
-			currentContainer = (Container) currentObj.getparent();
+			currentContainer = 
+					currentObj.getparent() instanceof Container?(Container)currentObj.getparent():null;
+			
+			
 			if (currentContainer != null)
 				currentContentIndex = currentContainer.getcontent().indexOf(currentObj);
 
@@ -41,7 +44,8 @@ class CallStack {
 			// - currentObj is a named container rather than being an RTObject
 			// at an index
 			if (currentContainer == null || currentContentIndex == -1) {
-				currentContainer = (Container) currentObj;
+				currentContainer = 
+						currentObj instanceof Container?(Container)currentObj:null;
 				currentContentIndex = 0;
 			}
 		}
@@ -94,7 +98,10 @@ class CallStack {
 				Object currentContainerPathStrToken = jElementObj.get("cPath");
 				if (currentContainerPathStrToken != null) {
 					currentContainerPathStr = currentContainerPathStrToken.toString();
-					currentContainer = (Container) storyContext.ContentAtPath(new Path(currentContainerPathStr));
+					RTObject contentAtPath = storyContext.ContentAtPath(new Path(currentContainerPathStr));
+					currentContainer = 
+							contentAtPath instanceof Container?(Container)contentAtPath:null;
+
 					contentIndex = (int) jElementObj.get("idx");
 				}
 

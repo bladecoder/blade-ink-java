@@ -17,7 +17,9 @@ public class ChoicePoint extends RTObject
     }
 
     public Container getchoiceTarget() throws Exception {
-        return this.resolvePath(getpathOnChoice()) instanceof Container ? (Container)this.resolvePath(getpathOnChoice()) : (Container)null;
+    	RTObject resolvePath = resolvePath(getpathOnChoice());
+    	
+        return resolvePath instanceof Container ? (Container)resolvePath : (Container)null;
     }
 
     public String getpathStringOnChoice() throws Exception {

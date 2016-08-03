@@ -57,7 +57,7 @@ public class Path { // extends IEquatable<Path> {
 
 	public Path gettail() throws Exception {
 		if (getcomponents().size() >= 2) {
-			List<Component> tailComps = getcomponents().subList(1, getcomponents().size() - 1);
+			List<Component> tailComps = getcomponents().subList(1, getcomponents().size());
 
 			return new Path(tailComps);
 		} else {
@@ -117,11 +117,14 @@ public class Path { // extends IEquatable<Path> {
 
 		StringBuilder sb = new StringBuilder();
 
-		sb.append(getcomponents().get(0));
+		if (getcomponents().size() > 0) {
 
-		for (int i = 1; i < getcomponents().size(); i++) {
-			sb.append('.');
-			sb.append(getcomponents().get(i));
+			sb.append(getcomponents().get(0));
+
+			for (int i = 1; i < getcomponents().size(); i++) {
+				sb.append('.');
+				sb.append(getcomponents().get(i));
+			}
 		}
 
 		String compsStr = sb.toString();
@@ -144,7 +147,7 @@ public class Path { // extends IEquatable<Path> {
 			componentsStr = componentsStr.substring(1);
 		}
 
-		String[] componentStrings = componentsStr.split(".");
+		String[] componentStrings = componentsStr.split("\\.");
 
 		for (String str : componentStrings) {
 			int index = 0;
@@ -190,19 +193,20 @@ public class Path { // extends IEquatable<Path> {
 
 			if (otherPath.getisRelative() != this.getisRelative())
 				return false;
-			
-			//return otherPath.getcomponents().SequenceEqual(this.getcomponents());
-			for(int i = 0; i < otherPath.getcomponents().size(); i++) {
-				if(!otherPath.getcomponents().get(i).equals(getcomponents().get(i)))
-					 return false;
+
+			// return
+			// otherPath.getcomponents().SequenceEqual(this.getcomponents());
+			for (int i = 0; i < otherPath.getcomponents().size(); i++) {
+				if (!otherPath.getcomponents().get(i).equals(getcomponents().get(i)))
+					return false;
 			}
-			
+
 		} catch (RuntimeException __dummyCatchVar6) {
 			throw __dummyCatchVar6;
 		} catch (Exception __dummyCatchVar6) {
 			throw new RuntimeException(__dummyCatchVar6);
 		}
-		
+
 		return true;
 
 	}
@@ -282,7 +286,8 @@ public class Path { // extends IEquatable<Path> {
 		public boolean equals(Object obj) {
 			try {
 
-				return equals(obj instanceof com.bladecoder.ink.runtime.Path.Component ? (com.bladecoder.ink.runtime.Path.Component) obj
+				return equals(obj instanceof com.bladecoder.ink.runtime.Path.Component
+						? (com.bladecoder.ink.runtime.Path.Component) obj
 						: (com.bladecoder.ink.runtime.Path.Component) null);
 			} catch (RuntimeException __dummyCatchVar1) {
 				throw __dummyCatchVar1;
