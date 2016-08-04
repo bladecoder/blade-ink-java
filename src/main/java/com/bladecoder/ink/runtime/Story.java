@@ -829,7 +829,7 @@ public class Story extends RTObject {
 				}
 
 				// Consume the content that was produced for this string
-				_state.outputStream().subList(_state.outputStream().size() - outputCountConsumed, outputCountConsumed)
+				_state.outputStream().subList(_state.outputStream().size() - outputCountConsumed, _state.outputStream().size())
 						.clear();
 
 				// Build String out of the content we collected

@@ -33,7 +33,7 @@ public class TestUtils {
 	}
 
 	
-	public static final String runStory(String filename, List<String> choiceList, List<String> errors) throws Exception {
+	public static final String runStory(String filename, List<Integer> choiceList, List<String> errors) throws Exception {
 		// 1) Load story
 		String json = TestUtils.getJsonString(filename).replace('\uFEFF', ' ');
 
@@ -44,6 +44,8 @@ public class TestUtils {
 		StringBuffer text = new StringBuffer();
 
 		System.out.println(story.BuildStringOfHierarchy());
+		
+		int choiceListIndex = 0;
 
 		while (story.canContinue() || story.getCurrentChoices().size() > 0) {
 			// 2) Game content, line by line
@@ -68,10 +70,12 @@ public class TestUtils {
 					text.append(c.gettext() + "\n");
 				}
 
-				if(choiceList == null)
+				if(choiceList == null || choiceListIndex >= choiceList.size())
 					story.ChooseChoiceIndex((int) (Math.random() * story.getCurrentChoices().size()));
-				else
-					story.ChooseChoiceIndex((int) (Math.random() * story.getCurrentChoices().size()));
+				else {
+					story.ChooseChoiceIndex(choiceList.get(choiceListIndex));
+					choiceListIndex++;
+				}
 			}
 		}
 
