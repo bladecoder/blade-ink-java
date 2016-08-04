@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 
 import com.bladecoder.ink.runtime.Choice;
 import com.bladecoder.ink.runtime.Story;
@@ -31,7 +32,8 @@ public class TestUtils {
 		}
 	}
 
-	public static final String runStory(String filename) throws Exception {
+	
+	public static final String runStory(String filename, List<String> choiceList, List<String> errors) throws Exception {
 		// 1) Load story
 		String json = TestUtils.getJsonString(filename).replace('\uFEFF', ' ');
 
@@ -47,13 +49,14 @@ public class TestUtils {
 			// 2) Game content, line by line
 			while (story.canContinue()) {
 				String line = story.Continue();
-				System.out.println(line);
+				System.out.print(line);
 				text.append(line);
 			}
 
 			if (story.hasError()) {
 				for (String errorMsg : story.getCurrentErrors()) {
 					System.out.println(errorMsg);
+					errors.add(errorMsg);
 				}
 			}
 
@@ -62,14 +65,16 @@ public class TestUtils {
 
 				for (Choice c : story.getCurrentChoices()) {
 					System.out.println(c.gettext());
-					text.append(c.gettext());
+					text.append(c.gettext() + "\n");
 				}
 
-				story.ChooseChoiceIndex((int) (Math.random() * story.getCurrentChoices().size()));
+				if(choiceList == null)
+					story.ChooseChoiceIndex((int) (Math.random() * story.getCurrentChoices().size()));
+				else
+					story.ChooseChoiceIndex((int) (Math.random() * story.getCurrentChoices().size()));
 			}
 		}
 
 		return text.toString();
 	}
-
 }

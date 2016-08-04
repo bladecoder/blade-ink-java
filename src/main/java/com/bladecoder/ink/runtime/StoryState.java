@@ -78,20 +78,24 @@ public class StoryState {
 
 	RTObject divertedTargetObject;
 
-	HashMap<String, Integer> visitCounts;
+	private HashMap<String, Integer> visitCounts;
 	HashMap<String, Integer> turnIndices;
 	int currentTurnIndex;
 	int storySeed;
 	boolean didSafeExit;
 
 	Story story;
+	
+	public HashMap<String, Integer> getVisitCounts() {
+		return visitCounts;
+	}
 
 	Path getcurrentPath() throws Exception {
 
 		if (getcurrentContentObject() == null)
 			return null;
 
-		return getcurrentContentObject().path;
+		return getcurrentContentObject().getPath();
 	}
 
 	void setcurrentPath(Path value) throws Exception {
@@ -129,9 +133,8 @@ public class StoryState {
 		StringBuilder sb = new StringBuilder();
 
 		for (RTObject outputObj : _outputStream) {
-			StringValue textContent = 
-					outputObj instanceof StringValue?(StringValue) outputObj:null;
-			
+			StringValue textContent = outputObj instanceof StringValue ? (StringValue) outputObj : null;
+
 			if (textContent != null) {
 				sb.append(textContent.value);
 			}
@@ -155,7 +158,7 @@ public class StoryState {
 
 		evaluationStack = new ArrayList<RTObject>();
 
-		callStack = new CallStack(story.getrootContentContainer());
+		callStack = new CallStack(story.getRootContentContainer());
 		variablesState = new VariablesState(callStack);
 
 		visitCounts = new HashMap<String, Integer>();
@@ -182,9 +185,7 @@ public class StoryState {
 	// RTObjects are treated as immutable after they've been set up.
 	// (e.g. we don't edit a Runtime.Text after it's been created an added.)
 	// I wonder if there's a sensible way to enforce that..??
-	StoryState
-
-			Copy() throws Exception {
+	StoryState	Copy() throws Exception {
 		StoryState copy = new StoryState(story);
 
 		copy.outputStream().addAll(_outputStream);
@@ -231,7 +232,7 @@ public class StoryState {
 
 		HashMap<String, Object> choiceThreads = null;
 		for (Choice c : currentChoices) {
-			c.originalChoicePath = c.getchoicePoint().path.getcomponentsString();
+			c.originalChoicePath = c.getchoicePoint().getPath().getComponentsString();
 			c.originalThreadIndex = c.getthreadAtGeneration().threadIndex;
 
 			if (callStack.ThreadWithIndex(c.originalThreadIndex) == null) {
@@ -261,7 +262,7 @@ public class StoryState {
 		}
 
 		if (divertedTargetObject != null)
-			obj.put("currentDivertTarget", divertedTargetObject.path.getcomponentsString());
+			obj.put("currentDivertTarget", divertedTargetObject.getPath().getComponentsString());
 
 		obj.put("visitCounts", Json.intHashMapToJRTObject(visitCounts));
 		obj.put("turnIndices", Json.intHashMapToJRTObject(turnIndices));
@@ -347,9 +348,8 @@ public class StoryState {
 	// in dealing with them later.
 
 	void PushToOutputStream(RTObject obj) throws Exception {
-		StringValue text = 		
-				obj instanceof StringValue?(StringValue) obj:null;
-		
+		StringValue text = obj instanceof StringValue ? (StringValue) obj : null;
+
 		if (text != null) {
 			List<StringValue> listText = TrySplittingHeadTailWhitespace(text);
 			if (listText != null) {
@@ -437,7 +437,8 @@ public class StoryState {
 			listTexts.add(new StringValue("\n"));
 			if (tailLastNewlineIdx < str.length() - 1) {
 				int numSpaces = (str.length() - tailLastNewlineIdx) - 1;
-				StringValue trailingSpaces = new StringValue(str.substring(tailLastNewlineIdx + 1, numSpaces + tailLastNewlineIdx + 1));
+				StringValue trailingSpaces = new StringValue(
+						str.substring(tailLastNewlineIdx + 1, numSpaces + tailLastNewlineIdx + 1));
 				listTexts.add(trailingSpaces);
 			}
 		}
@@ -446,10 +447,8 @@ public class StoryState {
 	}
 
 	void PushToOutputStreamIndividual(RTObject obj) throws Exception {
-		Glue glue = 
-				obj instanceof Glue?(Glue) obj:null;
-		StringValue text = 
-				obj instanceof StringValue?(StringValue) obj:null;
+		Glue glue = obj instanceof Glue ? (Glue) obj : null;
+		StringValue text = obj instanceof StringValue ? (StringValue) obj : null;
 
 		boolean includeInOutput = true;
 
@@ -457,7 +456,7 @@ public class StoryState {
 
 			// Found matching left-glue for right-glue? Close it.
 			boolean foundMatchingLeftGlue = glue.getisLeft() && _currentRightGlue != null
-					&& glue.getparent() == _currentRightGlue.getparent();
+					&& glue.getParent() == _currentRightGlue.getParent();
 			if (foundMatchingLeftGlue) {
 				_currentRightGlue = null;
 			}
@@ -520,12 +519,9 @@ public class StoryState {
 		int i = _outputStream.size() - 1;
 		while (i >= 0) {
 			RTObject obj = _outputStream.get(i);
-			ControlCommand cmd = 
-					obj instanceof ControlCommand?(ControlCommand) obj:null;
-			StringValue txt = 
-					obj instanceof StringValue?(StringValue) obj:null;
-			Glue glue = 
-					obj instanceof Glue?(Glue) obj:null;
+			ControlCommand cmd = obj instanceof ControlCommand ? (ControlCommand) obj : null;
+			StringValue txt = obj instanceof StringValue ? (StringValue) obj : null;
+			Glue glue = obj instanceof Glue ? (Glue) obj : null;
 
 			if (cmd != null || (txt != null && txt.getisNonWhitespace())) {
 				foundNonWhitespace = true;
@@ -545,8 +541,8 @@ public class StoryState {
 		if (removeWhitespaceFrom >= 0) {
 			i = removeWhitespaceFrom;
 			while (i < _outputStream.size()) {
-				StringValue text = 
-						_outputStream.get(i) instanceof StringValue?(StringValue) _outputStream.get(i):null;
+				StringValue text = _outputStream.get(i) instanceof StringValue ? (StringValue) _outputStream.get(i)
+						: null;
 				if (text != null) {
 					_outputStream.remove(i);
 				} else {
@@ -564,9 +560,8 @@ public class StoryState {
 	void TrimFromExistingGlue() throws Exception {
 		int i = currentGlueIndex();
 		while (i < _outputStream.size()) {
-			StringValue txt = 
-					_outputStream.get(i) instanceof StringValue?(StringValue) _outputStream.get(i):null;
-					
+			StringValue txt = _outputStream.get(i) instanceof StringValue ? (StringValue) _outputStream.get(i) : null;
+
 			if (txt != null && !txt.getisNonWhitespace())
 				_outputStream.remove(i);
 			else
@@ -590,8 +585,7 @@ public class StoryState {
 	int currentGlueIndex() {
 		for (int i = _outputStream.size() - 1; i >= 0; i--) {
 			RTObject c = _outputStream.get(i);
-			Glue glue = 
-					c instanceof Glue?(Glue) c:null;
+			Glue glue = c instanceof Glue ? (Glue) c : null;
 			if (glue != null)
 				return i;
 			else if (c instanceof ControlCommand) // e.g. BeginString
@@ -600,51 +594,48 @@ public class StoryState {
 		return -1;
 	}
 
-	boolean outputStreamEndsInNewline() throws Exception
-	{
-                if (_outputStream.size() > 0) {
+	boolean outputStreamEndsInNewline() throws Exception {
+		if (_outputStream.size() > 0) {
 
-                    for (int i = _outputStream.size() - 1; i >= 0; i--) {
-                        RTObject obj = _outputStream.get(i);
-                        if (obj instanceof ControlCommand) // e.g. BeginString
-                            break;
-                        StringValue text = 
-                        		_outputStream.get(i) instanceof StringValue?(StringValue) _outputStream.get(i):null;
+			for (int i = _outputStream.size() - 1; i >= 0; i--) {
+				RTObject obj = _outputStream.get(i);
+				if (obj instanceof ControlCommand) // e.g. BeginString
+					break;
+				StringValue text = _outputStream.get(i) instanceof StringValue ? (StringValue) _outputStream.get(i)
+						: null;
 
-                        if (text != null) {
-                            if (text.getisNewline())
-                                return true;
-                            else if (text.getisNonWhitespace())
-                                break;
-                        }
-                    }
-                }
+				if (text != null) {
+					if (text.getisNewline())
+						return true;
+					else if (text.getisNonWhitespace())
+						break;
+				}
+			}
+		}
 
-                return false;
-            }
+		return false;
+	}
 
-	boolean outputStreamContainsContent()
-	{
-                for (RTObject content : _outputStream) {
-                    if (content instanceof StringValue)
-                        return true;
-                }
-                return false;
-            }
+	boolean outputStreamContainsContent() {
+		for (RTObject content : _outputStream) {
+			if (content instanceof StringValue)
+				return true;
+		}
+		return false;
+	}
 
-	boolean inStringEvaluation()
-	{
-                for (int i = _outputStream.size() - 1; i >= 0; i--) {
-                	ControlCommand cmd = 
-                			_outputStream.get(i) instanceof ControlCommand?(ControlCommand) _outputStream.get(i):null;
+	boolean inStringEvaluation() {
+		for (int i = _outputStream.size() - 1; i >= 0; i--) {
+			ControlCommand cmd = _outputStream.get(i) instanceof ControlCommand ? (ControlCommand) _outputStream.get(i)
+					: null;
 
-                    if (cmd != null && cmd.getcommandType() == ControlCommand.CommandType.BeginString) {
-                        return true;
-                    }
-                }
+			if (cmd != null && cmd.getcommandType() == ControlCommand.CommandType.BeginString) {
+				return true;
+			}
+		}
 
-                return false;
-            }
+		return false;
+	}
 
 	void PushEvaluationStack(RTObject obj) {
 		evaluationStack.add(obj);
@@ -667,7 +658,8 @@ public class StoryState {
 			throw new Exception("trying to pop too many objects");
 		}
 
-		List<RTObject> popped = new ArrayList<RTObject>(evaluationStack.subList(evaluationStack.size() - numberOfObjects, evaluationStack.size()));
+		List<RTObject> popped = new ArrayList<RTObject>(
+				evaluationStack.subList(evaluationStack.size() - numberOfObjects, evaluationStack.size()));
 		evaluationStack.subList(evaluationStack.size() - numberOfObjects, numberOfObjects).clear();
 		return popped;
 	}
@@ -711,6 +703,6 @@ public class StoryState {
 	// When adding state, update the Copy method and serialisation
 	// REMEMBER! REMEMBER! REMEMBER!
 
-	List<RTObject> _outputStream;
-	Glue _currentRightGlue;
+	private List<RTObject> _outputStream;
+	private Glue _currentRightGlue;
 }

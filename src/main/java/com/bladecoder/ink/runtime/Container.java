@@ -8,56 +8,56 @@ import java.util.Map.Entry;
 import com.bladecoder.ink.runtime.Path.Component;
 
 public class Container extends RTObject implements INamedContent {
-	private String __name = new String();
+	private String name;
 
-	List<RTObject> _content = new ArrayList<RTObject>();
-	private HashMap<String, INamedContent> __namedContent = new HashMap<String, INamedContent>();
+	private List<RTObject> content;
+	private HashMap<String, INamedContent> namedContent;
 
-	private boolean __visitsShouldBeCounted;
-	private boolean __turnIndexShouldBeCounted;
-	private boolean __countingAtStartOnly;
+	private boolean visitsShouldBeCounted;
+	private boolean turnIndexShouldBeCounted;
+	private boolean countingAtStartOnly;
 
-	public Container() throws Exception {
-		_content = new ArrayList<RTObject>();
-		setnamedContent(new HashMap<String, INamedContent>());
+	public Container() {
+		content = new ArrayList<RTObject>();
+		setNamedContent(new HashMap<String, INamedContent>());
 	}
 
-	public String getname() {
-		return __name;
+	public String getName() {
+		return name;
 	}
 
-	public void setname(String value) {
-		__name = value;
+	public void setName(String value) {
+		name = value;
 	}
 
-	public List<RTObject> getcontent() throws Exception {
-		return _content;
+	public List<RTObject> getContent() {
+		return content;
 	}
 
-	public void setcontent(List<RTObject> value) throws Exception {
+	public void setContent(List<RTObject> value) throws Exception {
 		addContent(value);
 	}
 
-	public HashMap<String, INamedContent> getnamedContent() {
-		return __namedContent;
+	public HashMap<String, INamedContent> getNamedContent() {
+		return namedContent;
 	}
 
-	public void setnamedContent(HashMap<String, INamedContent> value) {
-		__namedContent = value;
+	public void setNamedContent(HashMap<String, INamedContent> value) {
+		namedContent = value;
 	}
 
-	public HashMap<String, RTObject> getnamedOnlyContent() throws Exception {
+	public HashMap<String, RTObject> getNamedOnlyContent() {
 
 		HashMap<String, RTObject> namedOnlyContent = new HashMap<String, RTObject>();
 
-		for (Entry<String, INamedContent> kvPair : getnamedContent().entrySet()) {
+		for (Entry<String, INamedContent> kvPair : getNamedContent().entrySet()) {
 			namedOnlyContent.put(kvPair.getKey(), (RTObject) kvPair.getValue());
 		}
 
-		for (RTObject c : getcontent()) {
+		for (RTObject c : getContent()) {
 			INamedContent named = c instanceof INamedContent ? (INamedContent) c : (INamedContent) null;
-			if (named != null && named.gethasValidName()) {
-				namedOnlyContent.remove(named.getname());
+			if (named != null && named.hasValidName()) {
+				namedOnlyContent.remove(named.getName());
 			}
 
 		}
@@ -68,11 +68,11 @@ public class Container extends RTObject implements INamedContent {
 		return namedOnlyContent;
 	}
 
-	public void setnamedOnlyContent(HashMap<String, RTObject> value) throws Exception {
-		HashMap<String, RTObject> existingNamedOnly = getnamedOnlyContent();
+	public void setNamedOnlyContent(HashMap<String, RTObject> value) {
+		HashMap<String, RTObject> existingNamedOnly = getNamedOnlyContent();
 		if (existingNamedOnly != null) {
 			for (Entry<String, RTObject> kvPair : existingNamedOnly.entrySet()) {
-				getnamedContent().remove(kvPair.getKey());
+				getNamedContent().remove(kvPair.getKey());
 			}
 		}
 
@@ -88,44 +88,44 @@ public class Container extends RTObject implements INamedContent {
 		}
 	}
 
-	public boolean getvisitsShouldBeCounted() {
-		return __visitsShouldBeCounted;
+	public boolean getVisitsShouldBeCounted() {
+		return visitsShouldBeCounted;
 	}
 
-	public void setvisitsShouldBeCounted(boolean value) {
-		__visitsShouldBeCounted = value;
+	public void setVisitsShouldBeCounted(boolean value) {
+		visitsShouldBeCounted = value;
 	}
 
-	public boolean getturnIndexShouldBeCounted() {
-		return __turnIndexShouldBeCounted;
+	public boolean getTurnIndexShouldBeCounted() {
+		return turnIndexShouldBeCounted;
 	}
 
-	public void setturnIndexShouldBeCounted(boolean value) {
-		__turnIndexShouldBeCounted = value;
+	public void setTurnIndexShouldBeCounted(boolean value) {
+		turnIndexShouldBeCounted = value;
 	}
 
-	public boolean getcountingAtStartOnly() {
-		return __countingAtStartOnly;
+	public boolean getCountingAtStartOnly() {
+		return countingAtStartOnly;
 	}
 
-	public void setcountingAtStartOnly(boolean value) {
-		__countingAtStartOnly = value;
+	public void setCountingAtStartOnly(boolean value) {
+		countingAtStartOnly = value;
 	}
 
 	public static final int COUNTFLAGS_VISITS = 1;
 	public static final int COUNTFLAGS_TURNS = 2;
 	public static final int COUNTFLAGS_COUNTSTARTONLY = 4;
 
-	public int getcountFlags() throws Exception {
+	public int getCountFlags() {
 		int flags = 0;
 
-		if (getvisitsShouldBeCounted())
+		if (getVisitsShouldBeCounted())
 			flags |= COUNTFLAGS_VISITS;
 
-		if (getturnIndexShouldBeCounted())
+		if (getTurnIndexShouldBeCounted())
 			flags |= COUNTFLAGS_TURNS;
 
-		if (getcountingAtStartOnly())
+		if (getCountingAtStartOnly())
 			flags |= COUNTFLAGS_COUNTSTARTONLY;
 
 		// If we're only storing CountStartOnly, it serves no purpose,
@@ -140,41 +140,41 @@ public class Container extends RTObject implements INamedContent {
 		return flags;
 	}
 
-	public void setcountFlags(int value) throws Exception {
+	public void setCountFlags(int value) {
 		int flag = value;
 
 		if ((flag & COUNTFLAGS_VISITS) > 0)
-			setvisitsShouldBeCounted(true);
+			setVisitsShouldBeCounted(true);
 
 		if ((flag & COUNTFLAGS_TURNS) > 0)
-			setturnIndexShouldBeCounted(true);
+			setTurnIndexShouldBeCounted(true);
 
 		if ((flag & COUNTFLAGS_COUNTSTARTONLY) > 0)
-			setcountingAtStartOnly(true);
+			setCountingAtStartOnly(true);
 
 	}
 
-	public boolean gethasValidName() throws Exception {
-		return getname() != null && getname().length() > 0;
+	public boolean hasValidName() {
+		return getName() != null && getName().length() > 0;
 	}
 
-	public Path getpathToFirstLeafContent() throws Exception {
+	public Path getPathToFirstLeafContent() {
 		if (_pathToFirstLeafContent == null)
-			_pathToFirstLeafContent = path.pathByAppendingPath(getinternalPathToFirstLeafContent());
+			_pathToFirstLeafContent = getPath().pathByAppendingPath(getInternalPathToFirstLeafContent());
 
 		return _pathToFirstLeafContent;
 	}
 
 	Path _pathToFirstLeafContent;
 
-	Path getinternalPathToFirstLeafContent() throws Exception {
+	Path getInternalPathToFirstLeafContent() {
 		Path path = new Path();
 		Container container = this;
 		while (container != null) {
-			if (container.getcontent().size() > 0) {
-				path.getcomponents().add(new com.bladecoder.ink.runtime.Path.Component(0));
-				container = container.getcontent().get(0) instanceof Container
-						? (Container) container.getcontent().get(0) : (Container) null;
+			if (container.getContent().size() > 0) {
+				path.getComponents().add(new com.bladecoder.ink.runtime.Path.Component(0));
+				container = container.getContent().get(0) instanceof Container
+						? (Container) container.getContent().get(0) : (Container) null;
 			}
 
 		}
@@ -182,13 +182,13 @@ public class Container extends RTObject implements INamedContent {
 	}
 
 	public void addContent(RTObject contentObj) throws Exception {
-		getcontent().add(contentObj);
+		getContent().add(contentObj);
 
-		if (contentObj.getparent() != null) {
-			throw new Exception("content is already in " + contentObj.getparent());
+		if (contentObj.getParent() != null) {
+			throw new Exception("content is already in " + contentObj.getParent());
 		}
 
-		contentObj.setparent(this);
+		contentObj.setParent(this);
 
 		tryAddNamedContent(contentObj);
 	}
@@ -200,64 +200,64 @@ public class Container extends RTObject implements INamedContent {
 	}
 
 	public void insertContent(RTObject contentObj, int index) throws Exception {
-		getcontent().add(index, contentObj);
-		if (contentObj.getparent() != null) {
-			throw new Exception("content is already in " + contentObj.getparent());
+		getContent().add(index, contentObj);
+		if (contentObj.getParent() != null) {
+			throw new Exception("content is already in " + contentObj.getParent());
 		}
 
-		contentObj.setparent(this);
+		contentObj.setParent(this);
 		tryAddNamedContent(contentObj);
 	}
 
 	public void tryAddNamedContent(RTObject contentObj) throws Exception {
 		INamedContent namedContentObj = contentObj instanceof INamedContent ? (INamedContent) contentObj
 				: (INamedContent) null;
-		if (namedContentObj != null && namedContentObj.gethasValidName()) {
+		if (namedContentObj != null && namedContentObj.hasValidName()) {
 			addToNamedContentOnly(namedContentObj);
 		}
 
 	}
 
-	public void addToNamedContentOnly(INamedContent namedContentObj) throws Exception {
+	public void addToNamedContentOnly(INamedContent namedContentObj) {
 		// Debug.Assert(namedContentObj instanceof RTObject, "Can only add
 		// Runtime.RTObjects to a Runtime.Container");
 		RTObject runtimeObj = (RTObject) namedContentObj;
 
-		runtimeObj.setparent(this);
+		runtimeObj.setParent(this);
 
-		getnamedContent().put(namedContentObj.getname(), namedContentObj);
+		getNamedContent().put(namedContentObj.getName(), namedContentObj);
 	}
 
 	public void addContentsOfContainer(Container otherContainer) throws Exception {
-		getcontent().addAll(otherContainer.getcontent());
+		getContent().addAll(otherContainer.getContent());
 
-		for (RTObject obj : otherContainer.getcontent()) {
-			obj.setparent(this);
+		for (RTObject obj : otherContainer.getContent()) {
+			obj.setParent(this);
 
 			tryAddNamedContent(obj);
 		}
 	}
 
-	protected RTObject contentWithPathComponent(Path.Component component) throws Exception {
+	protected RTObject contentWithPathComponent(Path.Component component) throws StoryException, Exception {
 	
-		if (component.getisIndex()) {
-			if (component.getindex() >= 0 && component.getindex() < getcontent().size()) {
-				return getcontent().get(component.getindex());
+		if (component.isIndex()) {
+			if (component.getIndex() >= 0 && component.getIndex() < getContent().size()) {
+				return getContent().get(component.getIndex());
 			} else {
 				return null;
 			}
-		} else if (component.getisParent()) { 
+		} else if (component.isParent()) { 
 			// When path is out of range, quietly return nil
 			// (useful as we step/increment forwards through content)
-			return this.getparent();
+			return this.getParent();
 		} else {
-			INamedContent foundContent = getnamedContent().get(component.getname());
+			INamedContent foundContent = getNamedContent().get(component.getName());
 			
 			if (foundContent != null) {
 				return (RTObject) foundContent;
 			} else {
 				throw new StoryException(
-						"Content '" + component.getname() + "' not found at path: '" + this.path + "'");
+						"Content '" + component.getName() + "' not found at path: '" + getPath() + "'");
 			}
 		}
 	}
@@ -268,12 +268,12 @@ public class Container extends RTObject implements INamedContent {
 
 	public RTObject contentAtPath(Path path, int partialPathLength) throws Exception {
 		if (partialPathLength == -1)
-			partialPathLength = path.getcomponents().size();
+			partialPathLength = path.getComponents().size();
 
 		Container currentContainer = this;
 		RTObject currentObj = this;
 		for (int i = 0; i < partialPathLength; ++i) {
-			Component comp = path.getcomponents().get(i);
+			Component comp = path.getComponents().get(i);
 			if (currentContainer == null)
 				throw new Exception("Path continued, but previous RTObject wasn't a container: " + currentObj);
 
@@ -291,14 +291,14 @@ public class Container extends RTObject implements INamedContent {
 		}
 	}
 
-	public void buildStringOfHierarchy(StringBuilder sb, int indentation, RTObject pointedObj) throws Exception {
+	public void buildStringOfHierarchy(StringBuilder sb, int indentation, RTObject pointedObj) {
 
 		appendIndentation(sb, indentation);
 		
 		sb.append("[");
-		if (this.gethasValidName()) {
+		if (this.hasValidName()) {
 			sb.append(" ({");
-			sb.append(this.getname());
+			sb.append(this.getName());
 			sb.append("})");
 		}
 
@@ -308,8 +308,8 @@ public class Container extends RTObject implements INamedContent {
 
 		sb.append("\n");
 		indentation++;
-		for (int i = 0; i < getcontent().size(); ++i) {
-			RTObject obj = getcontent().get(i);
+		for (int i = 0; i < getContent().size(); ++i) {
+			RTObject obj = getContent().get(i);
 
 			if (obj instanceof Container) {
 				Container container = (Container) obj;
@@ -324,7 +324,7 @@ public class Container extends RTObject implements INamedContent {
 					sb.append(obj.toString());
 				}
 			}
-			if (i != getcontent().size() - 1) {
+			if (i != getContent().size() - 1) {
 				sb.append(",");
 			}
 
@@ -337,8 +337,8 @@ public class Container extends RTObject implements INamedContent {
 
 		HashMap<String, INamedContent> onlyNamed = new HashMap<String, INamedContent>();
 
-		for (Entry<String, INamedContent> objKV : getnamedContent().entrySet()) {
-			if (getcontent().contains((RTObject) objKV.getValue())) {
+		for (Entry<String, INamedContent> objKV : getNamedContent().entrySet()) {
+			if (getContent().contains((RTObject) objKV.getValue())) {
 				continue;
 			} else {
 				onlyNamed.put(objKV.getKey(), objKV.getValue());
@@ -362,7 +362,7 @@ public class Container extends RTObject implements INamedContent {
 		sb.append("]");
 	}
 
-	public String buildStringOfHierarchy() throws Exception {
+	public String buildStringOfHierarchy() {
 		StringBuilder sb = new StringBuilder();
 		buildStringOfHierarchy(sb, 0, null);
 		return sb.toString();

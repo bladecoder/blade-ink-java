@@ -4,82 +4,82 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class Path { // extends IEquatable<Path> {
-	static String parentId = "^";
+public class Path {
+	private final static String PARENT_ID = "^";
 
 	private List<Component> components;
 	private boolean isRelative;
 
-	public Path() throws Exception {
-		setcomponents(new ArrayList<Component>());
+	public Path() {
+		setComponents(new ArrayList<Component>());
 	}
 
-	public Path(Component head, Path tail) throws Exception {
+	public Path(Component head, Path tail) {
 		this();
 
-		getcomponents().add(head);
-		getcomponents().addAll(tail.getcomponents());
+		getComponents().add(head);
+		getComponents().addAll(tail.getComponents());
 	}
 
-	public Path(Collection<Component> components) throws Exception {
+	public Path(Collection<Component> components) {
 		this();
-		this.getcomponents().addAll(components);
+		getComponents().addAll(components);
 	}
 
-	public Path(String componentsString) throws Exception {
+	public Path(String componentsString) {
 		this();
-		this.setcomponentsString(componentsString);
+		setComponentsString(componentsString);
 	}
 
-	public List<Component> getcomponents() {
+	public List<Component> getComponents() {
 		return components;
 	}
 
-	public void setcomponents(List<Component> value) {
+	private void setComponents(List<Component> value) {
 		components = value;
 	}
 
-	public boolean getisRelative() {
+	public boolean isRelative() {
 		return isRelative;
 	}
 
-	public void setisRelative(boolean value) {
+	public void setRelative(boolean value) {
 		isRelative = value;
 	}
 
-	public Component gethead() throws Exception {
-		if (getcomponents().size() > 0) {
-			return getcomponents().get(0);
+	public Component getHead() {
+		if (getComponents().size() > 0) {
+			return getComponents().get(0);
 		} else {
 			return null;
 		}
 	}
 
-	public Path gettail() throws Exception {
-		if (getcomponents().size() >= 2) {
-			List<Component> tailComps = getcomponents().subList(1, getcomponents().size());
+	public Path getTail() {
+		if (getComponents().size() >= 2) {
+			List<Component> tailComps = getComponents().subList(1, getComponents().size());
 
 			return new Path(tailComps);
 		} else {
-			return Path.getself();
+			return Path.getSelf();
 		}
 	}
 
-	public int getlength() throws Exception {
-		return getcomponents().size();
+	public int getLength() {
+		return getComponents().size();
 	}
 
-	public Component getlastComponent() throws Exception {
-		if (getcomponents().size() > 0) {
-			return getcomponents().get(getcomponents().size() - 1);
+	public Component getLastComponent() {
+		if (getComponents().size() > 0) {
+			return getComponents().get(getComponents().size() - 1);
 		} else {
 			return null;
 		}
 	}
 
-	public boolean getcontainsNamedComponent() throws Exception {
-		for (Component comp : getcomponents()) {
-			if (!comp.getisIndex()) {
+	public boolean containsNamedComponent() {
+		for (Component comp : getComponents()) {
+			if (!comp.isIndex()) {
 				return true;
 			}
 
@@ -87,63 +87,63 @@ public class Path { // extends IEquatable<Path> {
 		return false;
 	}
 
-	public static Path getself() throws Exception {
+	public static Path getSelf() {
 		Path path = new Path();
-		path.setisRelative(true);
+		path.setRelative(true);
 		return path;
 	}
 
-	public Path pathByAppendingPath(Path pathToAppend) throws Exception {
+	public Path pathByAppendingPath(Path pathToAppend) {
 		Path p = new Path();
 		int upwardMoves = 0;
-		for (int i = 0; i < pathToAppend.getcomponents().size(); ++i) {
-			if (pathToAppend.getcomponents().get(i).getisParent()) {
+		for (int i = 0; i < pathToAppend.getComponents().size(); ++i) {
+			if (pathToAppend.getComponents().get(i).isParent()) {
 				upwardMoves++;
 			} else {
 				break;
 			}
 		}
-		for (int i = 0; i < this.getcomponents().size() - upwardMoves; ++i) {
-			p.getcomponents().add(this.getcomponents().get(i));
+		for (int i = 0; i < this.getComponents().size() - upwardMoves; ++i) {
+			p.getComponents().add(this.getComponents().get(i));
 		}
-		for (int i = upwardMoves; i < pathToAppend.getcomponents().size(); ++i) {
-			p.getcomponents().add(pathToAppend.getcomponents().get(i));
+		for (int i = upwardMoves; i < pathToAppend.getComponents().size(); ++i) {
+			p.getComponents().add(pathToAppend.getComponents().get(i));
 		}
 		return p;
 	}
 
-	public String getcomponentsString() throws Exception {
+	public String getComponentsString() {
 		// String compsStr = String.join(".", getcomponents().toArray());
 
 		StringBuilder sb = new StringBuilder();
 
-		if (getcomponents().size() > 0) {
+		if (getComponents().size() > 0) {
 
-			sb.append(getcomponents().get(0));
+			sb.append(getComponents().get(0));
 
-			for (int i = 1; i < getcomponents().size(); i++) {
+			for (int i = 1; i < getComponents().size(); i++) {
 				sb.append('.');
-				sb.append(getcomponents().get(i));
+				sb.append(getComponents().get(i));
 			}
 		}
 
 		String compsStr = sb.toString();
 
-		if (getisRelative())
+		if (isRelative())
 			return "." + compsStr;
 		else
 			return compsStr;
 	}
 
-	public void setcomponentsString(String value) throws Exception {
-		getcomponents().clear();
+	public void setComponentsString(String value) {
+		getComponents().clear();
 		String componentsStr = value;
 		// When components start with ".", it indicates a relative path, e.g.
 		// .^.^.hello.5
 		// is equivalent to file system style path:
 		// ../../hello/5
 		if (componentsStr.charAt(0) == '.') {
-			setisRelative(true);
+			setRelative(true);
 			componentsStr = componentsStr.substring(1);
 		}
 
@@ -154,179 +154,125 @@ public class Path { // extends IEquatable<Path> {
 
 			try {
 				index = Integer.parseInt(str);
-				getcomponents().add(new Component(index));
+				getComponents().add(new Component(index));
 			} catch (NumberFormatException e) {
-				getcomponents().add(new Component(str));
+				getComponents().add(new Component(str));
 			}
 		}
 	}
 
 	public String toString() {
-		try {
-			return getcomponentsString();
-		} catch (RuntimeException __dummyCatchVar4) {
-			throw __dummyCatchVar4;
-		} catch (Exception __dummyCatchVar4) {
-			throw new RuntimeException(__dummyCatchVar4);
-		}
-
+		return getComponentsString();
 	}
 
 	public boolean equals(Object obj) {
-		try {
-			return equals(obj instanceof Path ? (Path) obj : (Path) null);
-		} catch (RuntimeException __dummyCatchVar5) {
-			throw __dummyCatchVar5;
-		} catch (Exception __dummyCatchVar5) {
-			throw new RuntimeException(__dummyCatchVar5);
-		}
-
+		return equals(obj instanceof Path ? (Path) obj : (Path) null);
 	}
 
 	public boolean equals(Path otherPath) {
-		try {
-			if (otherPath == null)
+		if (otherPath == null)
+			return false;
+
+		if (otherPath.getComponents().size() != this.getComponents().size())
+			return false;
+
+		if (otherPath.isRelative() != this.isRelative())
+			return false;
+
+		// return
+		// otherPath.getcomponents().SequenceEqual(this.getcomponents());
+		for (int i = 0; i < otherPath.getComponents().size(); i++) {
+			if (!otherPath.getComponents().get(i).equals(getComponents().get(i)))
 				return false;
-
-			if (otherPath.getcomponents().size() != this.getcomponents().size())
-				return false;
-
-			if (otherPath.getisRelative() != this.getisRelative())
-				return false;
-
-			// return
-			// otherPath.getcomponents().SequenceEqual(this.getcomponents());
-			for (int i = 0; i < otherPath.getcomponents().size(); i++) {
-				if (!otherPath.getcomponents().get(i).equals(getcomponents().get(i)))
-					return false;
-			}
-
-		} catch (RuntimeException __dummyCatchVar6) {
-			throw __dummyCatchVar6;
-		} catch (Exception __dummyCatchVar6) {
-			throw new RuntimeException(__dummyCatchVar6);
 		}
 
 		return true;
 
 	}
 
+	@Override
 	public int hashCode() {
-		try {
-			return this.toString().hashCode();
-		} catch (RuntimeException __dummyCatchVar7) {
-			throw __dummyCatchVar7;
-		} catch (Exception __dummyCatchVar7) {
-			throw new RuntimeException(__dummyCatchVar7);
-		}
-
+		return toString().hashCode();
 	}
 
 	// Immutable Component
-	public static class Component { // extends
-									// IEquatable<Ink.Runtime.Path.Component> {
+	public static class Component {
 		private int index;
 		private String name;
 
-		public Component(int index) throws Exception {
+		public Component(int index) {
 			// Debug.Assert(index >= 0);
-			this.setindex(index);
-			this.setname(null);
+			this.setIndex(index);
+			this.setName(null);
 		}
 
-		public Component(String name) throws Exception {
+		public Component(String name) {
 			// Debug.Assert(name != null && name.Length > 0);
-			this.setname(name);
-			this.setindex(-1);
+			this.setName(name);
+			this.setIndex(-1);
 		}
 
-		public int getindex() {
+		public int getIndex() {
 			return index;
 		}
 
-		public void setindex(int value) {
+		public void setIndex(int value) {
 			index = value;
 		}
 
-		public String getname() {
+		public String getName() {
 			return name;
 		}
 
-		public void setname(String value) {
+		public void setName(String value) {
 			name = value;
 		}
 
-		public boolean getisIndex() throws Exception {
-			return getindex() >= 0;
+		public boolean isIndex() {
+			return getIndex() >= 0;
 		}
 
-		public boolean getisParent() throws Exception {
-			return Path.parentId.equals(getname());
+		public boolean isParent() {
+			return Path.PARENT_ID.equals(getName());
 		}
 
-		public static Component toParent() throws Exception {
-			return new Component(parentId);
+		public static Component toParent() {
+			return new Component(PARENT_ID);
 		}
 
 		public String toString() {
-			try {
-				if (getisIndex()) {
-					return Integer.toString(getindex());
-				} else {
-					return getname();
-				}
-			} catch (RuntimeException __dummyCatchVar0) {
-				throw __dummyCatchVar0;
-			} catch (Exception __dummyCatchVar0) {
-				throw new RuntimeException(__dummyCatchVar0);
+			if (isIndex()) {
+				return Integer.toString(getIndex());
+			} else {
+				return getName();
 			}
-
 		}
 
 		public boolean equals(Object obj) {
-			try {
 
-				return equals(obj instanceof com.bladecoder.ink.runtime.Path.Component
-						? (com.bladecoder.ink.runtime.Path.Component) obj
-						: (com.bladecoder.ink.runtime.Path.Component) null);
-			} catch (RuntimeException __dummyCatchVar1) {
-				throw __dummyCatchVar1;
-			} catch (Exception __dummyCatchVar1) {
-				throw new RuntimeException(__dummyCatchVar1);
-			}
+			return equals(obj instanceof Component ? (Component) obj : (Component) null);
 
 		}
 
 		public boolean equals(Component otherComp) {
-			try {
-				if (otherComp != null && otherComp.getisIndex() == this.getisIndex()) {
-					if (getisIndex()) {
-						return getindex() == otherComp.getindex();
-					} else {
-						return getname().equals(otherComp.getname());
-					}
-				}
 
-				return false;
-			} catch (RuntimeException __dummyCatchVar2) {
-				throw __dummyCatchVar2;
-			} catch (Exception __dummyCatchVar2) {
-				throw new RuntimeException(__dummyCatchVar2);
+			if (otherComp != null && otherComp.isIndex() == this.isIndex()) {
+				if (isIndex()) {
+					return getIndex() == otherComp.getIndex();
+				} else {
+					return getName().equals(otherComp.getName());
+				}
 			}
 
+			return false;
 		}
 
+		@Override
 		public int hashCode() {
-			try {
-				if (getisIndex())
-					return this.getindex();
-				else
-					return this.getname().hashCode();
-			} catch (RuntimeException __dummyCatchVar3) {
-				throw __dummyCatchVar3;
-			} catch (Exception __dummyCatchVar3) {
-				throw new RuntimeException(__dummyCatchVar3);
-			}
+			if (isIndex())
+				return getIndex();
+			else
+				return getName().hashCode();
 
 		}
 

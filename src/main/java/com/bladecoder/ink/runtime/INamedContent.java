@@ -7,10 +7,8 @@ package com.bladecoder.ink.runtime;
 
 public interface INamedContent   
 {
-    String getname() throws Exception ;
-
-    boolean gethasValidName() throws Exception ;
-
+    String getName();
+    boolean hasValidName();
 }
 
 

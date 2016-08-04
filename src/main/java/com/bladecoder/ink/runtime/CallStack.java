@@ -18,8 +18,8 @@ class CallStack {
 		public RTObject currentRTObject;
 
 		public RTObject getCurrentRTObject() throws Exception {
-			if (currentContainer != null && currentContentIndex < currentContainer.getcontent().size()) {
-				return currentContainer.getcontent().get(currentContentIndex);
+			if (currentContainer != null && currentContentIndex < currentContainer.getContent().size()) {
+				return currentContainer.getContent().get(currentContentIndex);
 			}
 
 			return null;
@@ -33,11 +33,11 @@ class CallStack {
 			}
 
 			currentContainer = 
-					currentObj.getparent() instanceof Container?(Container)currentObj.getparent():null;
+					currentObj.getParent() instanceof Container?(Container)currentObj.getParent():null;
 			
 			
 			if (currentContainer != null)
-				currentContentIndex = currentContainer.getcontent().indexOf(currentObj);
+				currentContentIndex = currentContainer.getContent().indexOf(currentObj);
 
 			// Two reasons why the above operation might not work:
 			// - currentObj is already the root container
@@ -139,7 +139,7 @@ class CallStack {
 			for (CallStack.Element el : callstack) {
 				HashMap<String, Object> jObj = new HashMap<String, Object>();
 				if (el.currentContainer != null) {
-					jObj.put("cPath", el.currentContainer.path.getcomponentsString());
+					jObj.put("cPath", el.currentContainer.getPath().getComponentsString());
 					jObj.put("idx", el.currentContentIndex);
 				}
 				jObj.put("exp", el.inExpressionEvaluation);
@@ -152,7 +152,7 @@ class CallStack {
 			threadJObj.put("threadIndex", threadIndex);
 
 			if (previousContentRTObject != null)
-				threadJObj.put("previousContentRTObject", previousContentRTObject.path.toString());
+				threadJObj.put("previousContentRTObject", previousContentRTObject.getPath().toString());
 
 			return threadJObj;
 		}

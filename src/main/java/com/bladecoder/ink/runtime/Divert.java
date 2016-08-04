@@ -1,28 +1,28 @@
 package com.bladecoder.ink.runtime;
 
 public class Divert extends RTObject {
-	private int __externalArgs;
+	private int externalArgs;
 
-	private boolean __isConditional;
+	private boolean isConditional;
 
-	private boolean __isExternal;
+	private boolean isExternal;
 
-	private boolean __pushesToStack;
+	private boolean pushesToStack;
 
-	private String __variableDivertName;
+	private String variableDivertName;
 
-	RTObject _targetContent;
+	private RTObject targetContent;
 
-	Path _targetPath;
+	private Path targetPath;
 
 	public PushPopType stackPushType = PushPopType.Tunnel;
 
-	public Divert() throws Exception {
-		setpushesToStack(false);
+	public Divert() {
+		setPushesToStack(false);
 	}
 
-	public Divert(PushPopType stackPushType) throws Exception {
-		setpushesToStack(true);
+	public Divert(PushPopType stackPushType) {
+		setPushesToStack(true);
 		this.stackPushType = stackPushType;
 	}
 
@@ -30,11 +30,11 @@ public class Divert extends RTObject {
 		try {
 			Divert otherDivert = obj instanceof Divert ? (Divert) obj : (Divert) null;
 			if (otherDivert != null) {
-				if (this.gethasVariableTarget() == otherDivert.gethasVariableTarget()) {
-					if (this.gethasVariableTarget()) {
-						return this.getvariableDivertName().equals(otherDivert.getvariableDivertName());
+				if (this.hasVariableTarget() == otherDivert.hasVariableTarget()) {
+					if (this.hasVariableTarget()) {
+						return this.getVariableDivertName().equals(otherDivert.getVariableDivertName());
 					} else {
-						return this.gettargetPath().equals(otherDivert.gettargetPath());
+						return this.getTargetPath().equals(otherDivert.getTargetPath());
 					}
 				}
 
@@ -50,66 +50,66 @@ public class Divert extends RTObject {
 	}
 
 	public int getexternalArgs() {
-		return __externalArgs;
+		return externalArgs;
 	}
 
-	public boolean gethasVariableTarget() throws Exception {
-		return getvariableDivertName() != null;
+	public boolean hasVariableTarget() {
+		return getVariableDivertName() != null;
 	}
 
-	public boolean getisConditional() {
-		return __isConditional;
+	public boolean isConditional() {
+		return isConditional;
 	}
 
-	public boolean getisExternal() {
-		return __isExternal;
+	public boolean isExternal() {
+		return isExternal;
 	}
 	public boolean getpushesToStack() {
-		return __pushesToStack;
+		return pushesToStack;
 	}
 
-	public RTObject gettargetContent() throws Exception {
-		if (_targetContent == null) {
-			_targetContent = resolvePath(_targetPath);
+	public RTObject getTargetContent() throws Exception {
+		if (targetContent == null) {
+			targetContent = resolvePath(targetPath);
 		}
 
-		return _targetContent;
+		return targetContent;
 	}
 
-	public Path gettargetPath() throws Exception {
+	public Path getTargetPath() throws Exception {
 		// Resolve any relative paths to global ones as we come across them
-		if (_targetPath != null && _targetPath.getisRelative()) {
-			RTObject targetObj = gettargetContent();
+		if (targetPath != null && targetPath.isRelative()) {
+			RTObject targetObj = getTargetContent();
 
 			if (targetObj != null) {
-				_targetPath = targetObj.path;
+				targetPath = targetObj.getPath();
 			}
 
 		}
 
-		return _targetPath;
+		return targetPath;
 	}
 
-	public String gettargetPathString() throws Exception {
-		if (gettargetPath() == null)
+	public String getTargetPathString() throws Exception {
+		if (getTargetPath() == null)
 			return null;
 
-		return compactPathString(gettargetPath());
+		return compactPathString(getTargetPath());
 	}
 
-	public String getvariableDivertName() {
-		return __variableDivertName;
+	public String getVariableDivertName() {
+		return variableDivertName;
 	}
 
 	@Override
 	public int hashCode() {
 		try {
-			if (gethasVariableTarget()) {
+			if (hasVariableTarget()) {
 				int variableTargetSalt = 12345;
-				return getvariableDivertName().hashCode() + variableTargetSalt;
+				return getVariableDivertName().hashCode() + variableTargetSalt;
 			} else {
 				int pathTargetSalt = 54321;
-				return gettargetPath().hashCode() + pathTargetSalt;
+				return getTargetPath().hashCode() + pathTargetSalt;
 			}
 		} catch (RuntimeException __dummyCatchVar1) {
 			throw __dummyCatchVar1;
@@ -119,50 +119,50 @@ public class Divert extends RTObject {
 
 	}
 
-	public void setexternalArgs(int value) {
-		__externalArgs = value;
+	public void setExternalArgs(int value) {
+		externalArgs = value;
 	}
 
-	public void setisConditional(boolean value) {
-		__isConditional = value;
+	public void setConditional(boolean value) {
+		isConditional = value;
 	}
 
-	public void setisExternal(boolean value) {
-		__isExternal = value;
+	public void setExternal(boolean value) {
+		isExternal = value;
 	}
 
-	public void setpushesToStack(boolean value) {
-		__pushesToStack = value;
+	public void setPushesToStack(boolean value) {
+		pushesToStack = value;
 	}
 
-	public void settargetPath(Path value) throws Exception {
-		_targetPath = value;
-		_targetContent = null;
+	public void setTargetPath(Path value) {
+		targetPath = value;
+		targetContent = null;
 	}
 
-	public void settargetPathString(String value) throws Exception {
+	public void setTargetPathString(String value) {
 		if (value == null) {
-			settargetPath(null);
+			setTargetPath(null);
 		} else {
-			settargetPath(new Path(value));
+			setTargetPath(new Path(value));
 		}
 	}
 
-	public void setvariableDivertName(String value) {
-		__variableDivertName = value;
+	public void setVariableDivertName(String value) {
+		variableDivertName = value;
 	}
 
 	@Override
 	public String toString() {
 		try {
-			if (gethasVariableTarget()) {
-				return "Divert(variable: " + getvariableDivertName() + ")";
-			} else if (gettargetPath() == null) {
+			if (hasVariableTarget()) {
+				return "Divert(variable: " + getVariableDivertName() + ")";
+			} else if (getTargetPath() == null) {
 				return "Divert(null)";
 			} else {
 				StringBuilder sb = new StringBuilder();
-				String targetStr = gettargetPath().toString();
-				Integer targetLineNum = debugLineNumberOfPath(gettargetPath());
+				String targetStr = getTargetPath().toString();
+				Integer targetLineNum = debugLineNumberOfPath(getTargetPath());
 				if (targetLineNum != null) {
 					targetStr = "line " + targetLineNum;
 				}

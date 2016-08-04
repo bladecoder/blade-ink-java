@@ -193,7 +193,7 @@ public class Story extends RTObject {
 	}
 
 	void ResetGlobals() throws Exception {
-		if (_mainContentContainer.getnamedContent().containsKey("global decl")) {
+		if (_mainContentContainer.getNamedContent().containsKey("global decl")) {
 			Path originalPath = getState().getcurrentPath();
 
 			ChoosePathString("global decl");
@@ -424,10 +424,10 @@ public class Story extends RTObject {
 			VisitContainer(currentContainer, true);
 
 			// No content? the most we can do is step past it
-			if (currentContainer._content.size() == 0)
+			if (currentContainer.getContent().size() == 0)
 				break;
 
-			currentContentObj = currentContainer._content.get(0);
+			currentContentObj = currentContainer.getContent().get(0);
 			_state.callStack.currentElement().currentContentIndex = 0;
 			_state.callStack.currentElement().currentContainer = currentContainer;
 
@@ -515,11 +515,11 @@ public class Story extends RTObject {
 
 	// Mark a container as having been visited
 	void VisitContainer(Container container, boolean atStart) {
-		if (!container.getcountingAtStartOnly() || atStart) {
-			if (container.getvisitsShouldBeCounted())
+		if (!container.getCountingAtStartOnly() || atStart) {
+			if (container.getVisitsShouldBeCounted())
 				IncrementVisitCountForContainer(container);
 
-			if (container.getturnIndexShouldBeCounted())
+			if (container.getTurnIndexShouldBeCounted())
 				RecordTurnIndexVisitToContainer(container);
 		}
 	}
@@ -539,13 +539,13 @@ public class Story extends RTObject {
 
 			if (previousContentObject instanceof Container) {
 				prevAncestor = (Container) previousContentObject;
-			} else if (previousContentObject.getparent() instanceof Container) {
-				prevAncestor = (Container) previousContentObject.getparent();
+			} else if (previousContentObject.getParent() instanceof Container) {
+				prevAncestor = (Container) previousContentObject.getParent();
 			}
 
 			while (prevAncestor != null) {
 				prevContainerSet.add(prevAncestor);
-				prevAncestor = prevAncestor.getparent() instanceof Container ? (Container) prevAncestor.getparent()
+				prevAncestor = prevAncestor.getParent() instanceof Container ? (Container) prevAncestor.getParent()
 						: null;
 			}
 		}
@@ -555,23 +555,23 @@ public class Story extends RTObject {
 		// content step. However, we need to walk up the new ancestry to see if
 		// there are more new containers
 		RTObject currentChildOfContainer = newContentObject;
-		Container currentContainerAncestor = currentChildOfContainer.getparent() instanceof Container
-				? (Container) currentChildOfContainer.getparent() : null;
+		Container currentContainerAncestor = currentChildOfContainer.getParent() instanceof Container
+				? (Container) currentChildOfContainer.getParent() : null;
 
 		while (currentContainerAncestor != null && !prevContainerSet.contains(currentContainerAncestor)) {
 
 			// Check whether this ancestor container is being entered at the
 			// start,
 			// by checking whether the child Object is the first.
-			boolean enteringAtStart = currentContainerAncestor._content.size() > 0
-					&& currentChildOfContainer == currentContainerAncestor._content.get(0);
+			boolean enteringAtStart = currentContainerAncestor.getContent().size() > 0
+					&& currentChildOfContainer == currentContainerAncestor.getContent().get(0);
 
 			// Mark a visit to this container
 			VisitContainer(currentContainerAncestor, enteringAtStart);
 
 			currentChildOfContainer = currentContainerAncestor;
-			currentContainerAncestor = currentContainerAncestor.getparent() instanceof Container
-					? (Container) currentContainerAncestor.getparent() : null;
+			currentContainerAncestor = currentContainerAncestor.getParent() instanceof Container
+					? (Container) currentContainerAncestor.getParent() : null;
 
 		}
 	}
@@ -661,7 +661,7 @@ public class Story extends RTObject {
 
 			Divert currentDivert = (Divert) contentObj;
 
-			if (currentDivert.getisConditional()) {
+			if (currentDivert.isConditional()) {
 				RTObject conditionValue = _state.PopEvaluationStack();
 
 				// False conditional? Cancel divert
@@ -669,8 +669,8 @@ public class Story extends RTObject {
 					return true;
 			}
 
-			if (currentDivert.gethasVariableTarget()) {
-				String varName = currentDivert.getvariableDivertName();
+			if (currentDivert.hasVariableTarget()) {
+				String varName = currentDivert.getVariableDivertName();
 
 				RTObject varContents = _state.variablesState.getVariableWithName(varName);
 
@@ -692,18 +692,18 @@ public class Story extends RTObject {
 				DivertTargetValue target = (DivertTargetValue) varContents;
 				_state.divertedTargetObject = ContentAtPath(target.gettargetPath());
 
-			} else if (currentDivert.getisExternal()) {
-				CallExternalFunction(currentDivert.gettargetPathString(), currentDivert.getexternalArgs());
+			} else if (currentDivert.isExternal()) {
+				CallExternalFunction(currentDivert.getTargetPathString(), currentDivert.getexternalArgs());
 				return true;
 			} else {
-				_state.divertedTargetObject = currentDivert.gettargetContent();
+				_state.divertedTargetObject = currentDivert.getTargetContent();
 			}
 
 			if (currentDivert.getpushesToStack()) {
 				_state.callStack.Push(currentDivert.stackPushType);
 			}
 
-			if (_state.divertedTargetObject == null && !currentDivert.getisExternal()) {
+			if (_state.divertedTargetObject == null && !currentDivert.isExternal()) {
 
 				// Human readable name available - runtime divert is part of a
 				// hard-written divert that to missing content
@@ -1019,7 +1019,7 @@ public class Story extends RTObject {
 		Choice choiceToChoose = choices.get(choiceIdx);
 		_state.callStack.setCurrentThread(choiceToChoose.getthreadAtGeneration());
 
-		ChoosePath(choiceToChoose.getchoicePoint().getchoiceTarget().getpath());
+		ChoosePath(choiceToChoose.getchoicePoint().getchoiceTarget().getPath());
 	}
 
 	// Evaluate a "hot compiled" piece of ink content, as used by the REPL-like
@@ -1342,10 +1342,10 @@ public class Story extends RTObject {
 	}
 
 	void ValidateExternalBindings(Container c) throws Exception {
-		for (RTObject innerContent : c._content) {
+		for (RTObject innerContent : c.getContent()) {
 			ValidateExternalBindings(innerContent);
 		}
-		for (INamedContent innerKeyValue : c.getnamedContent().values()) {
+		for (INamedContent innerKeyValue : c.getNamedContent().values()) {
 			ValidateExternalBindings(
 					innerKeyValue instanceof RTObject?(RTObject)innerKeyValue:null
 					);
@@ -1364,12 +1364,12 @@ public class Story extends RTObject {
 		Divert divert = 
 				o instanceof Divert?(Divert) o:null;
 		
-		if (divert != null && divert.getisExternal()) {
-			String name = divert.gettargetPathString();
+		if (divert != null && divert.isExternal()) {
+			String name = divert.getTargetPathString();
 
 			if (!_externals.containsKey(name)) {
 
-				INamedContent fallbackFunction = mainContentContainer().getnamedContent().get(name);
+				INamedContent fallbackFunction = mainContentContainer().getNamedContent().get(name);
 
 				if (!allowExternalFunctionFallbacks)
 					Error("Missing function binding for external '" + name + "' (ink fallbacks disabled)");
@@ -1584,18 +1584,18 @@ public class Story extends RTObject {
 		// Each time we step off the end, we fall out to the next container, all
 		// the
 		// while we're in indexed rather than named content
-		while (currEl.currentContentIndex >= currEl.currentContainer._content.size()) {
+		while (currEl.currentContentIndex >= currEl.currentContainer.getContent().size()) {
 
 			successfulIncrement = false;
 
 			Container nextAncestor = 
-					currEl.currentContainer.getparent() instanceof Container?(Container) currEl.currentContainer.getparent():null;
+					currEl.currentContainer.getParent() instanceof Container?(Container) currEl.currentContainer.getParent():null;
 			
 			if (nextAncestor == null) {
 				break;
 			}
 
-			int indexInAncestor = nextAncestor._content.indexOf(currEl.currentContainer);
+			int indexInAncestor = nextAncestor.getContent().indexOf(currEl.currentContainer);
 			if (indexInAncestor == -1) {
 				break;
 			}
@@ -1630,43 +1630,46 @@ public class Story extends RTObject {
 
 		Choice choice = invisibleChoices.get(0);
 
-		ChoosePath(choice.getchoicePoint().getchoiceTarget().path);
+		ChoosePath(choice.getchoicePoint().getchoiceTarget().getPath());
 
 		return true;
 	}
 
 	int VisitCountForContainer(Container container) throws Exception {
-		if (!container.getvisitsShouldBeCounted()) {
-			Error("Read count for target (" + container.getname() + " - on " + container.debugMetadata
+		if (!container.getVisitsShouldBeCounted()) {
+			Error("Read count for target (" + container.getName() + " - on " + container.debugMetadata
 					+ ") unknown. The story may need to be compiled with countAllVisits flag (-c).");
 			return 0;
 		}
 
-		String containerPathStr = container.getpath().toString();
-		Integer count = _state.visitCounts.get(containerPathStr);
+		String containerPathStr = container.getPath().toString();
+		Integer count = _state.getVisitCounts().get(containerPathStr);
 		return count==null?0:count;
 	}
 
 	void IncrementVisitCountForContainer(Container container) {
-		int count = 0;
-		String containerPathStr = container.path.toString();
-		count = _state.visitCounts.get(containerPathStr);
+		String containerPathStr = container.getPath().toString();
+		Integer count = _state.getVisitCounts().get(containerPathStr);
+		
+		if(count == null)
+			count = 0;
+		
 		count++;
-		_state.visitCounts.put(containerPathStr, count);
+		_state.getVisitCounts().put(containerPathStr, count);
 	}
 
 	void RecordTurnIndexVisitToContainer(Container container) {
-		String containerPathStr = container.path.toString();
+		String containerPathStr = container.getPath().toString();
 		_state.turnIndices.put(containerPathStr, _state.currentTurnIndex);
 	}
 
 	int TurnsSinceForContainer(Container container) throws Exception {
-		if (!container.getturnIndexShouldBeCounted()) {
-			Error("TURNS_SINCE() for target (" + container.getname() + " - on " + container.debugMetadata
+		if (!container.getTurnIndexShouldBeCounted()) {
+			Error("TURNS_SINCE() for target (" + container.getName() + " - on " + container.debugMetadata
 					+ ") unknown. The story may need to be compiled with countAllVisits flag (-c).");
 		}
 
-		String containerPathStr = container.path.toString();
+		String containerPathStr = container.getPath().toString();
 		Integer index = _state.turnIndices.get(containerPathStr);
 		if (index != null) {
 			return _state.currentTurnIndex - index;
@@ -1702,7 +1705,7 @@ public class Story extends RTObject {
 		// - The hash of this container, to make sure it's consistent
 		// each time the runtime returns to the sequence
 		// - How many times the runtime has looped around this full shuffle
-		String seqPathStr = seqContainer.path.toString();
+		String seqPathStr = seqContainer.getPath().toString();
 		int sequenceHash = 0;
 		for (char c : seqPathStr.toCharArray()) {
 			sequenceHash += c;

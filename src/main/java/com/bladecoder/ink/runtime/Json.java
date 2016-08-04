@@ -241,25 +241,25 @@ public class Json {
 
 			if (isDivert) {
 				Divert divert = new Divert();
-				divert.setpushesToStack(pushesToStack);
+				divert.setPushesToStack(pushesToStack);
 				divert.stackPushType = divPushType;
-				divert.setisExternal(external);
+				divert.setExternal(external);
 				String target = propValue.toString();
 
 				propValue = obj.get("var");
 				if (propValue != null) {
-					divert.setvariableDivertName(target);
+					divert.setVariableDivertName(target);
 				} else {
-					divert.settargetPathString(target);
+					divert.setTargetPathString(target);
 				}
 
 				propValue = obj.get("c");
-				divert.setisConditional(propValue != null);
+				divert.setConditional(propValue != null);
 
 				if (external) {
 					propValue = obj.get("exArgs");
 					if (propValue != null) {
-						divert.setexternalArgs((Integer) propValue);
+						divert.setExternalArgs((Integer) propValue);
 					}
 
 				}
@@ -347,7 +347,7 @@ public class Json {
 		Divert divert = obj instanceof Divert ? (Divert) obj : (Divert) null;
 		if (divert != null) {
 			String divTypeKey = "->";
-			if (divert.getisExternal())
+			if (divert.isExternal())
 				divTypeKey = "x()";
 			else if (divert.getpushesToStack()) {
 				if (divert.stackPushType == PushPopType.Function)
@@ -358,16 +358,16 @@ public class Json {
 			}
 
 			String targetStr = new String();
-			if (divert.gethasVariableTarget())
-				targetStr = divert.getvariableDivertName();
+			if (divert.hasVariableTarget())
+				targetStr = divert.getVariableDivertName();
 			else
-				targetStr = divert.gettargetPathString();
+				targetStr = divert.getTargetPathString();
 			HashMap<String, Object> jObj = new HashMap<String, Object>();
 			jObj.put(divTypeKey, targetStr);
-			if (divert.gethasVariableTarget())
+			if (divert.hasVariableTarget())
 				jObj.put("var", true);
 
-			if (divert.getisConditional())
+			if (divert.isConditional())
 				jObj.put("c", true);
 
 			if (divert.getexternalArgs() > 0)
@@ -404,7 +404,7 @@ public class Json {
 				: (DivertTargetValue) null;
 		if (divTargetVal != null) {
 			HashMap<String, Object> divTargetJsonObj = new HashMap<String, Object>();
-			divTargetJsonObj.put("^->", divTargetVal.value.getcomponentsString());
+			divTargetJsonObj.put("^->", divTargetVal.value.getComponentsString());
 			return divTargetJsonObj;
 		}
 
@@ -478,16 +478,16 @@ public class Json {
 	}
 
 	static List<Object> containerToJArray(Container container) throws Exception {
-		List<Object> jArray = listToJArray(container.getcontent());
+		List<Object> jArray = listToJArray(container.getContent());
 
 		// Container is always an array [...]
 		// But the final element is always either:
 		// - a HashMap containing the named content, as well as possibly
 		// the key "#" with the count flags
 		// - null, if neither of the above
-		HashMap<String, RTObject> namedOnlyContent = container.getnamedOnlyContent();
-		int countFlags = container.getcountFlags();
-		if (namedOnlyContent != null && namedOnlyContent.size() > 0 || countFlags > 0 || container.getname() != null) {
+		HashMap<String, RTObject> namedOnlyContent = container.getNamedOnlyContent();
+		int countFlags = container.getCountFlags();
+		if (namedOnlyContent != null && namedOnlyContent.size() > 0 || countFlags > 0 || container.getName() != null) {
 			HashMap<String, Object> terminatingObj = new HashMap<String, Object>();
 			if (namedOnlyContent != null) {
 				terminatingObj = HashMapRuntimeObjsToJRTObject(namedOnlyContent);
@@ -516,8 +516,8 @@ public class Json {
 			if (countFlags > 0)
 				terminatingObj.put("#f", countFlags);
 
-			if (container.getname() != null)
-				terminatingObj.put("#n", container.getname());
+			if (container.getName() != null)
+				terminatingObj.put("#n", container.getName());
 
 			jArray.add(terminatingObj);
 		} else {
@@ -529,7 +529,7 @@ public class Json {
 
 	static Container jArrayToContainer(List<Object> jArray) throws Exception {
 		Container container = new Container();
-		container.setcontent(jArrayToRuntimeObjList(jArray, true));
+		container.setContent(jArrayToRuntimeObjList(jArray, true));
 		// Final RTObject in the array is always a combination of
 		// - named content
 		// - a "#" key with the countFlags
@@ -539,20 +539,20 @@ public class Json {
 			HashMap<String, RTObject> namedOnlyContent = new HashMap<String, RTObject>(terminatingObj.size());
 			for (Entry<String, Object> keyVal : terminatingObj.entrySet()) {
 				if ("#f".equals(keyVal.getKey())) {
-					container.setcountFlags((int) keyVal.getValue());
+					container.setCountFlags((int) keyVal.getValue());
 				} else if ("#n".equals(keyVal.getKey())) {
-					container.setname(keyVal.getValue().toString());
+					container.setName(keyVal.getValue().toString());
 				} else {
 					RTObject namedContentItem = jTokenToRuntimeRTObject(keyVal.getValue());
 					Container namedSubContainer = namedContentItem instanceof Container ? (Container) namedContentItem
 							: (Container) null;
 					if (namedSubContainer != null)
-						namedSubContainer.setname(keyVal.getKey());
+						namedSubContainer.setName(keyVal.getKey());
 
 					namedOnlyContent.put(keyVal.getKey(), namedContentItem);
 				}
 			}
-			container.setnamedOnlyContent(namedOnlyContent);
+			container.setNamedOnlyContent(namedOnlyContent);
 		}
 
 		return container;

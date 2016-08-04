@@ -1,6 +1,9 @@
 package com.bladecoder.ink.runtime;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Stack;
 
 import com.bladecoder.ink.runtime.Path.Component;
@@ -16,7 +19,7 @@ public class RTObject {
 	 */
 	private RTObject parent;
 
-	protected Path path;
+	private Path path;
 
 	public RTObject() {
 	}
@@ -26,35 +29,35 @@ public class RTObject {
 	// for serialisation purposes at least.
 	DebugMetadata debugMetadata;
 
-	public RTObject getparent() {
+	public RTObject getParent() {
 		return parent;
 	}
 
-	public void setparent(RTObject value) {
+	public void setParent(RTObject value) {
 		parent = value;
 	}
 
-	public DebugMetadata getdebugMetadata() throws Exception {
+	public DebugMetadata getDebugMetadata() throws Exception {
 		if (debugMetadata == null) {
-			if (getparent() != null) {
-				return getparent().getdebugMetadata();
+			if (getParent() != null) {
+				return getParent().getDebugMetadata();
 			}
-
 		}
 
 		return debugMetadata;
 	}
 
-	public void setdebugMetadata(DebugMetadata value) throws Exception {
+	public void setDebugMetadata(DebugMetadata value) throws Exception {
 		debugMetadata = value;
 	}
 
 	public Integer debugLineNumberOfPath(Path path) throws Exception {
-		if (path == null || path.getisRelative())
+		// FIXME Added path.isRelative() because orginal code not working
+		if (path == null || path.isRelative())
 			return null;
 
 		// Try to get a line number from debug metadata
-		Container root = this.getrootContentContainer();
+		Container root = this.getRootContentContainer();
 
 		if (root != null) {
 			RTObject targetContent = root.contentAtPath(path);
@@ -71,30 +74,31 @@ public class RTObject {
 		return null;
 	}
 
-	public Path getpath() throws Exception {
+	public Path getPath() {
 		if (path == null) {
-			if (getparent() == null) {
+			if (getParent() == null) {
 				path = new Path();
-			} else {
-				// Maintain a Stack so that the order of the components
-				// is reversed when they're added to the Path.
-				// We're iterating up the hierarchy from the leaves/children to
-				// the root.
-				Stack<com.bladecoder.ink.runtime.Path.Component> comps = new Stack<com.bladecoder.ink.runtime.Path.Component>();
+			} else {			
+				List<Path.Component> comps = new ArrayList<Path.Component>();
 				RTObject child = this;
-				Container container = child.getparent() instanceof Container ? (Container) child.getparent()
+				Container container = child.getParent() instanceof Container ? (Container) child.getParent()
 						: (Container) null;
 				while (container != null) {
 					INamedContent namedChild = child instanceof INamedContent ? (INamedContent) child
 							: (INamedContent) null;
-					if (namedChild != null && namedChild.gethasValidName()) {
-						comps.push(new com.bladecoder.ink.runtime.Path.Component(namedChild.getname()));
+					if (namedChild != null && namedChild.hasValidName()) {
+						comps.add(new Path.Component(namedChild.getName()));
 					} else {
-						comps.push(new com.bladecoder.ink.runtime.Path.Component(container.getcontent().indexOf(child)));
+						comps.add(new Component(container.getContent().indexOf(child)));
 					}
 					child = container;
-					container = container.getparent() instanceof Container ? (Container) container.getparent() : (Container) null;
+					container = container.getParent() instanceof Container ? (Container) container.getParent()
+							: (Container) null;
 				}
+				
+				// Reverse list because components are searched in reverse order.
+				Collections.reverse(comps);
+				
 				path = new Path(comps);
 			}
 		}
@@ -103,35 +107,37 @@ public class RTObject {
 	}
 
 	public RTObject resolvePath(Path path) throws Exception {
-		if (path.getisRelative()) {
+		if (path.isRelative()) {
 			Container nearestContainer = this instanceof Container ? (Container) this : (Container) null;
 
 			if (nearestContainer == null) {
-				//Debug.Assert(this.getparent() != null, "Can't resolve relative path because we don't have a parent");
-				nearestContainer = this.getparent() instanceof Container ? (Container) this.getparent()
+				// Debug.Assert(this.getparent() != null, "Can't resolve
+				// relative path because we don't have a parent");
+				nearestContainer = this.getParent() instanceof Container ? (Container) this.getParent()
 						: (Container) null;
-				//Debug.Assert(nearestContainer != null, "Expected parent to be a container");
-				//Debug.Assert(path.getcomponents()[0].isParent);
-				path = path.gettail();
+				// Debug.Assert(nearestContainer != null, "Expected parent to be
+				// a container");
+				// Debug.Assert(path.getcomponents()[0].isParent);
+				path = path.getTail();
 			}
 
 			return nearestContainer.contentAtPath(path);
 		} else {
-			return this.getrootContentContainer().contentAtPath(path);
+			return this.getRootContentContainer().contentAtPath(path);
 		}
 	}
 
-	public Path convertPathToRelative(Path globalPath) throws Exception {
+	public Path convertPathToRelative(Path globalPath) {
 		// 1. Find last shared ancestor
 		// 2. Drill up using ".." style (actually represented as "^")
 		// 3. Re-build downward chain from common ancestor
-		Path ownPath = this.getpath();
-		int minPathLength = Math.min(globalPath.getcomponents().size(), ownPath.getcomponents().size());
+		Path ownPath = this.getPath();
+		int minPathLength = Math.min(globalPath.getComponents().size(), ownPath.getComponents().size());
 		int lastSharedPathCompIndex = -1;
 		for (int i = 0; i < minPathLength; ++i) {
-			Component ownComp = ownPath.getcomponents().get(i);
-			Component otherComp = globalPath.getcomponents().get(i);
-			
+			Component ownComp = ownPath.getComponents().get(i);
+			Component otherComp = globalPath.getComponents().get(i);
+
 			if (ownComp.equals(otherComp)) {
 				lastSharedPathCompIndex = i;
 			} else {
@@ -142,28 +148,28 @@ public class RTObject {
 		if (lastSharedPathCompIndex == -1)
 			return globalPath;
 
-		int numUpwardsMoves = (ownPath.getcomponents().size() - 1) - lastSharedPathCompIndex;
+		int numUpwardsMoves = (ownPath.getComponents().size() - 1) - lastSharedPathCompIndex;
 		ArrayList<Component> newPathComps = new ArrayList<com.bladecoder.ink.runtime.Path.Component>();
 		for (int up = 0; up < numUpwardsMoves; ++up)
 			newPathComps.add(com.bladecoder.ink.runtime.Path.Component.toParent());
-		for (int down = lastSharedPathCompIndex + 1; down < globalPath.getcomponents().size(); ++down)
-			newPathComps.add(globalPath.getcomponents().get(down));
+		for (int down = lastSharedPathCompIndex + 1; down < globalPath.getComponents().size(); ++down)
+			newPathComps.add(globalPath.getComponents().get(down));
 		Path relativePath = new Path(newPathComps);
-		relativePath.setisRelative(true);
+		relativePath.setRelative(true);
 		return relativePath;
 	}
 
 	// Find most compact representation for a path, whether relative or global
-	public String compactPathString(Path otherPath) throws Exception {
+	public String compactPathString(Path otherPath) {
 		String globalPathStr = null;
 		String relativePathStr = null;
-		if (otherPath.getisRelative()) {
-			relativePathStr = otherPath.getcomponentsString();
-			globalPathStr = this.getpath().pathByAppendingPath(otherPath).getcomponentsString();
+		if (otherPath.isRelative()) {
+			relativePathStr = otherPath.getComponentsString();
+			globalPathStr = this.getPath().pathByAppendingPath(otherPath).getComponentsString();
 		} else {
 			Path relativePath = convertPathToRelative(otherPath);
-			relativePathStr = relativePath.getcomponentsString();
-			globalPathStr = otherPath.getcomponentsString();
+			relativePathStr = relativePath.getComponentsString();
+			globalPathStr = otherPath.getComponentsString();
 		}
 		if (relativePathStr.length() < globalPathStr.length())
 			return relativePathStr;
@@ -171,10 +177,10 @@ public class RTObject {
 			return globalPathStr;
 	}
 
-	public Container getrootContentContainer() throws Exception {
+	public Container getRootContentContainer() {
 		RTObject ancestor = this;
-		while (ancestor.getparent() != null) {
-			ancestor = ancestor.getparent();
+		while (ancestor.getParent() != null) {
+			ancestor = ancestor.getParent();
 		}
 		return ancestor instanceof Container ? (Container) ancestor : (Container) null;
 	}
@@ -183,12 +189,12 @@ public class RTObject {
 		throw new UnsupportedOperationException(this.getClass().getTypeName() + " doesn't support copying");
 	}
 
-	public void setChild(RefSupport<RTObject> obj, RTObject value) throws Exception {
+	public void setChild(RefSupport<RTObject> obj, RTObject value) {
 		if (obj.getValue() != null)
 			obj.getValue().parent = null;
 
 		obj.setValue(value);
-		
+
 		if (obj.getValue() != null)
 			obj.getValue().parent = this;
 
