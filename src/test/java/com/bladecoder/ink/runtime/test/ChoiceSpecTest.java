@@ -13,35 +13,35 @@ public class ChoiceSpecTest {
 	public void noChoice() throws Exception {
 		List<String> errors = new ArrayList<String>();
 		
-		String text = TestUtils.runStory("inkfiles/choices/no-choice-text.ink.json", null, errors);
+		List<String> text = TestUtils.runStory("inkfiles/choices/no-choice-text.ink.json", null, errors);
 		
 		Assert.assertEquals(0, errors.size());
-		Assert.assertEquals("Hello world!\nHello back!\n", text);
+		Assert.assertEquals("Hello world!\nHello back!\n", TestUtils.joinText(text));
 	}
 
 	@Test
 	public void one() throws Exception {
 		List<String> errors = new ArrayList<String>();
 		
-		String text = TestUtils.runStory("inkfiles/choices/one.ink.json", null, errors);
+		List<String> text = TestUtils.runStory("inkfiles/choices/one.ink.json", null, errors);
 		
 		Assert.assertEquals(0, errors.size());
-		Assert.assertEquals("Hello world!\nHello back!\nHello back!\n", text);
+		Assert.assertEquals("Hello world!\nHello back!\nHello back!\n", TestUtils.joinText(text));
 	}
 
 	@Test
 	public void multiChoice() throws Exception {
 		List<String> errors = new ArrayList<String>();
 		
-		String text = TestUtils.runStory("inkfiles/choices/multi-choice.ink.json", Arrays.asList(0), errors);
+		List<String> text = TestUtils.runStory("inkfiles/choices/multi-choice.ink.json", Arrays.asList(0), errors);
 		
 		Assert.assertEquals(0, errors.size());
-		Assert.assertEquals("Hello, world!\nHello back!\nGoodbye\nHello back!\nNice to hear from you\n", text);
+		Assert.assertEquals("Hello, world!\nHello back!\nGoodbye\nHello back!\nNice to hear from you\n", TestUtils.joinText(text));
 		
 		// Select second choice
 		text = TestUtils.runStory("inkfiles/choices/multi-choice.ink.json", Arrays.asList(1), errors);
 		
 		Assert.assertEquals(0, errors.size());
-		Assert.assertEquals("Hello, world!\nHello back!\nGoodbye\nGoodbye\nSee you later\n", text);
+		Assert.assertEquals("Hello, world!\nHello back!\nGoodbye\nGoodbye\nSee you later\n", TestUtils.joinText(text));
 	}
 }

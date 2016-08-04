@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.bladecoder.ink.runtime.Choice;
@@ -33,7 +34,7 @@ public class TestUtils {
 	}
 
 	
-	public static final String runStory(String filename, List<Integer> choiceList, List<String> errors) throws Exception {
+	public static final List<String> runStory(String filename, List<Integer> choiceList, List<String> errors) throws Exception {
 		// 1) Load story
 		String json = TestUtils.getJsonString(filename).replace('\uFEFF', ' ');
 
@@ -41,7 +42,7 @@ public class TestUtils {
 
 		Story story = new Story(json);
 
-		StringBuffer text = new StringBuffer();
+		List<String> text = new ArrayList<String>();
 
 		System.out.println(story.BuildStringOfHierarchy());
 		
@@ -52,7 +53,7 @@ public class TestUtils {
 			while (story.canContinue()) {
 				String line = story.Continue();
 				System.out.print(line);
-				text.append(line);
+				text.add(line);
 			}
 
 			if (story.hasError()) {
@@ -67,7 +68,7 @@ public class TestUtils {
 
 				for (Choice c : story.getCurrentChoices()) {
 					System.out.println(c.gettext());
-					text.append(c.gettext() + "\n");
+					text.add(c.gettext() + "\n");
 				}
 
 				if(choiceList == null || choiceListIndex >= choiceList.size())
@@ -79,6 +80,16 @@ public class TestUtils {
 			}
 		}
 
-		return text.toString();
+		return text;
+	}
+	
+	public static final String joinText(List<String> text) {
+		StringBuffer sb = new StringBuffer();
+		
+		for(String s:text) {
+			sb.append(s);
+		}
+		
+		return sb.toString();
 	}
 }

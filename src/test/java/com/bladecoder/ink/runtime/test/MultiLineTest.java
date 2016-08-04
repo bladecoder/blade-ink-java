@@ -14,10 +14,10 @@ public class MultiLineTest {
 	public void test() throws Exception {
 		List<String> errors = new ArrayList<String>();
 		
-		String text = TestUtils.runStory(FILENAME, null, errors);
+		List<String>  text = TestUtils.runStory(FILENAME, null, errors);
 		
 		Assert.assertEquals(0, errors.size());
-		Assert.assertEquals("Hello, world!\nHello?\nHello, are you there?\n", text);
+		Assert.assertEquals("Hello, world!\nHello?\nHello, are you there?\n", TestUtils.joinText(text));
 	}
 
 }
