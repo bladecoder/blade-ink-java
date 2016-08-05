@@ -38,13 +38,13 @@ public class TestUtils {
 		// 1) Load story
 		String json = TestUtils.getJsonString(filename).replace('\uFEFF', ' ');
 
-		System.out.println(json);
+//		System.out.println(json);
 
 		Story story = new Story(json);
 
 		List<String> text = new ArrayList<String>();
 
-		System.out.println(story.BuildStringOfHierarchy());
+//		System.out.println(story.BuildStringOfHierarchy());
 		
 		int choiceListIndex = 0;
 
