@@ -11,207 +11,24 @@ import java.util.Iterator;
  */
 public class VariablesState implements Iterable<String> {
 
-	// TODO
-	// public static class __MultiVariableChanged implements VariableChanged
-	// {
-	// public void invoke(String variableName, RTObject newValue) throws
-	// Exception {
-	// IList<VariableChanged> copy = new IList<VariableChanged>(), members =
-	// this.getInvocationList();
-	// synchronized (members)
-	// {
-	// copy = new LinkedList<VariableChanged>(members);
-	// }
-	// for (RTObject __dummyForeachVar0 : copy)
-	// {
-	// VariableChanged d = (VariableChanged)__dummyForeachVar0;
-	// d.invoke(variableName, newValue);
-	// }
-	// }
-	//
-	// private System.Collections.Generic.IList<VariableChanged> _invocationList
-	// = new ArrayList<VariableChanged>();
-	// public static VariableChanged combine(VariableChanged a, VariableChanged
-	// b) throws Exception {
-	// if (a == null)
-	// return b;
-	//
-	// if (b == null)
-	// return a;
-	//
-	// __MultiVariableChanged ret = new __MultiVariableChanged();
-	// ret._invocationList = a.getInvocationList();
-	// // Finished observing variables in a batch - now send
-	// // notifications for changed variables all in one go.
-	// ret._invocationList.addAll(b.getInvocationList());
-	// return ret;
-	// }
-	//
-	// public static VariableChanged remove(VariableChanged a, VariableChanged
-	// b) throws Exception {
-	// if (a == null || b == null)
-	// return a;
-	//
-	// /**
-	// * Get or set the value of a named global ink variable.
-	// * The types available are the standard ink types. Certain
-	// * types will be implicitly casted when setting.
-	// * For example, doubles to floats, longs to ints, and bools
-	// * to ints.
-	// */
-	// System.Collections.Generic.IList<VariableChanged> aInvList =
-	// a.getInvocationList();
-	// System.Collections.Generic.IList<VariableChanged> newInvList =
-	// ListSupport.removeFinalStretch(aInvList, b.getInvocationList());
-	// if (aInvList == newInvList)
-	// {
-	// return a;
-	// }
-	// else
-	// {
-	// __MultiVariableChanged ret = new __MultiVariableChanged();
-	// ret._invocationList = newInvList;
-	// return ret;
-	// }
-	// }
-	//
-	// public System.Collections.Generic.IList<VariableChanged>
-	// getInvocationList() throws Exception {
-	// return _invocationList;
-	// }
-	//
-	// }
-	//
-	// public static interface VariableChanged
-	// {
-	// void invoke(String variableName, RTObject newValue) throws Exception ;
-	//
-	// System.Collections.Generic.IList<VariableChanged> getInvocationList()
-	// throws Exception ;
-	//
-	// }
-	//
-	// public VariableChanged variableChangedEvent;
-
-	public boolean getbatchObservingVariableChanges() throws Exception {
-		return _batchObservingVariableChanges;
+	public static interface VariableChanged {
+		void variableStateDidChangeEvent(String variableName, RTObject newValue) throws Exception;
 	}
 
-	public void setbatchObservingVariableChanges(boolean value) throws Exception {
-		_batchObservingVariableChanges = value;
-		if (value) {
-			_changedVariables = new HashSet<String>();
-		} else {
-			if (_changedVariables != null) {
-				for (String variableName : _changedVariables) {
-					Object currentValue = _globalVariables.get(variableName);
-					// TODO
-					// variableChangedEvent(variableName, currentValue);
-				}
-			}
+	private boolean batchObservingVariableChanges;
 
-			_changedVariables = null;
-		}
-	}
+	// Used for accessing temporary variables
+	private CallStack callStack;
 
-	boolean _batchObservingVariableChanges;
+	private HashSet<String> changedVariables;
 
-	public Object get(String variableName) throws Exception {
-		RTObject varContents = _globalVariables.get(variableName);
-		if (varContents != null) {
-			return ((Value<?>) varContents).getValue();
-		} else
-			return null;
-	}
+	private HashMap<String, RTObject> globalVariables;
 
-	public void set(String variableName, Object value) throws Exception {
-		AbstractValue val = Value.create(value);
-		if (val == null) {
-			if (value == null) {
-				throw new StoryException("Cannot pass null to VariableState");
-			} else {
-				throw new StoryException("Invalid value passed to VariableState: " + value.toString());
-			}
-		}
-
-		setGlobal(variableName, val);
-	}
-
-	/**
-	 * Enumerator to allow iteration over all global variables by name.
-	 */
-	public Iterator<String> iterator() {
-		return _globalVariables.keySet().iterator();
-	}
+	private VariableChanged variableChangedEvent;
 
 	public VariablesState(CallStack callStack) throws Exception {
-		_globalVariables = new HashMap<String, RTObject>();
-		_callStack = callStack;
-	}
-
-	public void copyFrom(VariablesState varState) throws Exception {
-		_globalVariables = new HashMap<String, RTObject>(varState._globalVariables);
-		// TODO
-		// variableChangedEvent = varState.variableChangedEvent;
-
-		if (varState.getbatchObservingVariableChanges() != getbatchObservingVariableChanges()) {
-			if (varState.getbatchObservingVariableChanges()) {
-				_batchObservingVariableChanges = true;
-				_changedVariables = new HashSet<String>(varState._changedVariables);
-			} else {
-				_batchObservingVariableChanges = false;
-				_changedVariables = null;
-			}
-		}
-
-	}
-
-	public HashMap<String, Object> getjsonToken() throws Exception {
-		return Json.HashMapRuntimeObjsToJRTObject(_globalVariables);
-	}
-
-	public void setjsonToken(HashMap<String, Object> value) throws Exception {
-		_globalVariables = Json.jRTObjectToHashMapRuntimeObjs(value);
-	}
-
-	public RTObject getVariableWithName(String name) throws Exception {
-		return getVariableWithName(name, -1);
-	}
-
-	RTObject getVariableWithName(String name, int contextIndex) throws Exception {
-		RTObject varValue = getRawVariableWithName(name, contextIndex);
-		// Get value from pointer?
-		VariablePointerValue varPointer = varValue instanceof VariablePointerValue ? (VariablePointerValue) varValue
-				: (VariablePointerValue) null;
-		if (varPointer != null) {
-			varValue = valueAtVariablePointer(varPointer);
-		}
-
-		return varValue;
-	}
-
-	RTObject getRawVariableWithName(String name, int contextIndex) throws Exception {
-		RTObject varValue = null;
-		// 0 context = global
-		if (contextIndex == 0 || contextIndex == -1) {
-			varValue = _globalVariables.get(name);
-			if (varValue != null) {
-				return varValue;
-			}
-
-		}
-
-		// Temporary
-		varValue = _callStack.GetTemporaryVariableWithName(name, contextIndex);
-		if (varValue == null)
-			throw new Exception("RUNTIME ERROR: Variable '" + name + "' could not be found in context '" + contextIndex
-					+ "'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
-
-		return varValue;
-	}
-
-	public RTObject valueAtVariablePointer(VariablePointerValue pointer) throws Exception {
-		return getVariableWithName(pointer.getvariableName(), pointer.getcontextIndex());
+		globalVariables = new HashMap<String, RTObject>();
+		this.callStack = callStack;
 	}
 
 	public void assign(VariableAssignment varAss, RTObject value) throws Exception {
@@ -222,7 +39,7 @@ public class VariablesState implements Iterable<String> {
 		if (varAss.getisNewDeclaration()) {
 			setGlobal = varAss.getisGlobal();
 		} else {
-			setGlobal = _globalVariables.containsKey(name);
+			setGlobal = globalVariables.containsKey(name);
 		}
 		// Constructing new variable pointer reference
 		if (varAss.getisNewDeclaration()) {
@@ -254,23 +71,97 @@ public class VariablesState implements Iterable<String> {
 		if (setGlobal) {
 			setGlobal(name, value);
 		} else {
-			_callStack.SetTemporaryVariable(name, value, varAss.getisNewDeclaration(), contextIndex);
+			callStack.SetTemporaryVariable(name, value, varAss.getisNewDeclaration(), contextIndex);
 		}
 	}
 
-	void setGlobal(String variableName, RTObject value) throws Exception {
-		RTObject oldValue = oldValue = _globalVariables.get(variableName);
-		_globalVariables.put(variableName, value);
+	public void copyFrom(VariablesState varState) throws Exception {
+		globalVariables = new HashMap<String, RTObject>(varState.globalVariables);
+		
+		setVariableChangedEvent(varState.getVariableChangedEvent());
 
-		// TODO
-		// if (variableChangedEvent != null && !value.equals(oldValue)) {
-		// if (getbatchObservingVariableChanges()) {
-		// _changedVariables.Add(variableName);
-		// } else {
-		// variableChangedEvent(variableName, value);
-		// }
-		// }
+		if (varState.getbatchObservingVariableChanges() != getbatchObservingVariableChanges()) {
+			if (varState.getbatchObservingVariableChanges()) {
+				batchObservingVariableChanges = true;
+				changedVariables = new HashSet<String>(varState.changedVariables);
+			} else {
+				batchObservingVariableChanges = false;
+				changedVariables = null;
+			}
+		}
 
+	}
+
+	public Object get(String variableName) {
+		RTObject varContents = globalVariables.get(variableName);
+		if (varContents != null) {
+			return ((Value<?>) varContents).getValue();
+		} else
+			return null;
+	}
+
+	public boolean getbatchObservingVariableChanges() throws Exception {
+		return batchObservingVariableChanges;
+	}
+
+	// Make copy of the variable pointer so we're not using the value direct
+	// from
+	// the runtime. Temporary must be local to the current scope.
+	// 0 if named variable is global
+	// 1+ if named variable is a temporary in a particular call stack element
+	int getContextIndexOfVariableNamed(String varName) throws Exception {
+		if (globalVariables.containsKey(varName))
+			return 0;
+
+		return callStack.currentElementIndex();
+	}
+
+	public HashMap<String, Object> getjsonToken() throws Exception {
+		return Json.HashMapRuntimeObjsToJRTObject(globalVariables);
+	}
+
+	RTObject getRawVariableWithName(String name, int contextIndex) throws Exception {
+		RTObject varValue = null;
+		// 0 context = global
+		if (contextIndex == 0 || contextIndex == -1) {
+			varValue = globalVariables.get(name);
+			if (varValue != null) {
+				return varValue;
+			}
+
+		}
+
+		// Temporary
+		varValue = callStack.GetTemporaryVariableWithName(name, contextIndex);
+		if (varValue == null)
+			throw new Exception("RUNTIME ERROR: Variable '" + name + "' could not be found in context '" + contextIndex
+					+ "'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
+
+		return varValue;
+	}
+
+	public RTObject getVariableWithName(String name) throws Exception {
+		return getVariableWithName(name, -1);
+	}
+
+	RTObject getVariableWithName(String name, int contextIndex) throws Exception {
+		RTObject varValue = getRawVariableWithName(name, contextIndex);
+		// Get value from pointer?
+		VariablePointerValue varPointer = varValue instanceof VariablePointerValue ? (VariablePointerValue) varValue
+				: (VariablePointerValue) null;
+		if (varPointer != null) {
+			varValue = valueAtVariablePointer(varPointer);
+		}
+
+		return varValue;
+	}
+
+	/**
+	 * Enumerator to allow iteration over all global variables by name.
+	 */
+	@Override
+	public Iterator<String> iterator() {
+		return globalVariables.keySet().iterator();
 	}
 
 	// Given a variable pointer with just the name of the target known, resolve
@@ -298,20 +189,62 @@ public class VariablesState implements Iterable<String> {
 		}
 	}
 
-	// Make copy of the variable pointer so we're not using the value direct
-	// from
-	// the runtime. Temporary must be local to the current scope.
-	// 0 if named variable is global
-	// 1+ if named variable is a temporary in a particular call stack element
-	int getContextIndexOfVariableNamed(String varName) throws Exception {
-		if (_globalVariables.containsKey(varName))
-			return 0;
+	public void set(String variableName, Object value) throws Exception {
+		AbstractValue val = AbstractValue.create(value);
+		if (val == null) {
+			if (value == null) {
+				throw new StoryException("Cannot pass null to VariableState");
+			} else {
+				throw new StoryException("Invalid value passed to VariableState: " + value.toString());
+			}
+		}
 
-		return _callStack.currentElementIndex();
+		setGlobal(variableName, val);
 	}
 
-	HashMap<String, RTObject> _globalVariables;
-	// Used for accessing temporary variables
-	CallStack _callStack;
-	HashSet<String> _changedVariables;
+	public void setbatchObservingVariableChanges(boolean value) throws Exception {
+		batchObservingVariableChanges = value;
+		if (value) {
+			changedVariables = new HashSet<String>();
+		} else {
+			if (changedVariables != null) {
+				for (String variableName : changedVariables) {
+					RTObject currentValue = globalVariables.get(variableName);
+					getVariableChangedEvent().variableStateDidChangeEvent(variableName, currentValue);
+				}
+			}
+
+			changedVariables = null;
+		}
+	}
+
+	void setGlobal(String variableName, RTObject value) throws Exception {
+		RTObject oldValue = globalVariables.get(variableName);
+
+		globalVariables.put(variableName, value);
+
+		if (getVariableChangedEvent() != null && !value.equals(oldValue)) {
+
+			if (getbatchObservingVariableChanges()) {
+				changedVariables.add(variableName);
+			} else {
+				getVariableChangedEvent().variableStateDidChangeEvent(variableName, value);
+			}
+		}
+
+	}
+	public void setjsonToken(HashMap<String, Object> value) throws Exception {
+		globalVariables = Json.jRTObjectToHashMapRuntimeObjs(value);
+	}
+	public RTObject valueAtVariablePointer(VariablePointerValue pointer) throws Exception {
+		return getVariableWithName(pointer.getvariableName(), pointer.getcontextIndex());
+	}
+
+	public VariableChanged getVariableChangedEvent() {
+		return variableChangedEvent;
+	}
+
+	public void setVariableChangedEvent(VariableChanged variableChangedEvent) {
+		this.variableChangedEvent = variableChangedEvent;
+	}
 }

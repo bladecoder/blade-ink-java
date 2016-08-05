@@ -7,154 +7,43 @@ import java.util.Random;
 
 import com.bladecoder.ink.runtime.CallStack.Thread;
 
-/// <summary>
-/// All story state information is included in the StoryState class,
-/// including global variables, read counts, the pointer to the current
-/// point in the story, the call stack (for tunnels, functions, etc),
-/// and a few other smaller bits and pieces. You can save the current
-/// state using the json serialisation functions ToJson and LoadJson.
-/// </summary>
+/**
+ * All story state information is included in the StoryState class, including
+ * global variables, read counts, the pointer to the current point in the story,
+ * the call stack (for tunnels, functions, etc), and a few other smaller bits
+ * and pieces. You can save the current state using the json serialisation
+ * functions ToJson and LoadJson.
+ */
 public class StoryState {
-	/// <summary>
-	/// The current version of the state save file JSON-based format.
-	/// </summary>
+	/**
+	 * The current version of the state save file JSON-based format.
+	 */
 	public static final int kInkSaveStateVersion = 4;
 	public static final int kMinCompatibleLoadVersion = 4;
 
-	/// <summary>
-	/// Exports the current state to json format, in order to save the game.
-	/// </summary>
-	/// <returns>The save state in json format.</returns>
-	public String ToJson() throws Exception {
-		return SimpleJson.HashMapToText(getjsonToken());
-	}
-
-	/// <summary>
-	/// Loads a previously saved state in JSON format.
-	/// </summary>
-	/// <param name="json">The JSON String to load.</param>
-	public void LoadJson(String json) throws Exception {
-		setjsonToken(SimpleJson.textToHashMap(json));
-	}
-
-	/// <summary>
-	/// Gets the visit/read count of a particular Container at the given path.
-	/// For a knot or stitch, that path String will be in the form:
-	///
-	/// knot
-	/// knot.stitch
-	///
-	/// </summary>
-	/// <returns>The number of times the specific knot or stitch has
-	/// been enountered by the ink engine.</returns>
-	/// <param name="pathString">The dot-separated path String of
-	/// the specific knot or stitch.</param>
-	public int VisitCountAtPathString(String pathString) {
-		Integer visitCountOut = visitCounts.get(pathString);
-
-		if (visitCountOut != null)
-			return visitCountOut;
-
-		return 0;
-	}
+	private Glue currentRightGlue;
 
 	// REMEMBER! REMEMBER! REMEMBER!
-	// When adding state, update the Copy method, and serialisation.
+	// When adding state, update the Copy method and serialisation
 	// REMEMBER! REMEMBER! REMEMBER!
-
-	List<RTObject> outputStream() {
-		return _outputStream;
-	}
-
-	List<Choice> currentChoices;
-
-	List<String> currentErrors;
-
-	VariablesState variablesState;
-
-	CallStack callStack;
-
-	List<RTObject> evaluationStack;
-
-	RTObject divertedTargetObject;
-
+	private List<RTObject> outputStream;
+	private CallStack callStack;
+	private List<Choice> currentChoices;
+	private List<String> currentErrors;
+	private int currentTurnIndex;
+	private boolean didSafeExit;
+	private RTObject divertedTargetObject;
+	private List<RTObject> evaluationStack;
+	private Story story;
+	private int storySeed;
+	private HashMap<String, Integer> turnIndices;
+	private VariablesState variablesState;
 	private HashMap<String, Integer> visitCounts;
-	HashMap<String, Integer> turnIndices;
-	int currentTurnIndex;
-	int storySeed;
-	boolean didSafeExit;
-
-	Story story;
-	
-	public HashMap<String, Integer> getVisitCounts() {
-		return visitCounts;
-	}
-
-	Path getcurrentPath() throws Exception {
-
-		if (getcurrentContentObject() == null)
-			return null;
-
-		return getcurrentContentObject().getPath();
-	}
-
-	void setcurrentPath(Path value) throws Exception {
-		if (value != null)
-			setcurrentContentObject(story.ContentAtPath(value));
-		else
-			setcurrentContentObject(null);
-	}
-
-	RTObject getcurrentContentObject() throws Exception {
-		return callStack.currentElement().getCurrentRTObject();
-	}
-
-	void setcurrentContentObject(RTObject value) throws Exception {
-		callStack.currentElement().setcurrentRTObject(value);
-	}
-
-	Container currentContainer() {
-		return callStack.currentElement().currentContainer;
-	}
-
-	RTObject getpreviousContentObject() {
-		return callStack.getcurrentThread().previousContentRTObject;
-	}
-
-	void setpreviousContentObject(RTObject value) {
-		callStack.getcurrentThread().previousContentRTObject = value;
-	}
-
-	boolean hasError() {
-		return currentErrors != null && currentErrors.size() > 0;
-	}
-
-	String currentText() {
-		StringBuilder sb = new StringBuilder();
-
-		for (RTObject outputObj : _outputStream) {
-			StringValue textContent = outputObj instanceof StringValue ? (StringValue) outputObj : null;
-
-			if (textContent != null) {
-				sb.append(textContent.value);
-			}
-		}
-
-		return sb.toString();
-	}
-
-	boolean getinExpressionEvaluation() {
-		return callStack.currentElement().inExpressionEvaluation;
-	}
-
-	void setinExpressionEvaluation(boolean value) {
-		callStack.currentElement().inExpressionEvaluation = value;
-	}
 
 	StoryState(Story story) throws Exception {
 		this.story = story;
 
-		_outputStream = new ArrayList<RTObject>();
+		outputStream = new ArrayList<RTObject>();
 
 		evaluationStack = new ArrayList<RTObject>();
 
@@ -172,12 +61,16 @@ public class StoryState {
 
 		currentChoices = new ArrayList<Choice>();
 
-		GoToStart();
+		goToStart();
 	}
 
-	void GoToStart() {
-		callStack.currentElement().currentContainer = story.mainContentContainer();
-		callStack.currentElement().currentContentIndex = 0;
+	void addError(String message) {
+		// TODO: Could just add to output?
+		if (currentErrors == null) {
+			currentErrors = new ArrayList<String>();
+		}
+
+		currentErrors.add(message);
 	}
 
 	// Warning: Any RTObject content referenced within the StoryState will
@@ -185,10 +78,10 @@ public class StoryState {
 	// RTObjects are treated as immutable after they've been set up.
 	// (e.g. we don't edit a Runtime.Text after it's been created an added.)
 	// I wonder if there's a sensible way to enforce that..??
-	StoryState	Copy() throws Exception {
+	StoryState copy() throws Exception {
 		StoryState copy = new StoryState(story);
 
-		copy.outputStream().addAll(_outputStream);
+		copy.getOutputStream().addAll(outputStream);
 		copy.currentChoices.addAll(currentChoices);
 
 		if (hasError()) {
@@ -198,48 +91,108 @@ public class StoryState {
 
 		copy.callStack = new CallStack(callStack);
 
-		copy._currentRightGlue = _currentRightGlue;
+		copy.currentRightGlue = currentRightGlue;
 
 		copy.variablesState = new VariablesState(copy.callStack);
 		copy.variablesState.copyFrom(variablesState);
 
 		copy.evaluationStack.addAll(evaluationStack);
 
-		if (divertedTargetObject != null)
-			copy.divertedTargetObject = divertedTargetObject;
+		if (getDivertedTargetObject() != null)
+			copy.setDivertedTargetObject(divertedTargetObject);
 
-		copy.setpreviousContentObject(getpreviousContentObject());
+		copy.setPreviousContentObject(getPreviousContentObject());
 
 		copy.visitCounts = new HashMap<String, Integer>(visitCounts);
 		copy.turnIndices = new HashMap<String, Integer>(turnIndices);
 		copy.currentTurnIndex = currentTurnIndex;
 		copy.storySeed = storySeed;
 
-		copy.didSafeExit = didSafeExit;
+		copy.setDidSafeExit(didSafeExit);
 
 		return copy;
 	}
 
-	/// <summary>
-	/// Object representation of full JSON state. Usually you should use
-	/// LoadJson and ToJson since they serialise directly to String for you.
-	/// But, if your game uses Json.Net itself, it may be useful to get
-	/// the JToken so that you can integrate it into your own save format.
-	/// </summary>
-	public HashMap<String, Object> getjsonToken() throws Exception {
+	Container currentContainer() {
+		return callStack.currentElement().currentContainer;
+	}
+
+	int currentGlueIndex() {
+		for (int i = outputStream.size() - 1; i >= 0; i--) {
+			RTObject c = outputStream.get(i);
+			Glue glue = c instanceof Glue ? (Glue) c : null;
+			if (glue != null)
+				return i;
+			else if (c instanceof ControlCommand) // e.g. BeginString
+				break;
+		}
+		return -1;
+	}
+
+	String currentText() {
+		StringBuilder sb = new StringBuilder();
+
+		for (RTObject outputObj : outputStream) {
+			StringValue textContent = outputObj instanceof StringValue ? (StringValue) outputObj : null;
+
+			if (textContent != null) {
+				sb.append(textContent.value);
+			}
+		}
+
+		return sb.toString();
+	}
+
+	void forceEndFlow() throws Exception {
+		setCurrentContentObject(null);
+
+		while (callStack.canPopThread())
+			callStack.PopThread();
+
+		while (callStack.canPop())
+			callStack.Pop();
+
+		currentChoices.clear();
+
+		setDidSafeExit(true);
+	}
+
+	RTObject getCurrentContentObject() {
+		return callStack.currentElement().getCurrentRTObject();
+	}
+
+	Path getCurrentPath() {
+
+		if (getCurrentContentObject() == null)
+			return null;
+
+		return getCurrentContentObject().getPath();
+	}
+
+	boolean getInExpressionEvaluation() {
+		return callStack.currentElement().inExpressionEvaluation;
+	}
+
+	/**
+	 * Object representation of full JSON state. Usually you should use LoadJson
+	 * and ToJson since they serialise directly to String for you. But, if your
+	 * game uses Json.Net itself, it may be useful to get the JToken so that you
+	 * can integrate it into your own save format.
+	 */
+	public HashMap<String, Object> getJsonToken() throws Exception {
 
 		HashMap<String, Object> obj = new HashMap<String, Object>();
 
 		HashMap<String, Object> choiceThreads = null;
 		for (Choice c : currentChoices) {
 			c.originalChoicePath = c.getchoicePoint().getPath().getComponentsString();
-			c.originalThreadIndex = c.getthreadAtGeneration().threadIndex;
+			c.originalThreadIndex = c.getThreadAtGeneration().threadIndex;
 
 			if (callStack.ThreadWithIndex(c.originalThreadIndex) == null) {
 				if (choiceThreads == null)
 					choiceThreads = new HashMap<String, Object>();
 
-				choiceThreads.put(Integer.toString(c.originalThreadIndex), c.getthreadAtGeneration().jsonToken());
+				choiceThreads.put(Integer.toString(c.originalThreadIndex), c.getThreadAtGeneration().jsonToken());
 			}
 		}
 		if (choiceThreads != null)
@@ -250,19 +203,19 @@ public class StoryState {
 
 		obj.put("evalStack", Json.listToJArray(evaluationStack));
 
-		obj.put("outputStream", Json.listToJArray(_outputStream));
+		obj.put("outputStream", Json.listToJArray(outputStream));
 
 		obj.put("currentChoices", Json.listToJArray(currentChoices));
 
-		if (_currentRightGlue != null) {
-			int rightGluePos = _outputStream.indexOf(_currentRightGlue);
+		if (currentRightGlue != null) {
+			int rightGluePos = outputStream.indexOf(currentRightGlue);
 			if (rightGluePos != -1) {
-				obj.put("currRightGlue", _outputStream.indexOf(_currentRightGlue));
+				obj.put("currRightGlue", outputStream.indexOf(currentRightGlue));
 			}
 		}
 
-		if (divertedTargetObject != null)
-			obj.put("currentDivertTarget", divertedTargetObject.getPath().getComponentsString());
+		if (getDivertedTargetObject() != null)
+			obj.put("currentDivertTarget", getDivertedTargetObject().getPath().getComponentsString());
 
 		obj.put("visitCounts", Json.intHashMapToJRTObject(visitCounts));
 		obj.put("turnIndices", Json.intHashMapToJRTObject(turnIndices));
@@ -277,7 +230,264 @@ public class StoryState {
 		return obj;
 	}
 
-	void setjsonToken(HashMap<String, Object> value) throws StoryException, Exception {
+	RTObject getPreviousContentObject() {
+		return callStack.getcurrentThread().previousContentRTObject;
+	}
+
+	public HashMap<String, Integer> getVisitCounts() {
+		return visitCounts;
+	}
+
+	void goToStart() {
+		callStack.currentElement().currentContainer = story.mainContentContainer();
+		callStack.currentElement().currentContentIndex = 0;
+	}
+
+	boolean hasError() {
+		return currentErrors != null && currentErrors.size() > 0;
+	}
+
+	boolean inStringEvaluation() {
+		for (int i = outputStream.size() - 1; i >= 0; i--) {
+			ControlCommand cmd = outputStream.get(i) instanceof ControlCommand ? (ControlCommand) outputStream.get(i)
+					: null;
+
+			if (cmd != null && cmd.getcommandType() == ControlCommand.CommandType.BeginString) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Loads a previously saved state in JSON format.
+	 * 
+	 * @param json
+	 *            The JSON String to load.
+	 */
+	public void loadJson(String json) throws Exception {
+		setJsonToken(SimpleJson.textToHashMap(json));
+	}
+
+	List<Choice> getCurrentChoices() {
+		return currentChoices;
+	}
+	
+	List<String> getCurrentErrors() {
+		return currentErrors;
+	}
+
+	List<RTObject> getOutputStream() {
+		return outputStream;
+	}
+	
+	CallStack getCallStack() {
+		return callStack;
+	}
+	
+	VariablesState getVariablesState() {
+		return variablesState;
+	}
+	
+	List<RTObject> getEvaluationStack() {
+		return evaluationStack;
+	}
+	
+	int getStorySeed() {
+		return storySeed;
+	}
+	
+	HashMap<String, Integer> getTurnIndices() {
+		return turnIndices;
+	}
+	
+	int getCurrentTurnIndex() {
+		return currentTurnIndex;
+	}
+
+	boolean outputStreamContainsContent() {
+		for (RTObject content : outputStream) {
+			if (content instanceof StringValue)
+				return true;
+		}
+		return false;
+	}
+
+	boolean outputStreamEndsInNewline() {
+		if (outputStream.size() > 0) {
+
+			for (int i = outputStream.size() - 1; i >= 0; i--) {
+				RTObject obj = outputStream.get(i);
+				if (obj instanceof ControlCommand) // e.g. BeginString
+					break;
+				StringValue text = outputStream.get(i) instanceof StringValue ? (StringValue) outputStream.get(i)
+						: null;
+
+				if (text != null) {
+					if (text.getisNewline())
+						return true;
+					else if (text.getisNonWhitespace())
+						break;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	RTObject peekEvaluationStack() {
+		return evaluationStack.get(evaluationStack.size() - 1);
+	}
+
+	RTObject popEvaluationStack() {
+		RTObject obj = evaluationStack.get(evaluationStack.size() - 1);
+		evaluationStack.remove(evaluationStack.size() - 1);
+		return obj;
+	}
+
+	List<RTObject> popEvaluationStack(int numberOfObjects) throws Exception {
+		if (numberOfObjects > evaluationStack.size()) {
+			throw new Exception("trying to pop too many objects");
+		}
+
+		List<RTObject> popped = new ArrayList<RTObject>(
+				evaluationStack.subList(evaluationStack.size() - numberOfObjects, evaluationStack.size()));
+		evaluationStack.subList(evaluationStack.size() - numberOfObjects, evaluationStack.size()).clear();
+
+		return popped;
+	}
+
+	void pushEvaluationStack(RTObject obj) {
+		evaluationStack.add(obj);
+	}
+
+	// Push to output stream, but split out newlines in text for consistency
+	// in dealing with them later.
+	void pushToOutputStream(RTObject obj) {
+		StringValue text = obj instanceof StringValue ? (StringValue) obj : null;
+
+		if (text != null) {
+			List<StringValue> listText = trySplittingHeadTailWhitespace(text);
+			if (listText != null) {
+				for (StringValue textObj : listText) {
+					pushToOutputStreamIndividual(textObj);
+				}
+				return;
+			}
+		}
+
+		pushToOutputStreamIndividual(obj);
+	}
+
+	void pushToOutputStreamIndividual(RTObject obj) {
+		Glue glue = obj instanceof Glue ? (Glue) obj : null;
+		StringValue text = obj instanceof StringValue ? (StringValue) obj : null;
+
+		boolean includeInOutput = true;
+
+		if (glue != null) {
+
+			// Found matching left-glue for right-glue? Close it.
+			boolean foundMatchingLeftGlue = glue.getisLeft() && currentRightGlue != null
+					&& glue.getParent() == currentRightGlue.getParent();
+			if (foundMatchingLeftGlue) {
+				currentRightGlue = null;
+			}
+
+			// Left/Right glue is auto-generated for inline expressions
+			// where we want to absorb newlines but only in a certain direction.
+			// "Bi" glue is written by the user in their ink with <>
+			if (glue.getisLeft() || glue.getisBi()) {
+				trimNewlinesFromOutputStream(foundMatchingLeftGlue);
+			}
+
+			// New right-glue
+			boolean isNewRightGlue = glue.getisRight() && currentRightGlue == null;
+			if (isNewRightGlue) {
+				currentRightGlue = glue;
+			}
+
+			includeInOutput = glue.getisBi() || isNewRightGlue;
+		}
+
+		else if (text != null) {
+
+			if (currentGlueIndex() != -1) {
+
+				// Absorb any new newlines if there's existing glue
+				// in the output stream.
+				// Also trim any extra whitespace (spaces/tabs) if so.
+				if (text.getisNewline()) {
+					trimFromExistingGlue();
+					includeInOutput = false;
+				}
+
+				// Able to completely reset when
+				else if (text.getisNonWhitespace()) {
+					removeExistingGlue();
+					currentRightGlue = null;
+				}
+			} else if (text.getisNewline()) {
+				if (outputStreamEndsInNewline() || !outputStreamContainsContent())
+					includeInOutput = false;
+			}
+		}
+
+		if (includeInOutput) {
+			outputStream.add(obj);
+		}
+	}
+
+	// Only called when non-whitespace is appended
+	void removeExistingGlue() {
+		for (int i = outputStream.size() - 1; i >= 0; i--) {
+			RTObject c = outputStream.get(i);
+			if (c instanceof Glue) {
+				outputStream.remove(i);
+			} else if (c instanceof ControlCommand) { // e.g.
+														// BeginString
+				break;
+			}
+		}
+	}
+
+	void resetErrors() {
+		currentErrors = null;
+	}
+
+	void resetOutput() {
+		outputStream.clear();
+	}
+
+	// Don't make public since the method need to be wrapped in Story for visit
+	// counting
+	void setChosenPath(Path path) throws Exception {
+		// Changing direction, assume we need to clear current set of choices
+		currentChoices.clear();
+
+		setCurrentPath(path);
+
+		currentTurnIndex++;
+	}
+
+	void setCurrentContentObject(RTObject value) {
+		callStack.currentElement().setcurrentRTObject(value);
+	}
+
+	void setCurrentPath(Path value) throws Exception {
+		if (value != null)
+			setCurrentContentObject(story.ContentAtPath(value));
+		else
+			setCurrentContentObject(null);
+	}
+
+	void setInExpressionEvaluation(boolean value) {
+		callStack.currentElement().inExpressionEvaluation = value;
+	}
+
+	@SuppressWarnings("unchecked")
+	void setJsonToken(HashMap<String, Object> value) throws StoryException, Exception {
 
 		HashMap<String, Object> jObject = value;
 
@@ -295,7 +505,7 @@ public class StoryState {
 
 		evaluationStack = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("evalStack"));
 
-		_outputStream = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("outputStream"));
+		outputStream = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("outputStream"));
 
 		currentChoices = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("currentChoices"));
 
@@ -303,14 +513,14 @@ public class StoryState {
 		if (propValue != null) {
 			int gluePos = (int) propValue;
 			if (gluePos >= 0) {
-				_currentRightGlue = (Glue) _outputStream.get(gluePos);
+				currentRightGlue = (Glue) outputStream.get(gluePos);
 			}
 		}
 
 		Object currentDivertTargetPath = jObject.get("currentDivertTarget");
 		if (currentDivertTargetPath != null) {
 			Path divertPath = new Path(currentDivertTargetPath.toString());
-			divertedTargetObject = story.ContentAtPath(divertPath);
+			setDivertedTargetObject(story.ContentAtPath(divertPath));
 		}
 
 		visitCounts = Json.jRTObjectToIntHashMap((HashMap<String, Object>) jObject.get("visitCounts"));
@@ -322,45 +532,95 @@ public class StoryState {
 		HashMap<String, Object> jChoiceThreads = (HashMap<String, Object>) jChoiceThreadsObj;
 
 		for (Choice c : currentChoices) {
-			c.setchoicePoint((ChoicePoint) story.ContentAtPath(new Path(c.originalChoicePath)));
+			c.setChoicePoint((ChoicePoint) story.ContentAtPath(new Path(c.originalChoicePath)));
 
 			Thread foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
 			if (foundActiveThread != null) {
-				c.setthreadAtGeneration(foundActiveThread);
+				c.setThreadAtGeneration(foundActiveThread);
 			} else {
 				HashMap<String, Object> jSavedChoiceThread = (HashMap<String, Object>) jChoiceThreads
 						.get(Integer.toString(c.originalThreadIndex));
-				c.setthreadAtGeneration(new CallStack.Thread(jSavedChoiceThread, story));
+				c.setThreadAtGeneration(new CallStack.Thread(jSavedChoiceThread, story));
 			}
 		}
 
 	}
 
-	void ResetErrors() {
-		currentErrors = null;
+	void setPreviousContentObject(RTObject value) {
+		callStack.getcurrentThread().previousContentRTObject = value;
 	}
 
-	void ResetOutput() {
-		_outputStream.clear();
+	/**
+	 * Exports the current state to json format, in order to save the game.
+	 * 
+	 * @returns The save state in json format.
+	 */
+	public String toJson() throws Exception {
+		return SimpleJson.HashMapToText(getJsonToken());
 	}
 
-	// Push to output stream, but split out newlines in text for consistency
-	// in dealing with them later.
+	void trimFromExistingGlue() {
+		int i = currentGlueIndex();
+		while (i < outputStream.size()) {
+			StringValue txt = outputStream.get(i) instanceof StringValue ? (StringValue) outputStream.get(i) : null;
 
-	void PushToOutputStream(RTObject obj) throws Exception {
-		StringValue text = obj instanceof StringValue ? (StringValue) obj : null;
+			if (txt != null && !txt.getisNonWhitespace())
+				outputStream.remove(i);
+			else
+				i++;
+		}
+	}
 
-		if (text != null) {
-			List<StringValue> listText = TrySplittingHeadTailWhitespace(text);
-			if (listText != null) {
-				for (StringValue textObj : listText) {
-					PushToOutputStreamIndividual(textObj);
+	void trimNewlinesFromOutputStream(boolean stopAndRemoveRightGlue) {
+		int removeWhitespaceFrom = -1;
+		int rightGluePos = -1;
+		boolean foundNonWhitespace = false;
+
+		// Work back from the end, and try to find the point where
+		// we need to start removing content. There are two ways:
+		// - Start from the matching right-glue (because we just saw a
+		// left-glue)
+		// - Simply work backwards to find the first newline in a String of
+		// whitespace
+		int i = outputStream.size() - 1;
+		while (i >= 0) {
+			RTObject obj = outputStream.get(i);
+			ControlCommand cmd = obj instanceof ControlCommand ? (ControlCommand) obj : null;
+			StringValue txt = obj instanceof StringValue ? (StringValue) obj : null;
+			Glue glue = obj instanceof Glue ? (Glue) obj : null;
+
+			if (cmd != null || (txt != null && txt.getisNonWhitespace())) {
+				foundNonWhitespace = true;
+
+				if (!stopAndRemoveRightGlue)
+					break;
+			} else if (stopAndRemoveRightGlue && glue != null && glue.getisRight()) {
+				rightGluePos = i;
+				break;
+			} else if (txt != null && txt.getisNewline() && !foundNonWhitespace) {
+				removeWhitespaceFrom = i;
+			}
+			i--;
+		}
+
+		// Remove the whitespace
+		if (removeWhitespaceFrom >= 0) {
+			i = removeWhitespaceFrom;
+			while (i < outputStream.size()) {
+				StringValue text = outputStream.get(i) instanceof StringValue ? (StringValue) outputStream.get(i)
+						: null;
+				if (text != null) {
+					outputStream.remove(i);
+				} else {
+					i++;
 				}
-				return;
 			}
 		}
 
-		PushToOutputStreamIndividual(obj);
+		// Remove the glue (it will come before the whitespace,
+		// so index is still valid)
+		if (stopAndRemoveRightGlue && rightGluePos > -1)
+			outputStream.remove(rightGluePos);
 	}
 
 	// At both the start and the end of the String, split out the new lines like
@@ -376,7 +636,7 @@ public class StoryState {
 	//
 	// - If no splitting is necessary, null is returned.
 	// - A newline on its own is returned in an list for consistency.
-	List<StringValue> TrySplittingHeadTailWhitespace(StringValue single) throws Exception {
+	List<StringValue> trySplittingHeadTailWhitespace(StringValue single) {
 		String str = single.value;
 
 		int headFirstNewlineIdx = -1;
@@ -446,263 +706,41 @@ public class StoryState {
 		return listTexts;
 	}
 
-	void PushToOutputStreamIndividual(RTObject obj) throws Exception {
-		Glue glue = obj instanceof Glue ? (Glue) obj : null;
-		StringValue text = obj instanceof StringValue ? (StringValue) obj : null;
+	/**
+	 * Gets the visit/read count of a particular Container at the given path.
+	 * For a knot or stitch, that path String will be in the form:
+	 *
+	 * knot knot.stitch
+	 * 
+	 * @return The number of times the specific knot or stitch has been
+	 *         enountered by the ink engine.
+	 * 
+	 * @param pathString
+	 *            The dot-separated path String of the specific knot or stitch.
+	 *
+	 */
+	public int visitCountAtPathString(String pathString) {
+		Integer visitCountOut = visitCounts.get(pathString);
 
-		boolean includeInOutput = true;
+		if (visitCountOut != null)
+			return visitCountOut;
 
-		if (glue != null) {
-
-			// Found matching left-glue for right-glue? Close it.
-			boolean foundMatchingLeftGlue = glue.getisLeft() && _currentRightGlue != null
-					&& glue.getParent() == _currentRightGlue.getParent();
-			if (foundMatchingLeftGlue) {
-				_currentRightGlue = null;
-			}
-
-			// Left/Right glue is auto-generated for inline expressions
-			// where we want to absorb newlines but only in a certain direction.
-			// "Bi" glue is written by the user in their ink with <>
-			if (glue.getisLeft() || glue.getisBi()) {
-				TrimNewlinesFromOutputStream(foundMatchingLeftGlue);
-			}
-
-			// New right-glue
-			boolean isNewRightGlue = glue.getisRight() && _currentRightGlue == null;
-			if (isNewRightGlue) {
-				_currentRightGlue = glue;
-			}
-
-			includeInOutput = glue.getisBi() || isNewRightGlue;
-		}
-
-		else if (text != null) {
-
-			if (currentGlueIndex() != -1) {
-
-				// Absorb any new newlines if there's existing glue
-				// in the output stream.
-				// Also trim any extra whitespace (spaces/tabs) if so.
-				if (text.getisNewline()) {
-					TrimFromExistingGlue();
-					includeInOutput = false;
-				}
-
-				// Able to completely reset when
-				else if (text.getisNonWhitespace()) {
-					RemoveExistingGlue();
-					_currentRightGlue = null;
-				}
-			} else if (text.getisNewline()) {
-				if (outputStreamEndsInNewline() || !outputStreamContainsContent())
-					includeInOutput = false;
-			}
-		}
-
-		if (includeInOutput) {
-			_outputStream.add(obj);
-		}
+		return 0;
 	}
 
-	void TrimNewlinesFromOutputStream(boolean stopAndRemoveRightGlue) throws Exception {
-		int removeWhitespaceFrom = -1;
-		int rightGluePos = -1;
-		boolean foundNonWhitespace = false;
-
-		// Work back from the end, and try to find the point where
-		// we need to start removing content. There are two ways:
-		// - Start from the matching right-glue (because we just saw a
-		// left-glue)
-		// - Simply work backwards to find the first newline in a String of
-		// whitespace
-		int i = _outputStream.size() - 1;
-		while (i >= 0) {
-			RTObject obj = _outputStream.get(i);
-			ControlCommand cmd = obj instanceof ControlCommand ? (ControlCommand) obj : null;
-			StringValue txt = obj instanceof StringValue ? (StringValue) obj : null;
-			Glue glue = obj instanceof Glue ? (Glue) obj : null;
-
-			if (cmd != null || (txt != null && txt.getisNonWhitespace())) {
-				foundNonWhitespace = true;
-
-				if (!stopAndRemoveRightGlue)
-					break;
-			} else if (stopAndRemoveRightGlue && glue != null && glue.getisRight()) {
-				rightGluePos = i;
-				break;
-			} else if (txt != null && txt.getisNewline() && !foundNonWhitespace) {
-				removeWhitespaceFrom = i;
-			}
-			i--;
-		}
-
-		// Remove the whitespace
-		if (removeWhitespaceFrom >= 0) {
-			i = removeWhitespaceFrom;
-			while (i < _outputStream.size()) {
-				StringValue text = _outputStream.get(i) instanceof StringValue ? (StringValue) _outputStream.get(i)
-						: null;
-				if (text != null) {
-					_outputStream.remove(i);
-				} else {
-					i++;
-				}
-			}
-		}
-
-		// Remove the glue (it will come before the whitespace,
-		// so index is still valid)
-		if (stopAndRemoveRightGlue && rightGluePos > -1)
-			_outputStream.remove(rightGluePos);
+	public RTObject getDivertedTargetObject() {
+		return divertedTargetObject;
 	}
 
-	void TrimFromExistingGlue() throws Exception {
-		int i = currentGlueIndex();
-		while (i < _outputStream.size()) {
-			StringValue txt = _outputStream.get(i) instanceof StringValue ? (StringValue) _outputStream.get(i) : null;
-
-			if (txt != null && !txt.getisNonWhitespace())
-				_outputStream.remove(i);
-			else
-				i++;
-		}
+	public void setDivertedTargetObject(RTObject divertedTargetObject) {
+		this.divertedTargetObject = divertedTargetObject;
 	}
 
-	// Only called when non-whitespace is appended
-	void RemoveExistingGlue() {
-		for (int i = _outputStream.size() - 1; i >= 0; i--) {
-			RTObject c = _outputStream.get(i);
-			if (c instanceof Glue) {
-				_outputStream.remove(i);
-			} else if (c instanceof ControlCommand) { // e.g.
-														// BeginString
-				break;
-			}
-		}
+	public boolean isDidSafeExit() {
+		return didSafeExit;
 	}
 
-	int currentGlueIndex() {
-		for (int i = _outputStream.size() - 1; i >= 0; i--) {
-			RTObject c = _outputStream.get(i);
-			Glue glue = c instanceof Glue ? (Glue) c : null;
-			if (glue != null)
-				return i;
-			else if (c instanceof ControlCommand) // e.g. BeginString
-				break;
-		}
-		return -1;
+	public void setDidSafeExit(boolean didSafeExit) {
+		this.didSafeExit = didSafeExit;
 	}
-
-	boolean outputStreamEndsInNewline() throws Exception {
-		if (_outputStream.size() > 0) {
-
-			for (int i = _outputStream.size() - 1; i >= 0; i--) {
-				RTObject obj = _outputStream.get(i);
-				if (obj instanceof ControlCommand) // e.g. BeginString
-					break;
-				StringValue text = _outputStream.get(i) instanceof StringValue ? (StringValue) _outputStream.get(i)
-						: null;
-
-				if (text != null) {
-					if (text.getisNewline())
-						return true;
-					else if (text.getisNonWhitespace())
-						break;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	boolean outputStreamContainsContent() {
-		for (RTObject content : _outputStream) {
-			if (content instanceof StringValue)
-				return true;
-		}
-		return false;
-	}
-
-	boolean inStringEvaluation() {
-		for (int i = _outputStream.size() - 1; i >= 0; i--) {
-			ControlCommand cmd = _outputStream.get(i) instanceof ControlCommand ? (ControlCommand) _outputStream.get(i)
-					: null;
-
-			if (cmd != null && cmd.getcommandType() == ControlCommand.CommandType.BeginString) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	void PushEvaluationStack(RTObject obj) {
-		evaluationStack.add(obj);
-	}
-
-	RTObject PopEvaluationStack() {
-		RTObject obj = evaluationStack.get(evaluationStack.size() - 1);
-		evaluationStack.remove(evaluationStack.size() - 1);
-		return obj;
-	}
-
-	RTObject PeekEvaluationStack() {
-		return evaluationStack.get(evaluationStack.size() - 1);
-	}
-
-	List<RTObject>
-
-			PopEvaluationStack(int numberOfObjects) throws Exception {
-		if (numberOfObjects > evaluationStack.size()) {
-			throw new Exception("trying to pop too many objects");
-		}
-
-		List<RTObject> popped = new ArrayList<RTObject>(
-				evaluationStack.subList(evaluationStack.size() - numberOfObjects, evaluationStack.size()));
-		evaluationStack.subList(evaluationStack.size() - numberOfObjects, numberOfObjects).clear();
-		return popped;
-	}
-
-	void ForceEndFlow() throws Exception {
-		setcurrentContentObject(null);
-
-		while (callStack.canPopThread())
-			callStack.PopThread();
-
-		while (callStack.canPop())
-			callStack.Pop();
-
-		currentChoices.clear();
-
-		didSafeExit = true;
-	}
-
-	// Don't make public since the method need to be wrapped in Story for visit
-	// counting
-
-	void SetChosenPath(Path path) throws Exception {
-		// Changing direction, assume we need to clear current set of choices
-		currentChoices.clear();
-
-		setcurrentPath(path);
-
-		currentTurnIndex++;
-	}
-
-	void AddError(String message) {
-		// TODO: Could just add to output?
-		if (currentErrors == null) {
-			currentErrors = new ArrayList<String>();
-		}
-
-		currentErrors.add(message);
-	}
-
-	// REMEMBER! REMEMBER! REMEMBER!
-	// When adding state, update the Copy method and serialisation
-	// REMEMBER! REMEMBER! REMEMBER!
-
-	private List<RTObject> _outputStream;
-	private Glue _currentRightGlue;
 }

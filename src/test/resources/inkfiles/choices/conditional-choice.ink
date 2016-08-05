@@ -6,4 +6,3 @@
         * { true } two
         * { true } { true } three
         * { true } four
-          -> END

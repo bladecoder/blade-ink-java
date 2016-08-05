@@ -1,5 +1,7 @@
 package com.bladecoder.ink.runtime.test;
 
+import static org.junit.Assert.fail;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +11,7 @@ import java.util.List;
 
 import com.bladecoder.ink.runtime.Choice;
 import com.bladecoder.ink.runtime.Story;
+import com.bladecoder.ink.runtime.StoryException;
 
 public class TestUtils {
 
@@ -67,14 +70,14 @@ public class TestUtils {
 			if (story.getCurrentChoices().size() > 0) {
 
 				for (Choice c : story.getCurrentChoices()) {
-					System.out.println(c.gettext());
-					text.add(c.gettext() + "\n");
+					System.out.println(c.getText());
+					text.add(c.getText() + "\n");
 				}
 
 				if(choiceList == null || choiceListIndex >= choiceList.size())
-					story.ChooseChoiceIndex((int) (Math.random() * story.getCurrentChoices().size()));
+					story.chooseChoiceIndex((int) (Math.random() * story.getCurrentChoices().size()));
 				else {
-					story.ChooseChoiceIndex(choiceList.get(choiceListIndex));
+					story.chooseChoiceIndex(choiceList.get(choiceListIndex));
 					choiceListIndex++;
 				}
 			}
@@ -91,5 +94,17 @@ public class TestUtils {
 		}
 		
 		return sb.toString();
+	}
+	
+	public static final void nextAll(Story story, List<String> text) throws StoryException, Exception {
+		while (story.canContinue()) {
+			String line = story.Continue();
+			System.out.print(line);
+			text.add(line.trim());
+		}
+
+		if (story.hasError()) {
+			fail(TestUtils.joinText(story.getCurrentErrors()));
+		}
 	}
 }

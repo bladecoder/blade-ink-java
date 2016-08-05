@@ -1,0 +1,1 @@
+﻿{"inkVersion":12,"root":[{"->":"paragraph_1"},"done",{"paragraph_1":[["^You stand by the wall of Analand, sword in hand.","\n",["ev","str","^Open the gate","/str","/ev",{"*":".^.c","flg":20},{"c":[{"->":"paragraph_2"},{"#f":5}]}],null],{"#f":3}],"paragraph_2":[["^You open the gate, and step out onto the path. ","end","\n",null],{"#f":3}],"#f":3}]}

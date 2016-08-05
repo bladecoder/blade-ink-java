@@ -12,11 +12,11 @@ import com.bladecoder.ink.runtime.VariablePointerValue;
 // we really derive from Value<string>? That seems a bit misleading to me.
 public class VariablePointerValue  extends Value<String> 
 {
-    public String getvariableName() throws Exception {
+    public String getvariableName() {
         return this.getValue();
     }
 
-    public void setvariableName(String value) throws Exception {
+    public void setvariableName(String value) {
         this.setValue(value);
     }
 
@@ -44,16 +44,16 @@ public class VariablePointerValue  extends Value<String>
         __contextIndex = value;
     }
 
-    public VariablePointerValue(String variableName, int contextIndex) throws Exception {
+    public VariablePointerValue(String variableName, int contextIndex) {
         super(variableName);
         this.setcontextIndex(contextIndex);
     }
     
-    public VariablePointerValue(String variableName) throws Exception {
+    public VariablePointerValue(String variableName) {
         this(variableName, -1);
     }
 
-    public VariablePointerValue() throws Exception {
+    public VariablePointerValue() {
         this(null);
     }
 
@@ -66,22 +66,10 @@ public class VariablePointerValue  extends Value<String>
     }
 
     public String toString() {
-        try
-        {
             return "VariablePointerValue(" + getvariableName() + ")";
-        }
-        catch (RuntimeException __dummyCatchVar2)
-        {
-            throw __dummyCatchVar2;
-        }
-        catch (Exception __dummyCatchVar2)
-        {
-            throw new RuntimeException(__dummyCatchVar2);
-        }
-    
     }
 
-    public RTObject copy() throws Exception {
+    public RTObject copy() {
         return new VariablePointerValue(getvariableName(),getcontextIndex());
     }
 

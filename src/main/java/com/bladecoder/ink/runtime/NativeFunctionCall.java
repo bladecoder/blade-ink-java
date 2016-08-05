@@ -2,340 +2,505 @@ package com.bladecoder.ink.runtime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 
 public class NativeFunctionCall extends RTObject {
+	static interface BinaryOp {
+		Object invoke(Object left, Object right);
+	}
+	static interface UnaryOp {
+		Object invoke(Object val);
+	}
 	public static final String Add = "+";
-	public static final String Subtract = "-";
+	public static final String And = "&&";
 	public static final String Divide = "/";
-	public static final String Multiply = "*";
-	public static final String Mod = "%";
-	public static final String Negate = "~";
 	public static final String Equal = "==";
 	public static final String Greater = ">";
-	public static final String Less = "<";
 	public static final String GreaterThanOrEquals = ">=";
+	public static final String Less = "<";
 	public static final String LessThanOrEquals = "<=";
-	public static final String NotEquals = "!=";
-	public static final String Not = "!";
-	public static final String And = "&&";
-	public static final String Or = "||";
-	public static final String Min = "MIN";
 	public static final String Max = "MAX";
+	public static final String Min = "MIN";
+	public static final String Mod = "%";
+	public static final String Multiply = "*";
+	private static HashMap<String, NativeFunctionCall> nativeFunctions;
+	public static final String Negate = "~";
+	public static final String Not = "!";
+
+	public static final String NotEquals = "!=";
+
+	public static final String Or = "||";
+
+	public static final String Subtract = "-";
+
+	static void addFloatBinaryOp(String name, BinaryOp op) throws Exception {
+		addOpToNativeFunc(name, 2, ValueType.Float, op);
+	}
+
+	static void addFloatUnaryOp(String name, UnaryOp op) throws Exception {
+		addOpToNativeFunc(name, 1, ValueType.Float, op);
+	}
+
+	static void addIntBinaryOp(String name, BinaryOp op) throws Exception {
+		addOpToNativeFunc(name, 2, ValueType.Int, op);
+	}
+
+	static void addIntUnaryOp(String name, UnaryOp op) throws Exception {
+		addOpToNativeFunc(name, 1, ValueType.Int, op);
+	}
+
+	static void addOpToNativeFunc(String name, int args, ValueType valType, Object op) throws Exception {
+		NativeFunctionCall nativeFunc = nativeFunctions.get(name);
+
+		// Operations for each data type, for a single operation (e.g. "+")
+
+		if (nativeFunc == null) {
+			nativeFunc = new NativeFunctionCall(name, args);
+			nativeFunctions.put(name, nativeFunc);
+		}
+
+		nativeFunc.addOpFuncForType(valType, op);
+	}
+
+	static void addStringBinaryOp(String name, BinaryOp op) throws Exception {
+		addOpToNativeFunc(name, 2, ValueType.String, op);
+	}
+
+	public static boolean callExistsWithName(String functionName) throws Exception {
+		generateNativeFunctionsIfNecessary();
+		return nativeFunctions.containsKey(functionName);
+	}
 
 	public static NativeFunctionCall callWithName(String functionName) throws Exception {
 		return new NativeFunctionCall(functionName);
 	}
 
-	public static boolean callExistsWithName(String functionName) throws Exception {
-		generateNativeFunctionsIfNecessary();
-		return _nativeFunctions.containsKey(functionName);
-	}
-
-	public String getname() throws Exception {
-		return _name;
-	}
-
-	public void setname(String value) throws Exception {
-		_name = value;
-		if (!_isPrototype)
-			_prototype = _nativeFunctions.get(_name);
-
-	}
-
-	String _name;
-
-	public int getnumberOfParameters() throws Exception {
-		if (_prototype != null) {
-			return _prototype.getnumberOfParameters();
-		} else {
-			return _numberOfParameters;
-		}
-	}
-
-	public void setnumberOfParameters(int value) throws Exception {
-		_numberOfParameters = value;
-	}
-
-	int _numberOfParameters;
-
 	// TODO
+	static void generateNativeFunctionsIfNecessary() throws Exception {
+		if (nativeFunctions == null) {
+			nativeFunctions = new HashMap<String, NativeFunctionCall>();
 
-	public RTObject call(List<RTObject> parameters) throws Exception { if
-	  (_prototype != null) { return _prototype.call(parameters); }
-	  
-	  if (getnumberOfParameters() != parameters.size()) { throw new
-	  Exception("Unexpected number of parameters"); }
-	  
-	  for (RTObject p : parameters) { if (p instanceof Void) throw new
-	  StoryException("Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?"
-	  );
-	 
-	 } TypeXXXX coercedParams = CoerceValuesToSingleType(parameters);
-	 ValueType coercedType = coercedParams[0].valueType; if (coercedType ==
-	 ValueType.Int) { return Call<int>(coercedParams); } else if (coercedType
-	 == ValueType.Float) { return Call<float>(coercedParams); } else if
-	 (coercedType == ValueType.String) { return Call<String>(coercedParams); }
-	 else if (coercedType == ValueType.DivertTarget) { return
-	 Call<Path>(coercedParams); }
-	 
-	 return null; }
+			// Int operations
+			addIntBinaryOp(Add, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left + (Integer) right;
+				}
+			});
 
-	Value<T> call(List<Value> parametersOfSingleType) throws Exception {
-	 Value param1 = (Value)parametersOfSingleType.get(0); ValueType valType =
-	 param1.getvalueType(); Value<T> val1 = (Value<T>)param1; int paramCount =
-	 parametersOfSingleType.Count; if (paramCount == 2 || paramCount == 1) {
-	 RTObject opForTypeObj = null; RefSupport<RTObject> refVar___0 = new
-	 RefSupport<RTObject>(); boolean boolVar___0 =
-	 !_operationFuncs.TryGetValue(valType, refVar___0); opForTypeObj =
-	 refVar___0.getValue(); if (boolVar___0) { throw new
-	 StoryException("Can not perform operation '" + this.getname() + "' on " +
-	 valType); }
-	 
-	 // Binary if (paramCount == 2) { Value param2 =
-	 (Value)parametersOfSingleType[1]; Value<T> val2 = (Value<T>)param2;
-	 BinaryOp<T> opForType = (BinaryOp<T>)opForTypeObj; // Return value
-	 unknown until it's evaluated RTObject resultVal =
-	 opForType.invoke(val1.getvalue(),val2.getvalue()); return
-	 Value.create(resultVal); } else { // Unary UnaryOp<T> opForType =
-	 (UnaryOp<T>)opForTypeObj; TypeXXXX resultVal =
-	 opForType.invoke(val1.getvalue()); return Value.create(resultVal); } }else
+			addIntBinaryOp(Subtract, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left - (Integer) right;
+				}
+			});
 
-	{
-		throw new Exception("Unexpected number of parameters to NativeFunctionCall: " + parametersOfSingleType.Count);
+			addIntBinaryOp(Multiply, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left * (Integer) right;
+				}
+			});
+
+			addIntBinaryOp(Divide, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left / (Integer) right;
+				}
+			});
+
+			addIntBinaryOp(Mod, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left % (Integer) right;
+				}
+			});
+
+			addIntUnaryOp(Negate, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return -(Integer) val;
+				}
+			});
+
+			addIntBinaryOp(Equal, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left == (Integer) right ? 1 : 0;
+				}
+			});
+
+			addIntBinaryOp(Greater, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left > (Integer) right ? 1 : 0;
+				}
+			});
+
+			addIntBinaryOp(Less, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left < (Integer) right ? 1 : 0;
+				}
+			});
+			addIntBinaryOp(GreaterThanOrEquals, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left >= (Integer) right ? 1 : 0;
+				}
+			});
+			addIntBinaryOp(LessThanOrEquals, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left <= (Integer) right ? 1 : 0;
+				}
+			});
+			addIntBinaryOp(NotEquals, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left != (Integer) right ? 1 : 0;
+				}
+			});
+
+			addIntUnaryOp(Not, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return (Integer) val == 0 ? 1 : 0;
+				}
+			});
+
+			addIntBinaryOp(And, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left != 0 && (Integer) right != 0 ? 1 : 0;
+				}
+			});
+			addIntBinaryOp(Or, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Integer) left != 0 || (Integer) right != 0 ? 1 : 0;
+				}
+			});
+			addIntBinaryOp(Max, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return Math.max((Integer) left, (Integer) right);
+				}
+			});
+			addIntBinaryOp(Min, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return Math.min((Integer) left, (Integer) right);
+				}
+			});
+
+			// Float operations
+			addFloatBinaryOp(Add, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left + (Float) right;
+				}
+			});
+
+			addFloatBinaryOp(Subtract, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left - (Float) right;
+				}
+			});
+
+			addFloatBinaryOp(Multiply, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left * (Float) right;
+				}
+			});
+
+			addFloatBinaryOp(Divide, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left / (Float) right;
+				}
+			});
+
+			addFloatBinaryOp(Mod, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left % (Float) right;
+				}
+			});
+
+			addFloatUnaryOp(Negate, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return -(Float) val;
+				}
+			});
+
+			addFloatBinaryOp(Equal, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left == (Float) right ? (Integer) 1 : (Integer) 0;
+				}
+			});
+
+			addFloatBinaryOp(Greater, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left > (Float) right ? (Integer) 1 : (Integer) 0;
+				}
+			});
+
+			addFloatBinaryOp(Less, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left < (Float) right ? (Integer) 1 : (Integer) 0;
+				}
+			});
+			addFloatBinaryOp(GreaterThanOrEquals, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left >= (Float) right ? (Integer) 1 : (Integer) 0;
+				}
+			});
+			addFloatBinaryOp(LessThanOrEquals, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left <= (Float) right ? (Integer) 1 : (Integer) 0;
+				}
+			});
+			addFloatBinaryOp(NotEquals, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left != (Float) right ? (Integer) 1 : (Integer) 0;
+				}
+			});
+
+			addFloatUnaryOp(Not, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return (Float) val == 0 ? (Integer) 1 : (Integer) 0;
+				}
+			});
+
+			addFloatBinaryOp(And, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left != 0 && (Float) right != 0 ? (Integer) 1 : (Integer) 0;
+				}
+			});
+			addFloatBinaryOp(Or, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (Float) left != 0 || (Float) right != 0 ? (Integer) 1 : (Integer) 0;
+				}
+			});
+			addFloatBinaryOp(Max, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return Math.max((Float) left, (Float) right);
+				}
+			});
+			addFloatBinaryOp(Min, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return Math.min((Float) left, (Float) right);
+				}
+			});
+
+			// String operations
+			addStringBinaryOp(Add, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (String) left + (String) right;
+				}
+			});
+			// concat
+			addStringBinaryOp(Equal, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return ((String) left).equals(right) ? (Integer) 1 : (Integer) 0;
+				}
+			});
+
+			BinaryOp divertTargetsEqual = new BinaryOp() {
+
+				@Override
+				public Object invoke(Object left, Object right) {
+					return ((Path) left).equals((Path) left) ? (Integer) 1 : (Integer) 0;
+				}
+
+			};
+
+			addOpToNativeFunc(Equal, 2, ValueType.DivertTarget, divertTargetsEqual);
+		}
+
 	}
-	}
 
-	List<Value> coerceValuesToSingleType(List<RTObject> parametersIn) throws Exception {
-		 ValueType valType = ValueType.Int;
-		 for (RTObject obj : parametersIn)
-		 {
-		 // Find out what the output type is
-		 // "higher level" types infect both so that binary operations
-		 // use the same type on both sides. e.g. binary operation of
-		 // int and float causes the int to be casted to a float.
-		 Value val = (Value)obj;
-		 if (val.getvalueType() > valType)
-		 {
-		 valType = val.getvalueType();
-		 }
-		
-		 }
-		// // Coerce to this chosen type
-		ArrayList<Value> parametersOut = new ArrayList<Value>();
-		 for (RTObject __dummyForeachVar2 : parametersIn)
-		 {
-		 Value val = (Value)__dummyForeachVar2;
-		 Value castedValue = val.cast(valType);
-		 parametersOut.add(castedValue);
-		 }
-		return parametersOut;
-	}
+	private String name;
 
-	public NativeFunctionCall(String name) throws Exception {
-		generateNativeFunctionsIfNecessary();
-		this.setname(name);
-	}
+	private int numberOfParameters;
+
+	private boolean isPrototype;
+
+	private HashMap<ValueType, Object> operationFuncs;
+
+	private NativeFunctionCall prototype;
 
 	// Require default constructor for serialisation
 	public NativeFunctionCall() throws Exception {
 		generateNativeFunctionsIfNecessary();
 	}
 
+	public NativeFunctionCall(String name) throws Exception {
+		generateNativeFunctionsIfNecessary();
+		this.setName(name);
+	}
+
 	// Only called internally to generate prototypes
 	NativeFunctionCall(String name, int numberOfParamters) throws Exception {
-		_isPrototype = true;
-		this.setname(name);
-		this.setnumberOfParameters(numberOfParamters);
+		isPrototype = true;
+		this.setName(name);
+		this.setNumberOfParameters(numberOfParamters);
 	}
 
-	// TODO
-	static void generateNativeFunctionsIfNecessary() throws Exception {
-        if (_nativeFunctions == null)
-        {
-            _nativeFunctions = new HashMap<String, NativeFunctionCall>();
-            // Int operations
-            AddIntBinaryOp(Add, new BinaryOp<Integer>() {
-            	RTObject invoke(Integer left, Integer right) {
-            		return left + right;
-            	}
-			});
-            
-            
-            AddIntBinaryOp(Subtract, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x - y;
-            }" */);
-            AddIntBinaryOp(Multiply, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x * y;
-            }" */);
-            AddIntBinaryOp(Divide, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x / y;
-            }" */);
-            AddIntBinaryOp(Mod, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x % y;
-            }" */);
-            AddIntUnaryOp(/* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(Negate, x) => {
-                return -x;
-            }" */);
-            AddIntBinaryOp(Equal, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x == y ? 1 : 0;
-            }" */);
-            AddIntBinaryOp(Greater, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x > y ? 1 : 0;
-            }" */);
-            AddIntBinaryOp(Less, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x < y ? 1 : 0;
-            }" */);
-            AddIntBinaryOp(GreaterThanOrEquals, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x >= y ? 1 : 0;
-            }" */);
-            AddIntBinaryOp(LessThanOrEquals, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x <= y ? 1 : 0;
-            }" */);
-            AddIntBinaryOp(NotEquals, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x != y ? 1 : 0;
-            }" */);
-            AddIntUnaryOp(/* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(Not, x) => {
-                return (x == 0) ? 1 : 0;
-            }" */);
-            AddIntBinaryOp(And, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x != 0 && y != 0 ? 1 : 0;
-            }" */);
-            AddIntBinaryOp(Or, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x != 0 || y != 0 ? 1 : 0;
-            }" */);
-            AddIntBinaryOp(Max, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return Math.Max(x, y);
-            }" */);
-            AddIntBinaryOp(Min, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return Math.Min(x, y);
-            }" */);
-            // Float operations
-            AddFloatBinaryOp(Add, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x + y;
-            }" */);
-            AddFloatBinaryOp(Subtract, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x - y;
-            }" */);
-            AddFloatBinaryOp(Multiply, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x * y;
-            }" */);
-            AddFloatBinaryOp(Divide, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x / y;
-            }" */);
-            AddFloatBinaryOp(Mod, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x % y;
-            }" */);
-            // TODO: Is this the operation we want for floats?
-            AddFloatUnaryOp(/* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(Negate, x) => {
-                return -x;
-            }" */);
-            AddFloatBinaryOp(Equal, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x == y ? (int)1 : (int)0;
-            }" */);
-            AddFloatBinaryOp(Greater, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x > y ? (int)1 : (int)0;
-            }" */);
-            AddFloatBinaryOp(Less, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x < y ? (int)1 : (int)0;
-            }" */);
-            AddFloatBinaryOp(GreaterThanOrEquals, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x >= y ? (int)1 : (int)0;
-            }" */);
-            AddFloatBinaryOp(LessThanOrEquals, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x <= y ? (int)1 : (int)0;
-            }" */);
-            AddFloatBinaryOp(NotEquals, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x != y ? (int)1 : (int)0;
-            }" */);
-            AddFloatUnaryOp(/* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(Not, x) => {
-                return (x == 0.0f) ? (int)1 : (int)0;
-            }" */);
-            AddFloatBinaryOp(And, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x != 0.0f && y != 0.0f ? (int)1 : (int)0;
-            }" */);
-            AddFloatBinaryOp(Or, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x != 0.0f || y != 0.0f ? (int)1 : (int)0;
-            }" */);
-            AddFloatBinaryOp(Max, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return Math.Max(x, y);
-            }" */);
-            AddFloatBinaryOp(Min, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return Math.Min(x, y);
-            }" */);
-            // String operations
-            AddStringBinaryOp(Add, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x + y;
-            }" */);
-            // concat
-            AddStringBinaryOp(Equal, /* [UNSUPPORTED] to translate lambda expressions we need an explicit delegate type, try adding a cast "(x, y) => {
-                return x.Equals(y) ? (int)1 : (int)0;
-            }" */);
-            BinaryOp<Path> divertTargetsEqual = new BinaryOp<Path>() 
-              { 
-                // Special case: The only operation you can do on divert target values
-                public System.RTObject invoke(Path d1, Path d2) throws Exception {
-                    return d1.equals(d2) ? 1 : 0;
-                }
-
-                public List<BinaryOp<Path>> getInvocationList() throws Exception {
-                    List<BinaryOp<Path>> ret = new ArrayList<BinaryOp<Path>>();
-                    ret.add(this);
-                    return ret;
-                }
-            
-              };
-            addOpToNativeFunc(Equal,2,ValueType.DivertTarget,divertTargetsEqual);
-        }
-         
-    }
-
-	void addOpFuncForType(ValueType valType, RTObject op) throws Exception {
-		if (_operationFuncs == null) {
-			_operationFuncs = new HashMap<ValueType, RTObject>();
+	void addOpFuncForType(ValueType valType, Object op) throws Exception {
+		if (operationFuncs == null) {
+			operationFuncs = new HashMap<ValueType, Object>();
 		}
 
-		_operationFuncs[valType] = op;
+		operationFuncs.put(valType, op);
 	}
 
-	static void addOpToNativeFunc(String name, int args, ValueType valType, RTObject op) throws Exception {
-		NativeFunctionCall nativeFunc = null;
-		// Operations for each data type, for a single operation (e.g. "+")
-		RefSupport<NativeFunctionCall> refVar___1 = new RefSupport<NativeFunctionCall>();
-		boolean boolVar___1 = !_nativeFunctions.TryGetValue(name, refVar___1);
-		nativeFunc = refVar___1.getValue();
-		if (boolVar___1) {
-			nativeFunc = new NativeFunctionCall(name, args);
-			_nativeFunctions[name] = nativeFunc;
+	public RTObject call(List<RTObject> parameters) throws Exception {
+
+		if (prototype != null) {
+			return prototype.call(parameters);
 		}
 
-		nativeFunc.addOpFuncForType(valType, op);
+		if (getNumberOfParameters() != parameters.size()) {
+			throw new Exception("Unexpected number of parameters");
+		}
+
+		for (RTObject p : parameters) {
+			if (p instanceof Void)
+				throw new StoryException(
+						"Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?");
+
+		}
+
+		List<Value<?>> coercedParams = coerceValuesToSingleType(parameters);
+		ValueType coercedType = coercedParams.get(0).getvalueType();
+
+		// Originally CallType gets a type parameter taht is used to do some
+		// casting, but we can do without.
+		if (coercedType == ValueType.Int) {
+			return callType(coercedParams);
+		} else if (coercedType == ValueType.Float) {
+			return callType(coercedParams);
+		} else if (coercedType == ValueType.String) {
+			return callType(coercedParams);
+		} else if (coercedType == ValueType.DivertTarget) {
+			return callType(coercedParams);
+		}
+
+		return null;
+
 	}
 
-	static void addIntBinaryOp(String name, BinaryOp<int> op) throws Exception {
-        addOpToNativeFunc(name,2,ValueType.Int,op);
-    }
+	private RTObject callType(List<Value<?>> parametersOfSingleType) throws Exception {
 
-	static void addIntUnaryOp(String name, UnaryOp<int> op) throws Exception {
-        addOpToNativeFunc(name,1,ValueType.Int,op);
-    }
+		Value<?> param1 = parametersOfSingleType.get(0);
+		ValueType valType = param1.getvalueType();
+		Value<?> val1 = param1;
 
-	static void addFloatBinaryOp(String name, BinaryOp<float> op) throws Exception {
-        addOpToNativeFunc(name,2,ValueType.Float,op);
-    }
+		int paramCount = parametersOfSingleType.size();
 
-	static void addStringBinaryOp(String name, BinaryOp<String> op) throws Exception {
-		addOpToNativeFunc(name, 2, ValueType.String, op);
+		if (paramCount == 2 || paramCount == 1) {
+			Object opForTypeObj = operationFuncs.get(valType);
+
+			if (opForTypeObj == null) {
+				throw new StoryException("Can not perform operation '" + this.getName() + "' on " + valType);
+			}
+
+			// Binary
+			if (paramCount == 2) {
+				Value<?> param2 = parametersOfSingleType.get(1);
+				Value<?> val2 = param2;
+
+				BinaryOp opForType = (BinaryOp) opForTypeObj;
+
+				// Return value unknown until it's evaluated
+				Object resultVal = opForType.invoke(val1.getValue(), val2.getValue());
+
+				return AbstractValue.create(resultVal);
+			} else { // Unary
+				UnaryOp opForType = (UnaryOp) opForTypeObj;
+
+				Object resultVal = opForType.invoke(val1.getValue());
+
+				return AbstractValue.create(resultVal);
+			}
+		} else
+
+		{
+			throw new Exception(
+					"Unexpected number of parameters to NativeFunctionCall: " + parametersOfSingleType.size());
+		}
 	}
 
-	static void addFloatUnaryOp(String name, UnaryOp<float> op) throws Exception {
-        addOpToNativeFunc(name,1,ValueType.Float,op);
-    }
+	List<Value<?>> coerceValuesToSingleType(List<RTObject> parametersIn) throws Exception {
+		ValueType valType = ValueType.Int;
 
+		for (RTObject obj : parametersIn) {
+			// Find out what the output type is
+			// "higher level" types infect both so that binary operations
+			// use the same type on both sides. e.g. binary operation of
+			// int and float causes the int to be casted to a float.
+			Value<?> val = (Value<?>) obj;
+			if (val.getvalueType().ordinal() > valType.ordinal()) {
+				valType = val.getvalueType();
+			}
+
+		}
+		// // Coerce to this chosen type
+		ArrayList<Value<?>> parametersOut = new ArrayList<Value<?>>();
+		for (RTObject __dummyForeachVar2 : parametersIn) {
+			Value<?> val = (Value<?>) __dummyForeachVar2;
+			Value<?> castedValue = (Value<?>) val.cast(valType);
+			parametersOut.add(castedValue);
+		}
+		return parametersOut;
+	}
+
+	public String getName() throws Exception {
+		return name;
+	}
+
+	public int getNumberOfParameters() throws Exception {
+		if (prototype != null) {
+			return prototype.getNumberOfParameters();
+		} else {
+			return numberOfParameters;
+		}
+	}
+	public void setName(String value) throws Exception {
+		name = value;
+		if (!isPrototype)
+			prototype = nativeFunctions.get(name);
+
+	}
+	public void setNumberOfParameters(int value) {
+		numberOfParameters = value;
+	}
+	@Override
 	public String toString() {
 		try {
-			return "Native '" + getname() + "'";
+			return "Native '" + getName() + "'";
 		} catch (RuntimeException __dummyCatchVar0) {
 			throw __dummyCatchVar0;
 		} catch (Exception __dummyCatchVar0) {
@@ -343,17 +508,4 @@ public class NativeFunctionCall extends RTObject {
 		}
 
 	}
-
-	static interface BinaryOp<T> {
-		RTObject invoke(T left, T right);
-	}
-
-	static interface UnaryOp<T> {
-		RTObject invoke(T val);
-	}
-
-	NativeFunctionCall _prototype;
-	boolean _isPrototype;
-	HashMap<ValueType, RTObject> _operationFuncs = new HashMap<ValueType, RTObject>();
-	static HashMap<String, NativeFunctionCall> _nativeFunctions = new HashMap<String, NativeFunctionCall>();
 }

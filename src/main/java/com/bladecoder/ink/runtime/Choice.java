@@ -5,71 +5,71 @@ package com.bladecoder.ink.runtime;
  * potentially generate different Choices dynamically dependent on state, so
  * they're separated.
  */
-public class Choice extends RTObject{
+public class Choice extends RTObject {
+	private ChoicePoint choicePoint;
+
+	/**
+	 * The original index into currentChoices list on the Story when this Choice
+	 * was generated, for convenience.
+	 */
+	private int index = 0;
+
+	// Only used temporarily for loading/saving from JSON
+	String originalChoicePath;
+
+	int originalThreadIndex = 0;
+
 	/**
 	 * The main text to presented to the player for this Choice.
 	 */
-	private String __text = new String();
+	private String text;
 
-	public String gettext() {
-		return __text;
+	private CallStack.Thread threadAtGeneration;
+
+	public Choice() throws Exception {
 	}
 
-	public void settext(String value) {
-		__text = value;
+	public Choice(ChoicePoint choice) throws Exception {
+		this.setChoicePoint(choice);
+	}
+
+	public ChoicePoint getchoicePoint() {
+		return choicePoint;
+	}
+
+	public int getIndex() {
+		return index;
 	}
 
 	/**
 	 * The target path that the Story should be diverted to if this Choice is
 	 * chosen.
 	 */
-	public String getpathStringOnChoice() throws Exception {
+	public String getPathStringOnChoice() throws Exception {
 		return getchoicePoint().getpathStringOnChoice();
 	}
 
-	/**
-    * The original index into currentChoices list on the Story when
-    * this Choice was generated, for convenience.
-    */
-    private int __index = 0;
-
-	public int getindex() {
-		return __index;
+	public String getText() {
+		return text;
 	}
 
-	public void setindex(int value) {
-		__index = value;
+	public CallStack.Thread getThreadAtGeneration() {
+		return threadAtGeneration;
 	}
 
-	private ChoicePoint __choicePoint;
-
-	public ChoicePoint getchoicePoint() {
-		return __choicePoint;
+	public void setChoicePoint(ChoicePoint value) {
+		choicePoint = value;
+	}
+	public void setIndex(int value) {
+		index = value;
 	}
 
-	public void setchoicePoint(ChoicePoint value) {
-		__choicePoint = value;
+	public void setText(String value) {
+		text = value;
 	}
 
-	private com.bladecoder.ink.runtime.CallStack.Thread __threadAtGeneration;
-
-	public com.bladecoder.ink.runtime.CallStack.Thread getthreadAtGeneration() {
-		return __threadAtGeneration;
-	}
-
-	public void setthreadAtGeneration(com.bladecoder.ink.runtime.CallStack.Thread value) {
-		__threadAtGeneration = value;
-	}
-
-	public int originalThreadIndex = 0;
-    // Only used temporarily for loading/saving from JSON
-	public String originalChoicePath = new String();
-
-	public Choice() throws Exception {
-	}
-
-	public Choice(ChoicePoint choice) throws Exception {
-		this.setchoicePoint(choice);
+	public void setThreadAtGeneration(CallStack.Thread value) {
+		threadAtGeneration = value;
 	}
 
 }

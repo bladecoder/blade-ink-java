@@ -435,7 +435,7 @@ public class Json {
 		NativeFunctionCall nativeFunc = obj instanceof NativeFunctionCall ? (NativeFunctionCall) obj
 				: (NativeFunctionCall) null;
 		if (nativeFunc != null)
-			return nativeFunc.getname();
+			return nativeFunc.getName();
 
 		// Variable reference
 		VariableReference varRef = obj instanceof VariableReference ? (VariableReference) obj
@@ -560,8 +560,8 @@ public class Json {
 
 	static Choice jRTObjectToChoice(HashMap<String, Object> jObj) throws Exception {
 		Choice choice = new Choice();
-		choice.settext(jObj.get("text").toString());
-		choice.setindex((int) jObj.get("index"));
+		choice.setText(jObj.get("text").toString());
+		choice.setIndex((int) jObj.get("index"));
 		choice.originalChoicePath = jObj.get("originalChoicePath").toString();
 		choice.originalThreadIndex = (int) jObj.get("originalThreadIndex");
 		return choice;
@@ -569,8 +569,8 @@ public class Json {
 
 	static HashMap<String, Object> choiceToJRTObject(Choice choice) throws Exception {
 		HashMap<String, Object> jObj = new HashMap<String, Object>();
-		jObj.put("text", choice.gettext());
-		jObj.put("index", choice.getindex());
+		jObj.put("text", choice.getText());
+		jObj.put("index", choice.getIndex());
 		jObj.put("originalChoicePath", choice.originalChoicePath);
 		jObj.put("originalThreadIndex", choice.originalThreadIndex);
 

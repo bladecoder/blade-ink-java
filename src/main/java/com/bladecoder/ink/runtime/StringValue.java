@@ -7,12 +7,12 @@ import com.bladecoder.ink.runtime.ValueType;
 
 public class StringValue extends Value<String> {
 	@Override
-	public ValueType getvalueType() throws Exception {
+	public ValueType getvalueType() {
 		return ValueType.String;
 	}
 
 	@Override
-	public boolean getisTruthy() throws Exception {
+	public boolean getisTruthy() {
 		return getValue().length() > 0;
 	}
 
@@ -36,11 +36,11 @@ public class StringValue extends Value<String> {
 		__isInlineWhitespace = value;
 	}
 
-	public boolean getisNonWhitespace() throws Exception {
+	public boolean getisNonWhitespace() {
 		return !getisNewline() && !getisInlineWhitespace();
 	}
 
-	public StringValue(String str) throws Exception {
+	public StringValue(String str) {
 		super(str);
 		// Classify whitespace status
 		setisNewline("\n".equals(getValue()));

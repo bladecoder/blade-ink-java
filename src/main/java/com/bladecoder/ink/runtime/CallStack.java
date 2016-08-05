@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.print.DocFlavor.STRING;
-
 class CallStack {
 	static class Element {
 		public Container currentContainer;
@@ -17,7 +15,7 @@ class CallStack {
 
 		public RTObject currentRTObject;
 
-		public RTObject getCurrentRTObject() throws Exception {
+		public RTObject getCurrentRTObject() {
 			if (currentContainer != null && currentContentIndex < currentContainer.getContent().size()) {
 				return currentContainer.getContent().get(currentContentIndex);
 			}
@@ -25,7 +23,7 @@ class CallStack {
 			return null;
 		}
 
-		public void setcurrentRTObject(RTObject currentObj) throws Exception {
+		public void setcurrentRTObject(RTObject currentObj) {
 			if (currentObj == null) {
 				currentContainer = null;
 				currentContentIndex = 0;

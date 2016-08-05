@@ -60,7 +60,7 @@ public class ChoiceSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/choices/conditional-choice.ink.json").replace('\uFEFF', ' ');
 		Story story = new Story(json);
 		
-		System.out.println(story.BuildStringOfHierarchy());
+		System.out.println(story.buildStringOfHierarchy());
 		
 		while (story.canContinue()) {
 			String line = story.Continue();
