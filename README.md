@@ -8,7 +8,7 @@ This is a Java port of inkle's [ink](https://github.com/inkle/ink), a scripting 
 
 ### Loading a json file
 
-First you need to turn your ink file into a json file [as described here](https://github.com/inkle/ink#using-inklecate-on-the-command-line).  Here is an example to load de JSON file in a String:
+First you need to turn your ink file into a json file [as described here](https://github.com/inkle/ink#using-inklecate-on-the-command-line).  Here is an example to load the ink JSON file as an String:
 
 ```
 		
