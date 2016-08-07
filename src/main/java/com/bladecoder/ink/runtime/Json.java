@@ -10,65 +10,61 @@ import com.bladecoder.ink.runtime.ControlCommand.CommandType;
 public class Json {
 	public static <T extends RTObject> List<Object> listToJArray(List<T> serialisables) throws Exception {
 		List<Object> jArray = new ArrayList<Object>();
-		for (T s : serialisables) {
-			jArray.add(runtimeRTObjectToJToken(s));
+
+		for (RTObject s : serialisables) {
+			jArray.add(runtimeObjectToJToken(s));
 		}
+
 		return jArray;
 	}
 
-	public static <T extends RTObject> List<T> jArrayToRuntimeObjList(List<Object> jArray, boolean skipLast)
-			throws Exception {
+	public static List<RTObject> jArrayToRuntimeObjList(List<Object> jArray, boolean skipLast) throws Exception {
 		int count = jArray.size();
 
 		if (skipLast)
 			count--;
 
-		List<T> list = new ArrayList<T>(jArray.size());
+		List<RTObject> list = new ArrayList<RTObject>(jArray.size());
 
 		for (int i = 0; i < count; i++) {
 			Object jTok = jArray.get(i);
-			T runtimeObj = (T) jTokenToRuntimeRTObject(jTok);
+			RTObject runtimeObj = jTokenToRuntimeObject(jTok);
 			list.add(runtimeObj);
 		}
 
 		return list;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <T extends RTObject> List<T> jArrayToRuntimeObjList(List<Object> jArray) throws Exception {
-		return jArrayToRuntimeObjList(jArray, false);
+		return (List<T>)jArrayToRuntimeObjList(jArray, false);
 	}
 
-	// TODO
-	// public static List<RTObject> jArrayToRuntimeObjList(List<RTObject>
-	// jArray, boolean skipLast) throws Exception {
-	// return JArrayToRuntimeObjList<RTObject>(jArray, skipLast);
-	// }
-
-	public static HashMap<String, Object> HashMapRuntimeObjsToJRTObject(HashMap<String, RTObject> hashMap)
+	public static HashMap<String, Object> hashMapRuntimeObjsToJObject(HashMap<String, RTObject> hashMap)
 			throws Exception {
 		HashMap<String, Object> jsonObj = new HashMap<String, Object>();
 		for (Entry<String, RTObject> keyVal : hashMap.entrySet()) {
 			RTObject runtimeObj = keyVal.getValue();
 
 			if (runtimeObj != null)
-				jsonObj.put(keyVal.getKey(), runtimeRTObjectToJToken(runtimeObj));
+				jsonObj.put(keyVal.getKey(), runtimeObjectToJToken(runtimeObj));
 
 		}
 		return jsonObj;
 	}
 
-	public static HashMap<String, RTObject> jRTObjectToHashMapRuntimeObjs(HashMap<String, Object> jRTObject)
+	public static HashMap<String, RTObject> jObjectToHashMapRuntimeObjs(HashMap<String, Object> jRTObject)
 			throws Exception {
 		HashMap<String, RTObject> dict = new HashMap<String, RTObject>(jRTObject.size());
 
 		for (Entry<String, Object> keyVal : jRTObject.entrySet()) {
-			dict.put(keyVal.getKey(), jTokenToRuntimeRTObject(keyVal.getValue()));
+			dict.put(keyVal.getKey(), jTokenToRuntimeObject(keyVal.getValue()));
 		}
 
 		return dict;
 	}
 
-	public static HashMap<String, Integer> jRTObjectToIntHashMap(HashMap<String, Object> jRTObject) throws Exception {
+	public static HashMap<String, Integer> jObjectToIntHashMap(HashMap<String, Object> jRTObject) throws Exception {
 		HashMap<String, Integer> dict = new HashMap<String, Integer>(jRTObject.size());
 
 		for (Entry<String, Object> keyVal : jRTObject.entrySet()) {
@@ -78,7 +74,7 @@ public class Json {
 		return dict;
 	}
 
-	public static HashMap<String, Object> intHashMapToJRTObject(HashMap<String, Integer> dict) throws Exception {
+	public static HashMap<String, Object> intHashMapToJObject(HashMap<String, Integer> dict) throws Exception {
 		HashMap<String, Object> jObj = new HashMap<String, Object>();
 
 		for (Entry<String, Integer> keyVal : dict.entrySet()) {
@@ -134,9 +130,10 @@ public class Json {
 	//
 	// Choice: Nothing too clever, it's only used in the save state,
 	// there's not likely to be many of them.
-	public static RTObject jTokenToRuntimeRTObject(Object token) throws Exception {
+	@SuppressWarnings("unchecked")
+	public static RTObject jTokenToRuntimeObject(Object token) throws Exception {
 		if (token instanceof Integer || token instanceof Float) {
-			return Value.create(token);
+			return AbstractValue.create(token);
 		}
 
 		if (token instanceof String) {
@@ -156,9 +153,9 @@ public class Json {
 			else if ("G>".equals(str))
 				return new Glue(GlueType.Right);
 
-			for (int i = 0; i < _controlCommandNames.length; ++i) {
+			for (int i = 0; i < controlCommandNames.length; ++i) {
 				// Control commands (would looking up in a hash set be faster?)
-				String cmdName = _controlCommandNames[i];
+				String cmdName = controlCommandNames[i];
 				if (str.equals(cmdName)) {
 					return new ControlCommand(CommandType.values()[i + 1]);
 				}
@@ -200,7 +197,7 @@ public class Json {
 				propValue = obj.get("ci");
 
 				if (propValue != null)
-					varPtr.setcontextIndex((Integer) propValue);
+					varPtr.setContextIndex((Integer) propValue);
 
 				return varPtr;
 			}
@@ -242,7 +239,7 @@ public class Json {
 			if (isDivert) {
 				Divert divert = new Divert();
 				divert.setPushesToStack(pushesToStack);
-				divert.stackPushType = divPushType;
+				divert.setStackPushType(divPushType);
 				divert.setExternal(external);
 				String target = propValue.toString();
 
@@ -271,12 +268,11 @@ public class Json {
 			propValue = obj.get("*");
 			if (propValue != null) {
 				ChoicePoint choice = new ChoicePoint();
-				choice.setpathStringOnChoice(propValue.toString());
+				choice.setPathStringOnChoice(propValue.toString());
 				propValue = obj.get("flg");
+				
 				if (propValue != null) {
-					RefSupport<RTObject> refVar___11 = new RefSupport<RTObject>();
-					choice.setflags((Integer) propValue);
-					propValue = refVar___11.getValue();
+					choice.setFlags((Integer) propValue);
 				}
 
 				return choice;
@@ -290,7 +286,7 @@ public class Json {
 				propValue = obj.get("CNT?");
 				if (propValue != null) {
 					VariableReference readCountVarRef = new VariableReference();
-					readCountVarRef.setpathStringForCount(propValue.toString());
+					readCountVarRef.setPathStringForCount(propValue.toString());
 					return readCountVarRef;
 				}
 
@@ -317,12 +313,12 @@ public class Json {
 				boolean isNewDecl = propValue == null;
 
 				VariableAssignment varAss = new VariableAssignment(varName, isNewDecl);
-				varAss.setisGlobal(isGlobalVar);
+				varAss.setIsGlobal(isGlobalVar);
 				return varAss;
 			}
 
 			if (obj.get("originalChoicePath") != null)
-				return jRTObjectToChoice(obj);
+				return jObjectToChoice(obj);
 
 		}
 
@@ -337,7 +333,7 @@ public class Json {
 		throw new Exception("Failed to convert token to runtime RTObject: " + token);
 	}
 
-	public static Object runtimeRTObjectToJToken(RTObject obj) throws Exception {
+	public static Object runtimeObjectToJToken(RTObject obj) throws Exception {
 		Container container = obj instanceof Container ? (Container) obj : (Container) null;
 
 		if (container != null) {
@@ -349,10 +345,10 @@ public class Json {
 			String divTypeKey = "->";
 			if (divert.isExternal())
 				divTypeKey = "x()";
-			else if (divert.getpushesToStack()) {
-				if (divert.stackPushType == PushPopType.Function)
+			else if (divert.getPushesToStack()) {
+				if (divert.getStackPushType() == PushPopType.Function)
 					divTypeKey = "f()";
-				else if (divert.stackPushType == PushPopType.Tunnel)
+				else if (divert.getStackPushType() == PushPopType.Tunnel)
 					divTypeKey = "->t->";
 
 			}
@@ -370,8 +366,8 @@ public class Json {
 			if (divert.isConditional())
 				jObj.put("c", true);
 
-			if (divert.getexternalArgs() > 0)
-				jObj.put("exArgs", divert.getexternalArgs());
+			if (divert.getExternalArgs() > 0)
+				jObj.put("exArgs", divert.getExternalArgs());
 
 			return jObj;
 		}
@@ -379,8 +375,8 @@ public class Json {
 		ChoicePoint choicePoint = obj instanceof ChoicePoint ? (ChoicePoint) obj : (ChoicePoint) null;
 		if (choicePoint != null) {
 			HashMap<String, Object> jObj = new HashMap<String, Object>();
-			jObj.put("*", choicePoint.getpathStringOnChoice());
-			jObj.put("flg", choicePoint.getflags());
+			jObj.put("*", choicePoint.getPathStringOnChoice());
+			jObj.put("flg", choicePoint.getFlags());
 			return jObj;
 		}
 
@@ -394,7 +390,7 @@ public class Json {
 
 		StringValue strVal = obj instanceof StringValue ? (StringValue) obj : (StringValue) null;
 		if (strVal != null) {
-			if (strVal.getisNewline())
+			if (strVal.isNewline())
 				return "\n";
 			else
 				return "^" + strVal.value;
@@ -413,15 +409,15 @@ public class Json {
 		if (varPtrVal != null) {
 			HashMap<String, Object> varPtrJsonObj = new HashMap<String, Object>();
 			varPtrJsonObj.put("^var", varPtrVal.value);
-			varPtrJsonObj.put("ci", varPtrVal.getcontextIndex());
+			varPtrJsonObj.put("ci", varPtrVal.getContextIndex());
 			return varPtrJsonObj;
 		}
 
 		Glue glue = obj instanceof Glue ? (Glue) obj : (Glue) null;
 		if (glue != null) {
-			if (glue.getisBi())
+			if (glue.isBi())
 				return "<>";
-			else if (glue.getisLeft())
+			else if (glue.isLeft())
 				return "G<";
 			else
 				return "G>";
@@ -429,7 +425,7 @@ public class Json {
 
 		ControlCommand controlCmd = obj instanceof ControlCommand ? (ControlCommand) obj : (ControlCommand) null;
 		if (controlCmd != null) {
-			return _controlCommandNames[((Enum) controlCmd.getcommandType()).ordinal()];
+			return controlCommandNames[controlCmd.getcommandType().ordinal()];
 		}
 
 		NativeFunctionCall nativeFunc = obj instanceof NativeFunctionCall ? (NativeFunctionCall) obj
@@ -442,11 +438,11 @@ public class Json {
 				: (VariableReference) null;
 		if (varRef != null) {
 			HashMap<String, Object> jObj = new HashMap<String, Object>();
-			String readCountPath = varRef.getpathStringForCount();
+			String readCountPath = varRef.getPathStringForCount();
 			if (readCountPath != null) {
 				jObj.put("CNT?", readCountPath);
 			} else {
-				jObj.put("VAR?", varRef.getname());
+				jObj.put("VAR?", varRef.getName());
 			}
 			return jObj;
 		}
@@ -455,11 +451,11 @@ public class Json {
 		VariableAssignment varAss = obj instanceof VariableAssignment ? (VariableAssignment) obj
 				: (VariableAssignment) null;
 		if (varAss != null) {
-			String key = varAss.getisGlobal() ? "VAR=" : "temp=";
+			String key = varAss.isGlobal() ? "VAR=" : "temp=";
 			HashMap<String, Object> jObj = new HashMap<String, Object>();
-			jObj.put(key, varAss.getvariableName());
+			jObj.put(key, varAss.getVariableName());
 			// Reassignment?
-			if (!varAss.getisNewDeclaration())
+			if (!varAss.isNewDeclaration())
 				jObj.put("re", true);
 
 			return jObj;
@@ -472,11 +468,12 @@ public class Json {
 		// Used when serialising save state only
 		Choice choice = obj instanceof Choice ? (Choice) obj : (Choice) null;
 		if (choice != null)
-			return choiceToJRTObject(choice);
+			return choiceToJObject(choice);
 
 		throw new Exception("Failed to convert runtime RTObject to Json token: " + obj);
 	}
 
+	@SuppressWarnings("unchecked")
 	static List<Object> containerToJArray(Container container) throws Exception {
 		List<Object> jArray = listToJArray(container.getContent());
 
@@ -490,11 +487,12 @@ public class Json {
 		if (namedOnlyContent != null && namedOnlyContent.size() > 0 || countFlags > 0 || container.getName() != null) {
 			HashMap<String, Object> terminatingObj = new HashMap<String, Object>();
 			if (namedOnlyContent != null) {
-				terminatingObj = HashMapRuntimeObjsToJRTObject(namedOnlyContent);
+				terminatingObj = hashMapRuntimeObjsToJObject(namedOnlyContent);
 				for (Entry<String, Object> namedContentObj : terminatingObj.entrySet()) {
 					// Strip redundant names from containers if necessary
 					List<Object> subContainerJArray = namedContentObj.getValue() instanceof List<?>
 							? (List<Object>) namedContentObj.getValue() : (List<Object>) null;
+
 					if (subContainerJArray != null) {
 						HashMap<String, Object> attrJObj = subContainerJArray
 								.get(subContainerJArray.size() - 1) instanceof HashMap<?, ?>
@@ -527,6 +525,7 @@ public class Json {
 		return jArray;
 	}
 
+	@SuppressWarnings("unchecked")
 	static Container jArrayToContainer(List<Object> jArray) throws Exception {
 		Container container = new Container();
 		container.setContent(jArrayToRuntimeObjList(jArray, true));
@@ -543,7 +542,7 @@ public class Json {
 				} else if ("#n".equals(keyVal.getKey())) {
 					container.setName(keyVal.getValue().toString());
 				} else {
-					RTObject namedContentItem = jTokenToRuntimeRTObject(keyVal.getValue());
+					RTObject namedContentItem = jTokenToRuntimeObject(keyVal.getValue());
 					Container namedSubContainer = namedContentItem instanceof Container ? (Container) namedContentItem
 							: (Container) null;
 					if (namedSubContainer != null)
@@ -558,7 +557,7 @@ public class Json {
 		return container;
 	}
 
-	static Choice jRTObjectToChoice(HashMap<String, Object> jObj) throws Exception {
+	static Choice jObjectToChoice(HashMap<String, Object> jObj) throws Exception {
 		Choice choice = new Choice();
 		choice.setText(jObj.get("text").toString());
 		choice.setIndex((int) jObj.get("index"));
@@ -567,7 +566,7 @@ public class Json {
 		return choice;
 	}
 
-	static HashMap<String, Object> choiceToJRTObject(Choice choice) throws Exception {
+	static HashMap<String, Object> choiceToJObject(Choice choice) throws Exception {
 		HashMap<String, Object> jObj = new HashMap<String, Object>();
 		jObj.put("text", choice.getText());
 		jObj.put("index", choice.getIndex());
@@ -577,30 +576,30 @@ public class Json {
 		return jObj;
 	}
 
-	static String[] _controlCommandNames;
+	private final static String[] controlCommandNames;
 
 	static {
-		_controlCommandNames = new String[CommandType.values().length - 1];
-		_controlCommandNames[CommandType.EvalStart.ordinal() - 1] = "ev";
-		_controlCommandNames[CommandType.EvalOutput.ordinal() - 1] = "out";
-		_controlCommandNames[CommandType.EvalEnd.ordinal() - 1] = "/ev";
-		_controlCommandNames[CommandType.Duplicate.ordinal() - 1] = "du";
-		_controlCommandNames[CommandType.PopEvaluatedValue.ordinal() - 1] = "pop";
-		_controlCommandNames[CommandType.PopFunction.ordinal() - 1] = "~ret";
-		_controlCommandNames[CommandType.PopTunnel.ordinal() - 1] = "->->";
-		_controlCommandNames[CommandType.BeginString.ordinal() - 1] = "str";
-		_controlCommandNames[CommandType.EndString.ordinal() - 1] = "/str";
-		_controlCommandNames[CommandType.NoOp.ordinal() - 1] = "nop";
-		_controlCommandNames[CommandType.ChoiceCount.ordinal() - 1] = "choiceCnt";
-		_controlCommandNames[CommandType.TurnsSince.ordinal() - 1] = "turns";
-		_controlCommandNames[CommandType.VisitIndex.ordinal() - 1] = "visit";
-		_controlCommandNames[CommandType.SequenceShuffleIndex.ordinal() - 1] = "seq";
-		_controlCommandNames[CommandType.StartThread.ordinal() - 1] = "thread";
-		_controlCommandNames[CommandType.Done.ordinal() - 1] = "done";
-		_controlCommandNames[CommandType.End.ordinal() - 1] = "end";
+		controlCommandNames = new String[CommandType.values().length - 1];
+		controlCommandNames[CommandType.EvalStart.ordinal() - 1] = "ev";
+		controlCommandNames[CommandType.EvalOutput.ordinal() - 1] = "out";
+		controlCommandNames[CommandType.EvalEnd.ordinal() - 1] = "/ev";
+		controlCommandNames[CommandType.Duplicate.ordinal() - 1] = "du";
+		controlCommandNames[CommandType.PopEvaluatedValue.ordinal() - 1] = "pop";
+		controlCommandNames[CommandType.PopFunction.ordinal() - 1] = "~ret";
+		controlCommandNames[CommandType.PopTunnel.ordinal() - 1] = "->->";
+		controlCommandNames[CommandType.BeginString.ordinal() - 1] = "str";
+		controlCommandNames[CommandType.EndString.ordinal() - 1] = "/str";
+		controlCommandNames[CommandType.NoOp.ordinal() - 1] = "nop";
+		controlCommandNames[CommandType.ChoiceCount.ordinal() - 1] = "choiceCnt";
+		controlCommandNames[CommandType.TurnsSince.ordinal() - 1] = "turns";
+		controlCommandNames[CommandType.VisitIndex.ordinal() - 1] = "visit";
+		controlCommandNames[CommandType.SequenceShuffleIndex.ordinal() - 1] = "seq";
+		controlCommandNames[CommandType.StartThread.ordinal() - 1] = "thread";
+		controlCommandNames[CommandType.Done.ordinal() - 1] = "done";
+		controlCommandNames[CommandType.End.ordinal() - 1] = "end";
 
 		for (int i = 0; i < CommandType.values().length - 1; ++i) {
-			if (_controlCommandNames[i] == null)
+			if (controlCommandNames[i] == null)
 				throw new ExceptionInInitializerError("Control command not accounted for in serialisation");
 		}
 

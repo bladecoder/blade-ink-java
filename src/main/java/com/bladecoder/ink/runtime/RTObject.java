@@ -1,11 +1,8 @@
 package com.bladecoder.ink.runtime;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Stack;
-
 import com.bladecoder.ink.runtime.Path.Component;
 
 /**
@@ -78,7 +75,7 @@ public class RTObject {
 		if (path == null) {
 			if (getParent() == null) {
 				path = new Path();
-			} else {			
+			} else {
 				List<Path.Component> comps = new ArrayList<Path.Component>();
 				RTObject child = this;
 				Container container = child.getParent() instanceof Container ? (Container) child.getParent()
@@ -95,10 +92,11 @@ public class RTObject {
 					container = container.getParent() instanceof Container ? (Container) container.getParent()
 							: (Container) null;
 				}
-				
-				// Reverse list because components are searched in reverse order.
+
+				// Reverse list because components are searched in reverse
+				// order.
 				Collections.reverse(comps);
-				
+
 				path = new Path(comps);
 			}
 		}
@@ -187,16 +185,5 @@ public class RTObject {
 
 	public RTObject copy() throws Exception {
 		throw new UnsupportedOperationException(this.getClass().getTypeName() + " doesn't support copying");
-	}
-
-	public void setChild(RefSupport<RTObject> obj, RTObject value) {
-		if (obj.getValue() != null)
-			obj.getValue().parent = null;
-
-		obj.setValue(value);
-
-		if (obj.getValue() != null)
-			obj.getValue().parent = this;
-
 	}
 }

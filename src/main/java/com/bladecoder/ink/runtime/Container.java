@@ -22,6 +22,7 @@ public class Container extends RTObject implements INamedContent {
 		setNamedContent(new HashMap<String, INamedContent>());
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -154,6 +155,7 @@ public class Container extends RTObject implements INamedContent {
 
 	}
 
+	@Override
 	public boolean hasValidName() {
 		return getName() != null && getName().length() > 0;
 	}
@@ -239,20 +241,20 @@ public class Container extends RTObject implements INamedContent {
 	}
 
 	protected RTObject contentWithPathComponent(Path.Component component) throws StoryException, Exception {
-	
+
 		if (component.isIndex()) {
 			if (component.getIndex() >= 0 && component.getIndex() < getContent().size()) {
 				return getContent().get(component.getIndex());
 			} else {
 				return null;
 			}
-		} else if (component.isParent()) { 
+		} else if (component.isParent()) {
 			// When path is out of range, quietly return nil
 			// (useful as we step/increment forwards through content)
 			return this.getParent();
 		} else {
 			INamedContent foundContent = getNamedContent().get(component.getName());
-			
+
 			if (foundContent != null) {
 				return (RTObject) foundContent;
 			} else {
@@ -294,7 +296,7 @@ public class Container extends RTObject implements INamedContent {
 	public void buildStringOfHierarchy(StringBuilder sb, int indentation, RTObject pointedObj) {
 
 		appendIndentation(sb, indentation);
-		
+
 		sb.append("[");
 		if (this.hasValidName()) {
 			sb.append(" ({");
@@ -338,7 +340,7 @@ public class Container extends RTObject implements INamedContent {
 		HashMap<String, INamedContent> onlyNamed = new HashMap<String, INamedContent>();
 
 		for (Entry<String, INamedContent> objKV : getNamedContent().entrySet()) {
-			if (getContent().contains((RTObject) objKV.getValue())) {
+			if (getContent().contains(objKV.getValue())) {
 				continue;
 			} else {
 				onlyNamed.put(objKV.getKey(), objKV.getValue());
@@ -346,11 +348,12 @@ public class Container extends RTObject implements INamedContent {
 		}
 		if (onlyNamed.size() > 0) {
 			appendIndentation(sb, indentation);
-			
+
 			sb.append("-- named: --\n");
-			
-			for (Entry<String, INamedContent>  objKV : onlyNamed.entrySet()) {
-				//Debug.Assert(objKV.Value instanceof Container, "Can only print out named Containers");
+
+			for (Entry<String, INamedContent> objKV : onlyNamed.entrySet()) {
+				// Debug.Assert(objKV.Value instanceof Container, "Can only
+				// print out named Containers");
 				Container container = (Container) objKV.getValue();
 				container.buildStringOfHierarchy(sb, indentation, pointedObj);
 				sb.append("\n");

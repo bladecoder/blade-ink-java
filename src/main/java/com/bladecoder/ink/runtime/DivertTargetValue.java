@@ -1,64 +1,43 @@
-//
-// Translated by CS2J (http://www.cs2j.com): 22/07/2016 12:24:34
-//
-
 package com.bladecoder.ink.runtime;
 
-import com.bladecoder.ink.runtime.AbstractValue;
-import com.bladecoder.ink.runtime.Path;
-import com.bladecoder.ink.runtime.ValueType;
+public class DivertTargetValue extends Value<Path> {
+	public DivertTargetValue() {
+		super(null);
+	}
 
-public class DivertTargetValue  extends Value<Path> 
-{
-    public Path gettargetPath() throws Exception {
-        return this.getValue();
-    }
+	public DivertTargetValue(Path targetPath) {
+		super(targetPath);
+	}
 
-    public void settargetPath(Path value) throws Exception {
-        this.setValue(value);
-    }
+	@Override
+	public AbstractValue cast(ValueType newType) throws Exception {
+		if (newType == getValueType())
+			return this;
 
-    @Override
-    public ValueType getvalueType() throws Exception {
-        return ValueType.DivertTarget;
-    }
+		throw new Exception("Unexpected type cast of Value to new ValueType");
+	}
 
-    @Override
-    public boolean getisTruthy() throws Exception {
-        throw new Exception("Shouldn't be checking the truthiness of a divert target");
-    }
+	@Override
+	public boolean isTruthy() throws Exception {
+		throw new Exception("Shouldn't be checking the truthiness of a divert target");
+	}
 
-    public DivertTargetValue(Path targetPath) throws Exception {
-        super(targetPath);
-    }
+	public Path getTargetPath() {
+		return this.getValue();
+	}
 
-    public DivertTargetValue() throws Exception {
-        super(null);
-    }
+	@Override
+	public ValueType getValueType() {
+		return ValueType.DivertTarget;
+	}
 
-    public AbstractValue cast(ValueType newType) throws Exception {
-        if (newType == getvalueType())
-            return this;
-         
-        throw new Exception("Unexpected type cast of Value to new ValueType");
-    }
+	public void setTargetPath(Path value) {
+		this.setValue(value);
+	}
 
-    public String toString() {
-        try
-        {
-            return "DivertTargetValue(" + gettargetPath() + ")";
-        }
-        catch (RuntimeException __dummyCatchVar1)
-        {
-            throw __dummyCatchVar1;
-        }
-        catch (Exception __dummyCatchVar1)
-        {
-            throw new RuntimeException(__dummyCatchVar1);
-        }
-    
-    }
+	@Override
+	public String toString() {
+		return "DivertTargetValue(" + getTargetPath() + ")";
+	}
 
 }
-
-

@@ -46,7 +46,7 @@ public class Choice extends RTObject {
 	 * chosen.
 	 */
 	public String getPathStringOnChoice() throws Exception {
-		return getchoicePoint().getpathStringOnChoice();
+		return getchoicePoint().getPathStringOnChoice();
 	}
 
 	public String getText() {
@@ -60,6 +60,7 @@ public class Choice extends RTObject {
 	public void setChoicePoint(ChoicePoint value) {
 		choicePoint = value;
 	}
+
 	public void setIndex(int value) {
 		index = value;
 	}

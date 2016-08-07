@@ -40,7 +40,7 @@ public class StoryState {
 	private VariablesState variablesState;
 	private HashMap<String, Integer> visitCounts;
 
-	StoryState(Story story) throws Exception {
+	StoryState(Story story) {
 		this.story = story;
 
 		outputStream = new ArrayList<RTObject>();
@@ -78,7 +78,7 @@ public class StoryState {
 	// RTObjects are treated as immutable after they've been set up.
 	// (e.g. we don't edit a Runtime.Text after it's been created an added.)
 	// I wonder if there's a sensible way to enforce that..??
-	StoryState copy() throws Exception {
+	StoryState copy() {
 		StoryState copy = new StoryState(story);
 
 		copy.getOutputStream().addAll(outputStream);
@@ -143,14 +143,14 @@ public class StoryState {
 		return sb.toString();
 	}
 
-	void forceEndFlow() throws Exception {
+	void forceEndFlow() {
 		setCurrentContentObject(null);
 
 		while (callStack.canPopThread())
-			callStack.PopThread();
+			callStack.popThread();
 
 		while (callStack.canPop())
-			callStack.Pop();
+			callStack.pop();
 
 		currentChoices.clear();
 
@@ -188,7 +188,7 @@ public class StoryState {
 			c.originalChoicePath = c.getchoicePoint().getPath().getComponentsString();
 			c.originalThreadIndex = c.getThreadAtGeneration().threadIndex;
 
-			if (callStack.ThreadWithIndex(c.originalThreadIndex) == null) {
+			if (callStack.getThreadWithIndex(c.originalThreadIndex) == null) {
 				if (choiceThreads == null)
 					choiceThreads = new HashMap<String, Object>();
 
@@ -198,7 +198,7 @@ public class StoryState {
 		if (choiceThreads != null)
 			obj.put("choiceThreads", choiceThreads);
 
-		obj.put("callstackThreads", callStack.GetJsonToken());
+		obj.put("callstackThreads", callStack.getJsonToken());
 		obj.put("variablesState", variablesState.getjsonToken());
 
 		obj.put("evalStack", Json.listToJArray(evaluationStack));
@@ -217,8 +217,8 @@ public class StoryState {
 		if (getDivertedTargetObject() != null)
 			obj.put("currentDivertTarget", getDivertedTargetObject().getPath().getComponentsString());
 
-		obj.put("visitCounts", Json.intHashMapToJRTObject(visitCounts));
-		obj.put("turnIndices", Json.intHashMapToJRTObject(turnIndices));
+		obj.put("visitCounts", Json.intHashMapToJObject(visitCounts));
+		obj.put("turnIndices", Json.intHashMapToJObject(turnIndices));
 		obj.put("turnIdx", currentTurnIndex);
 		obj.put("storySeed", storySeed);
 
@@ -273,7 +273,7 @@ public class StoryState {
 	List<Choice> getCurrentChoices() {
 		return currentChoices;
 	}
-	
+
 	List<String> getCurrentErrors() {
 		return currentErrors;
 	}
@@ -281,27 +281,27 @@ public class StoryState {
 	List<RTObject> getOutputStream() {
 		return outputStream;
 	}
-	
+
 	CallStack getCallStack() {
 		return callStack;
 	}
-	
+
 	VariablesState getVariablesState() {
 		return variablesState;
 	}
-	
+
 	List<RTObject> getEvaluationStack() {
 		return evaluationStack;
 	}
-	
+
 	int getStorySeed() {
 		return storySeed;
 	}
-	
+
 	HashMap<String, Integer> getTurnIndices() {
 		return turnIndices;
 	}
-	
+
 	int getCurrentTurnIndex() {
 		return currentTurnIndex;
 	}
@@ -325,9 +325,9 @@ public class StoryState {
 						: null;
 
 				if (text != null) {
-					if (text.getisNewline())
+					if (text.isNewline())
 						return true;
-					else if (text.getisNonWhitespace())
+					else if (text.isNonWhitespace())
 						break;
 				}
 			}
@@ -389,7 +389,7 @@ public class StoryState {
 		if (glue != null) {
 
 			// Found matching left-glue for right-glue? Close it.
-			boolean foundMatchingLeftGlue = glue.getisLeft() && currentRightGlue != null
+			boolean foundMatchingLeftGlue = glue.isLeft() && currentRightGlue != null
 					&& glue.getParent() == currentRightGlue.getParent();
 			if (foundMatchingLeftGlue) {
 				currentRightGlue = null;
@@ -398,17 +398,17 @@ public class StoryState {
 			// Left/Right glue is auto-generated for inline expressions
 			// where we want to absorb newlines but only in a certain direction.
 			// "Bi" glue is written by the user in their ink with <>
-			if (glue.getisLeft() || glue.getisBi()) {
+			if (glue.isLeft() || glue.isBi()) {
 				trimNewlinesFromOutputStream(foundMatchingLeftGlue);
 			}
 
 			// New right-glue
-			boolean isNewRightGlue = glue.getisRight() && currentRightGlue == null;
+			boolean isNewRightGlue = glue.isRight() && currentRightGlue == null;
 			if (isNewRightGlue) {
 				currentRightGlue = glue;
 			}
 
-			includeInOutput = glue.getisBi() || isNewRightGlue;
+			includeInOutput = glue.isBi() || isNewRightGlue;
 		}
 
 		else if (text != null) {
@@ -418,17 +418,17 @@ public class StoryState {
 				// Absorb any new newlines if there's existing glue
 				// in the output stream.
 				// Also trim any extra whitespace (spaces/tabs) if so.
-				if (text.getisNewline()) {
+				if (text.isNewline()) {
 					trimFromExistingGlue();
 					includeInOutput = false;
 				}
 
 				// Able to completely reset when
-				else if (text.getisNonWhitespace()) {
+				else if (text.isNonWhitespace()) {
 					removeExistingGlue();
 					currentRightGlue = null;
 				}
-			} else if (text.getisNewline()) {
+			} else if (text.isNewline()) {
 				if (outputStreamEndsInNewline() || !outputStreamContainsContent())
 					includeInOutput = false;
 			}
@@ -500,7 +500,7 @@ public class StoryState {
 					+ "', but minimum is " + kMinCompatibleLoadVersion + "), so can't load.");
 		}
 
-		callStack.SetJsonToken((HashMap<String, Object>) jObject.get("callstackThreads"), story);
+		callStack.setJsonToken((HashMap<String, Object>) jObject.get("callstackThreads"), story);
 		variablesState.setjsonToken((HashMap<String, Object>) jObject.get("variablesState"));
 
 		evaluationStack = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("evalStack"));
@@ -523,8 +523,8 @@ public class StoryState {
 			setDivertedTargetObject(story.ContentAtPath(divertPath));
 		}
 
-		visitCounts = Json.jRTObjectToIntHashMap((HashMap<String, Object>) jObject.get("visitCounts"));
-		turnIndices = Json.jRTObjectToIntHashMap((HashMap<String, Object>) jObject.get("turnIndices"));
+		visitCounts = Json.jObjectToIntHashMap((HashMap<String, Object>) jObject.get("visitCounts"));
+		turnIndices = Json.jObjectToIntHashMap((HashMap<String, Object>) jObject.get("turnIndices"));
 		currentTurnIndex = (int) jObject.get("turnIdx");
 		storySeed = (int) jObject.get("storySeed");
 
@@ -534,7 +534,7 @@ public class StoryState {
 		for (Choice c : currentChoices) {
 			c.setChoicePoint((ChoicePoint) story.ContentAtPath(new Path(c.originalChoicePath)));
 
-			Thread foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
+			Thread foundActiveThread = callStack.getThreadWithIndex(c.originalThreadIndex);
 			if (foundActiveThread != null) {
 				c.setThreadAtGeneration(foundActiveThread);
 			} else {
@@ -564,7 +564,7 @@ public class StoryState {
 		while (i < outputStream.size()) {
 			StringValue txt = outputStream.get(i) instanceof StringValue ? (StringValue) outputStream.get(i) : null;
 
-			if (txt != null && !txt.getisNonWhitespace())
+			if (txt != null && !txt.isNonWhitespace())
 				outputStream.remove(i);
 			else
 				i++;
@@ -589,15 +589,15 @@ public class StoryState {
 			StringValue txt = obj instanceof StringValue ? (StringValue) obj : null;
 			Glue glue = obj instanceof Glue ? (Glue) obj : null;
 
-			if (cmd != null || (txt != null && txt.getisNonWhitespace())) {
+			if (cmd != null || (txt != null && txt.isNonWhitespace())) {
 				foundNonWhitespace = true;
 
 				if (!stopAndRemoveRightGlue)
 					break;
-			} else if (stopAndRemoveRightGlue && glue != null && glue.getisRight()) {
+			} else if (stopAndRemoveRightGlue && glue != null && glue.isRight()) {
 				rightGluePos = i;
 				break;
-			} else if (txt != null && txt.getisNewline() && !foundNonWhitespace) {
+			} else if (txt != null && txt.isNewline() && !foundNonWhitespace) {
 				removeWhitespaceFrom = i;
 			}
 			i--;

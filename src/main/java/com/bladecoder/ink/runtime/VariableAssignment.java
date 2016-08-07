@@ -1,69 +1,51 @@
-//
-// Translated by CS2J (http://www.cs2j.com): 22/07/2016 12:24:34
-//
-
 package com.bladecoder.ink.runtime;
 
-import com.bladecoder.ink.runtime.RTObject;
-
 // The value to be assigned is popped off the evaluation stack, so no need to keep it here
-public class VariableAssignment  extends RTObject 
-{
-    private String __variableName = new String();
-    public String getvariableName() {
-        return __variableName;
-    }
+public class VariableAssignment extends RTObject {
+	private boolean isGlobal;
 
-    public void setvariableName(String value) {
-        __variableName = value;
-    }
+	private boolean isNewDeclaration;
 
-    private boolean __isNewDeclaration;
-    
-    public boolean getisNewDeclaration() {
-        return __isNewDeclaration;
-    }
+	private String variableName = new String();
 
-    public void setisNewDeclaration(boolean value) {
-        __isNewDeclaration = value;
-    }
+	// Require default constructor for serialisation
+	public VariableAssignment() throws Exception {
+		this(null, false);
+	}
 
-    private boolean __isGlobal;
-    
-    public boolean getisGlobal() {
-        return __isGlobal;
-    }
+	public VariableAssignment(String variableName, boolean isNewDeclaration) throws Exception {
+		this.setVariableName(variableName);
+		this.setIsNewDeclaration(isNewDeclaration);
+	}
 
-    public void setisGlobal(boolean value) {
-        __isGlobal = value;
-    }
+	public String getVariableName() {
+		return variableName;
+	}
 
-    public VariableAssignment(String variableName, boolean isNewDeclaration) throws Exception {
-        this.setvariableName(variableName);
-        this.setisNewDeclaration(isNewDeclaration);
-    }
+	public boolean isGlobal() {
+		return isGlobal;
+	}
 
-    // Require default constructor for serialisation
-    public VariableAssignment() throws Exception {
-        this(null, false);
-    }
+	public boolean isNewDeclaration() {
+		return isNewDeclaration;
+	}
 
-    public String toString() {
-        try
-        {
-            return "VarAssign to " + getvariableName();
-        }
-        catch (RuntimeException __dummyCatchVar0)
-        {
-            throw __dummyCatchVar0;
-        }
-        catch (Exception __dummyCatchVar0)
-        {
-            throw new RuntimeException(__dummyCatchVar0);
-        }
-    
-    }
+	public void setIsGlobal(boolean value) {
+		isGlobal = value;
+	}
+
+	public void setIsNewDeclaration(boolean value) {
+		isNewDeclaration = value;
+	}
+
+	public void setVariableName(String value) {
+		variableName = value;
+	}
+
+	@Override
+	public String toString() {
+		return "VarAssign to " + getVariableName();
+
+	}
 
 }
-
-

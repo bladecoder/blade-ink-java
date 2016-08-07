@@ -161,10 +161,12 @@ public class Path {
 		}
 	}
 
+	@Override
 	public String toString() {
 		return getComponentsString();
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 		return equals(obj instanceof Path ? (Path) obj : (Path) null);
 	}
@@ -240,6 +242,7 @@ public class Path {
 			return new Component(PARENT_ID);
 		}
 
+		@Override
 		public String toString() {
 			if (isIndex()) {
 				return Integer.toString(getIndex());
@@ -248,6 +251,7 @@ public class Path {
 			}
 		}
 
+		@Override
 		public boolean equals(Object obj) {
 
 			return equals(obj instanceof Component ? (Component) obj : (Component) null);

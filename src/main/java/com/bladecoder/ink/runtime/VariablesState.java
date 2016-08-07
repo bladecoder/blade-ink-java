@@ -26,23 +26,23 @@ public class VariablesState implements Iterable<String> {
 
 	private VariableChanged variableChangedEvent;
 
-	public VariablesState(CallStack callStack) throws Exception {
+	public VariablesState(CallStack callStack) {
 		globalVariables = new HashMap<String, RTObject>();
 		this.callStack = callStack;
 	}
 
 	public void assign(VariableAssignment varAss, RTObject value) throws Exception {
-		String name = varAss.getvariableName();
+		String name = varAss.getVariableName();
 		int contextIndex = -1;
 		// Are we assigning to a global variable?
 		boolean setGlobal = false;
-		if (varAss.getisNewDeclaration()) {
-			setGlobal = varAss.getisGlobal();
+		if (varAss.isNewDeclaration()) {
+			setGlobal = varAss.isGlobal();
 		} else {
 			setGlobal = globalVariables.containsKey(name);
 		}
 		// Constructing new variable pointer reference
-		if (varAss.getisNewDeclaration()) {
+		if (varAss.isNewDeclaration()) {
 			VariablePointerValue varPointer = value instanceof VariablePointerValue ? (VariablePointerValue) value
 					: (VariablePointerValue) null;
 			if (varPointer != null) {
@@ -61,8 +61,8 @@ public class VariablesState implements Iterable<String> {
 						? (VariablePointerValue) getRawVariableWithName(name, contextIndex)
 						: (VariablePointerValue) null;
 				if (existingPointer != null) {
-					name = existingPointer.getvariableName();
-					contextIndex = existingPointer.getcontextIndex();
+					name = existingPointer.getVariableName();
+					contextIndex = existingPointer.getContextIndex();
 					setGlobal = (contextIndex == 0);
 				}
 
@@ -71,13 +71,13 @@ public class VariablesState implements Iterable<String> {
 		if (setGlobal) {
 			setGlobal(name, value);
 		} else {
-			callStack.SetTemporaryVariable(name, value, varAss.getisNewDeclaration(), contextIndex);
+			callStack.setTemporaryVariable(name, value, varAss.isNewDeclaration(), contextIndex);
 		}
 	}
 
-	public void copyFrom(VariablesState varState) throws Exception {
+	public void copyFrom(VariablesState varState) {
 		globalVariables = new HashMap<String, RTObject>(varState.globalVariables);
-		
+
 		setVariableChangedEvent(varState.getVariableChangedEvent());
 
 		if (varState.getbatchObservingVariableChanges() != getbatchObservingVariableChanges()) {
@@ -100,7 +100,7 @@ public class VariablesState implements Iterable<String> {
 			return null;
 	}
 
-	public boolean getbatchObservingVariableChanges() throws Exception {
+	public boolean getbatchObservingVariableChanges() {
 		return batchObservingVariableChanges;
 	}
 
@@ -109,7 +109,7 @@ public class VariablesState implements Iterable<String> {
 	// the runtime. Temporary must be local to the current scope.
 	// 0 if named variable is global
 	// 1+ if named variable is a temporary in a particular call stack element
-	int getContextIndexOfVariableNamed(String varName) throws Exception {
+	int getContextIndexOfVariableNamed(String varName) {
 		if (globalVariables.containsKey(varName))
 			return 0;
 
@@ -117,7 +117,7 @@ public class VariablesState implements Iterable<String> {
 	}
 
 	public HashMap<String, Object> getjsonToken() throws Exception {
-		return Json.HashMapRuntimeObjsToJRTObject(globalVariables);
+		return Json.hashMapRuntimeObjsToJObject(globalVariables);
 	}
 
 	RTObject getRawVariableWithName(String name, int contextIndex) throws Exception {
@@ -132,7 +132,7 @@ public class VariablesState implements Iterable<String> {
 		}
 
 		// Temporary
-		varValue = callStack.GetTemporaryVariableWithName(name, contextIndex);
+		varValue = callStack.getTemporaryVariableWithName(name, contextIndex);
 		if (varValue == null)
 			throw new Exception("RUNTIME ERROR: Variable '" + name + "' could not be found in context '" + contextIndex
 					+ "'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
@@ -170,11 +170,11 @@ public class VariablesState implements Iterable<String> {
 	// global,
 	// or the exact position of a temporary on the callstack.
 	VariablePointerValue resolveVariablePointer(VariablePointerValue varPointer) throws Exception {
-		int contextIndex = varPointer.getcontextIndex();
+		int contextIndex = varPointer.getContextIndex();
 		if (contextIndex == -1)
-			contextIndex = getContextIndexOfVariableNamed(varPointer.getvariableName());
+			contextIndex = getContextIndexOfVariableNamed(varPointer.getVariableName());
 
-		RTObject valueOfVariablePointedTo = getRawVariableWithName(varPointer.getvariableName(), contextIndex);
+		RTObject valueOfVariablePointedTo = getRawVariableWithName(varPointer.getVariableName(), contextIndex);
 		// Extra layer of indirection:
 		// When accessing a pointer to a pointer (e.g. when calling nested or
 		// recursive functions that take a variable references, ensure we don't
@@ -185,7 +185,7 @@ public class VariablesState implements Iterable<String> {
 		if (doubleRedirectionPointer != null) {
 			return doubleRedirectionPointer;
 		} else {
-			return new VariablePointerValue(varPointer.getvariableName(), contextIndex);
+			return new VariablePointerValue(varPointer.getVariableName(), contextIndex);
 		}
 	}
 
@@ -233,11 +233,13 @@ public class VariablesState implements Iterable<String> {
 		}
 
 	}
+
 	public void setjsonToken(HashMap<String, Object> value) throws Exception {
-		globalVariables = Json.jRTObjectToHashMapRuntimeObjs(value);
+		globalVariables = Json.jObjectToHashMapRuntimeObjs(value);
 	}
+
 	public RTObject valueAtVariablePointer(VariablePointerValue pointer) throws Exception {
-		return getVariableWithName(pointer.getvariableName(), pointer.getcontextIndex());
+		return getVariableWithName(pointer.getVariableName(), pointer.getContextIndex());
 	}
 
 	public VariableChanged getVariableChangedEvent() {

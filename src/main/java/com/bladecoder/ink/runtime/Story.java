@@ -111,8 +111,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (rootToken == null)
 			throw new Exception("Root node for ink not found. Are you sure it's a valid .ink.json file?");
 
-		mainContentContainer = Json.jTokenToRuntimeRTObject(rootToken) instanceof Container
-				? (Container) Json.jTokenToRuntimeRTObject(rootToken) : null;
+		mainContentContainer = Json.jTokenToRuntimeObject(rootToken) instanceof Container
+				? (Container) Json.jTokenToRuntimeObject(rootToken) : null;
 
 		resetState();
 	}
@@ -160,189 +160,43 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @param func
 	 *            The Java function to bind.
 	 */
-	public void bindExternalFunctionGeneral(String funcName, ExternalFunction func) throws Exception {
+	public void bindExternalFunction(String funcName, ExternalFunction func) throws Exception {
 		Assert(!externals.containsKey(funcName), "Function '" + funcName + "' has already been bound.");
 		externals.put(funcName, func);
 	}
-	// TODO
-	// Object TryCoerce<T>(Object value)
-	// {
-	// if (value == null)
-	// return null;
-	//
-	// if (value.GetType () == typeof(T))
-	// return (T) value;
-	//
-	// if (value is float && typeof(T) == typeof(int)) {
-	// int intVal = (int)Math.Round ((float)value);
-	// return intVal;
-	// }
-	//
-	// if (value is int && typeof(T) == typeof(float)) {
-	// float floatVal = (float)(int)value;
-	// return floatVal;
-	// }
-	//
-	// if (value is int && typeof(T) == typeof(bool)) {
-	// int intVal = (int)value;
-	// return intVal == 0 ? false : true;
-	// }
-	//
-	// if (typeof(T) == typeof(string)) {
-	// return value.toString ();
-	// }
-	//
-	// Assert (false, "Failed to cast " + value.GetType ().Name + " to " +
-	// typeof(T).Name);
-	//
-	// return null;
-	// }
-	//
-	// // Convenience overloads for standard functions and actions of various
-	// // arities
-	// // Is there a better way of doing this?!
-	//
-	// /**
-	// * Bind a C# function to an ink EXTERNAL function declaration.
-	// */
-	// * <param name="funcName">EXTERNAL ink function name to bind to.</param>
-	// * <param name="func">The C# function to bind.</param>
-	// public void BindExternalFunction(String funcName, Func<Object> func)
-	// {
-	// Assert(func != null, "Can't bind a null function");
-	//
-	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
-	// Assert(args.Length == 0, "External function expected no arguments");
-	// return func();
-	// });
-	// }
-	//
-	// /**
-	// * Bind a C# Action to an ink EXTERNAL function declaration.
-	// */
-	// * <param name="funcName">EXTERNAL ink function name to bind to.</param>
-	// * <param name="act">The C# action to bind.</param>
-	// public void BindExternalFunction(String funcName, Action act)
-	// {
-	// Assert(act != null, "Can't bind a null function");
-	//
-	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
-	// Assert(args.Length == 0, "External function expected no arguments");
-	// act();
-	// return null;
-	// });
-	// }
-	//
-	// /**
-	// * Bind a C# function to an ink EXTERNAL function declaration.
-	// */
-	// * <param name="funcName">EXTERNAL ink function name to bind to.</param>
-	// * <param name="func">The C# function to bind.</param>
-	// public void BindExternalFunction<T>(String funcName, Func<T,Object>func)
-	// {
-	// Assert(func != null, "Can't bind a null function");
-	//
-	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
-	// Assert(args.Length == 1, "External function expected one argument");
-	// return func( (T)TryCoerce<T>(args[0]) );
-	// });
-	// }
-	//
-	// /**
-	// * Bind a C# action to an ink EXTERNAL function declaration.
-	// */
-	// * <param name="funcName">EXTERNAL ink function name to bind to.</param>
-	// * <param name="act">The C# action to bind.</param>
-	// public void BindExternalFunction<T>(String funcName, Action<T>act)
-	// {
-	// Assert(act != null, "Can't bind a null function");
-	//
-	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
-	// Assert(args.Length == 1, "External function expected one argument");
-	// act( (T)TryCoerce<T>(args[0]) );
-	// return null;
-	// });
-	// }
-	//
-	// /**
-	// * Bind a C# function to an ink EXTERNAL function declaration.
-	// */
-	// * <param name="funcName">EXTERNAL ink function name to bind to.</param>
-	// * <param name="func">The C# function to bind.</param>
-	// public void BindExternalFunction<T1,T2>(
-	// String funcName, Func<T1,T2,Object>func)
-	// {
-	// Assert(func != null, "Can't bind a null function");
-	//
-	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
-	// Assert(args.Length == 2, "External function expected two arguments");
-	// return func(
-	// (T1)TryCoerce<T1>(args[0]),
-	// (T2)TryCoerce<T2>(args[1])
-	// );
-	// });
-	// }
-	//
-	// /**
-	// * Bind a C# action to an ink EXTERNAL function declaration.
-	// */
-	// * <param name="funcName">EXTERNAL ink function name to bind to.</param>
-	// * <param name="act">The C# action to bind.</param>
-	// public void BindExternalFunction<T1,T2>(
-	// String funcName, Action<T1,T2>act)
-	// {
-	// Assert(act != null, "Can't bind a null function");
-	//
-	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
-	// Assert(args.Length == 2, "External function expected two arguments");
-	// act(
-	// (T1)TryCoerce<T1>(args[0]),
-	// (T2)TryCoerce<T2>(args[1])
-	// );
-	// return null;
-	// });
-	// }
-	//
-	// /**
-	// * Bind a C# function to an ink EXTERNAL function declaration.
-	// */
-	// * <param name="funcName">EXTERNAL ink function name to bind to.</param>
-	// * <param name="func">The C# function to bind.</param>
-	// public void BindExternalFunction<T1,T2,T3>(
-	// String funcName, Func<T1,T2,T3,Object>func)
-	// {
-	// Assert(func != null, "Can't bind a null function");
-	//
-	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
-	// Assert(args.Length == 3, "External function expected two arguments");
-	// return func(
-	// (T1)TryCoerce<T1>(args[0]),
-	// (T2)TryCoerce<T2>(args[1]),
-	// (T3)TryCoerce<T3>(args[2])
-	// );
-	// });
-	// }
-	//
-	// /**
-	// * Bind a C# action to an ink EXTERNAL function declaration.
-	// */
-	// * <param name="funcName">EXTERNAL ink function name to bind to.</param>
-	// * <param name="act">The C# action to bind.</param>
-	// public void BindExternalFunction<T1,T2,T3>(
-	// String funcName, Action<T1,T2,T3>act)
-	// {
-	// Assert(act != null, "Can't bind a null function");
-	//
-	// BindExternalFunctionGeneral (funcName, (Object[] args) => {
-	// Assert(args.Length == 3, "External function expected two arguments");
-	// act(
-	// (T1)TryCoerce<T1>(args[0]),
-	// (T2)TryCoerce<T2>(args[1]),
-	// (T3)TryCoerce<T3>(args[2])
-	// );
-	// return null;
-	// });
-	// }
+
+	@SuppressWarnings("unchecked")
+	<T> T tryCoerce(Object value, Class<T> type) throws Exception {
+
+		if (value == null)
+			return null;
+
+		if (value.getClass() == type)
+			return (T) value;
+
+		if (value instanceof Float && type == Integer.class) {
+			Integer intVal = (int) Math.round((Float) value);
+			return (T) intVal;
+		}
+
+		if (value instanceof Integer && type == Float.class) {
+			Float floatVal = Float.valueOf((Integer) value);
+			return (T) floatVal;
+		}
+
+		if (value instanceof Integer && type == Boolean.class) {
+			int intVal = (Integer) value;
+			return (T) (intVal == 0 ? new Boolean(false) : new Boolean(true));
+		}
+
+		if (type == String.class) {
+			return (T) value.toString();
+		}
+
+		Assert(false, "Failed to cast " + value.getClass().getCanonicalName() + " to " + type.getCanonicalName());
+
+		return null;
+	}
 
 	/**
 	 * Useful when debugging a (very short) story, to visualise the state of the
@@ -375,7 +229,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 						+ "' which has not been bound, and fallback ink function could not be found.");
 
 				// Divert direct into fallback function and we're done
-				state.getCallStack().Push(PushPopType.Function);
+				state.getCallStack().push(PushPopType.Function);
 				state.setDivertedTargetObject(fallbackFunctionContainer);
 				return;
 
@@ -441,7 +295,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		Choice choiceToChoose = choices.get(choiceIdx);
 		state.getCallStack().setCurrentThread(choiceToChoose.getThreadAtGeneration());
 
-		choosePath(choiceToChoose.getchoicePoint().getchoiceTarget().getPath());
+		choosePath(choiceToChoose.getchoicePoint().getChoiceTarget().getPath());
 	}
 
 	void choosePath(Path path) throws Exception {
@@ -607,9 +461,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				if (getCurrentChoices().size() == 0 && !getState().isDidSafeExit()) {
-					if (getState().getCallStack().CanPop(PushPopType.Tunnel)) {
+					if (getState().getCallStack().canPop(PushPopType.Tunnel)) {
 						error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-					} else if (getState().getCallStack().CanPop(PushPopType.Function)) {
+					} else if (getState().getCallStack().canPop(PushPopType.Function)) {
 						error("unexpectedly reached end of content. Do you need a '~ return'?");
 					} else if (!getState().getCallStack().canPop()) {
 						error("ran out of content. Do you need a '-> DONE' or '-> END'?");
@@ -709,7 +563,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	RTObject evaluateExpression(Container exprContainer) throws StoryException, Exception {
 		int startCallStackHeight = state.getCallStack().getElements().size();
 
-		state.getCallStack().Push(PushPopType.Tunnel);
+		state.getCallStack().push(PushPopType.Tunnel);
 
 		temporaryEvaluationContainer = exprContainer;
 
@@ -725,7 +579,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// have auto-popped, but just in case we didn't for some reason,
 		// manually pop to restore the state (including currentPath).
 		if (state.getCallStack().getElements().size() > startCallStackHeight) {
-			state.getCallStack().Pop();
+			state.getCallStack().pop();
 		}
 
 		int endStackHeight = state.getEvaluationStack().size();
@@ -749,7 +603,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// Don't include invisible choices for external usage.
 		List<Choice> choices = new ArrayList<Choice>();
 		for (Choice c : state.getCurrentChoices()) {
-			if (!c.getchoicePoint().getisInvisibleDefault()) {
+			if (!c.getchoicePoint().isInvisibleDefault()) {
 				c.setIndex(choices.size());
 				choices.add(c);
 			}
@@ -857,12 +711,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 			if (val instanceof DivertTargetValue) {
 				DivertTargetValue divTarget = (DivertTargetValue) val;
-				error("Shouldn't use a divert target (to " + divTarget.gettargetPath()
+				error("Shouldn't use a divert target (to " + divTarget.getTargetPath()
 						+ ") as a conditional value. Did you intend a function call 'likeThis()' or a read count check 'likeThis'? (no arrows)");
 				return false;
 			}
 
-			return val.getisTruthy();
+			return val.isTruthy();
 		}
 		return truthy;
 	}
@@ -959,8 +813,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			}
 
 			Value<?> val = (Value<?>) newValueObj;
-			
-			for(VariableObserver o:observers) {
+
+			for (VariableObserver o : observers) {
 				o.call(variableName, val.getValueRTObject());
 			}
 		}
@@ -1008,10 +862,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 			boolean didPop = false;
 
-			if (state.getCallStack().CanPop(PushPopType.Function)) {
+			if (state.getCallStack().canPop(PushPopType.Function)) {
 
 				// Pop from the call stack
-				state.getCallStack().Pop(PushPopType.Function);
+				state.getCallStack().pop(PushPopType.Function);
 
 				// This pop was due to dropping off the end of a function that
 				// didn't return anything,
@@ -1025,7 +879,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			}
 
 			else if (state.getCallStack().canPopThread()) {
-				state.getCallStack().PopThread();
+				state.getCallStack().popThread();
 
 				didPop = true;
 			}
@@ -1139,17 +993,17 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				DivertTargetValue target = (DivertTargetValue) varContents;
-				state.setDivertedTargetObject(ContentAtPath(target.gettargetPath()));
+				state.setDivertedTargetObject(ContentAtPath(target.getTargetPath()));
 
 			} else if (currentDivert.isExternal()) {
-				callExternalFunction(currentDivert.getTargetPathString(), currentDivert.getexternalArgs());
+				callExternalFunction(currentDivert.getTargetPathString(), currentDivert.getExternalArgs());
 				return true;
 			} else {
 				state.setDivertedTargetObject(currentDivert.getTargetContent());
 			}
 
-			if (currentDivert.getpushesToStack()) {
-				state.getCallStack().Push(currentDivert.stackPushType);
+			if (currentDivert.getPushesToStack()) {
+				state.getCallStack().push(currentDivert.getStackPushType());
 			}
 
 			if (state.getDivertedTargetObject() == null && !currentDivert.isExternal()) {
@@ -1242,7 +1096,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				else {
-					state.getCallStack().Pop();
+					state.getCallStack().pop();
 				}
 				break;
 
@@ -1311,8 +1165,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				DivertTargetValue divertTarget = target instanceof DivertTargetValue ? (DivertTargetValue) target
 						: null;
-				Container container = ContentAtPath(divertTarget.gettargetPath()) instanceof Container
-						? (Container) ContentAtPath(divertTarget.gettargetPath()) : null;
+				Container container = ContentAtPath(divertTarget.getTargetPath()) instanceof Container
+						? (Container) ContentAtPath(divertTarget.getTargetPath()) : null;
 
 				int turnCount = turnsSinceForContainer(container);
 				state.pushEvaluationStack(new IntValue(turnCount));
@@ -1340,7 +1194,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				// act of creating the thread, or in the context of
 				// evaluating the content.
 				if (state.getCallStack().canPopThread()) {
-					state.getCallStack().PopThread();
+					state.getCallStack().popThread();
 				}
 
 				// In normal flow - allow safe exit without warning
@@ -1385,9 +1239,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			RTObject foundValue = null;
 
 			// Explicit read count value
-			if (varRef.getpathForCount() != null) {
+			if (varRef.getPathForCount() != null) {
 
-				Container container = varRef.getcontainerForCount();
+				Container container = varRef.getContainerForCount();
 				int count = visitCountForContainer(container);
 				foundValue = new IntValue(count);
 			}
@@ -1395,10 +1249,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			// Normal variable reference
 			else {
 
-				foundValue = state.getVariablesState().getVariableWithName(varRef.getname());
+				foundValue = state.getVariablesState().getVariableWithName(varRef.getName());
 
 				if (foundValue == null) {
-					error("Uninitialised variable: " + varRef.getname());
+					error("Uninitialised variable: " + varRef.getName());
 					foundValue = new IntValue(0);
 				}
 			}
@@ -1426,7 +1280,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		boolean showChoice = true;
 
 		// Don't create choice if choice point doesn't pass conditional
-		if (choicePoint.gethasCondition()) {
+		if (choicePoint.hasCondition()) {
 			RTObject conditionValue = state.popEvaluationStack();
 			if (!isTruthy(conditionValue)) {
 				showChoice = false;
@@ -1436,26 +1290,26 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		String startText = "";
 		String choiceOnlyText = "";
 
-		if (choicePoint.gethasChoiceOnlyContent()) {
+		if (choicePoint.hasChoiceOnlyContent()) {
 			StringValue choiceOnlyStrVal = (StringValue) state.popEvaluationStack();
 			choiceOnlyText = choiceOnlyStrVal.value;
 		}
 
-		if (choicePoint.gethasStartContent()) {
+		if (choicePoint.hasStartContent()) {
 			StringValue startStrVal = (StringValue) state.popEvaluationStack();
 			startText = startStrVal.value;
 		}
 
 		// Don't create choice if player has already read this content
-		if (choicePoint.getonceOnly()) {
-			int visitCount = visitCountForContainer(choicePoint.getchoiceTarget());
+		if (choicePoint.isOnceOnly()) {
+			int visitCount = visitCountForContainer(choicePoint.getChoiceTarget());
 			if (visitCount > 0) {
 				showChoice = false;
 			}
 		}
 
 		Choice choice = new Choice(choicePoint);
-		choice.setThreadAtGeneration(state.getCallStack().getcurrentThread().Copy());
+		choice.setThreadAtGeneration(state.getCallStack().getcurrentThread().copy());
 
 		// We go through the full process of creating the choice above so
 		// that we consume the content for it, since otherwise it'll
@@ -1604,12 +1458,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			VariablePointerValue varPointer = currentContentObj instanceof VariablePointerValue
 					? (VariablePointerValue) currentContentObj : null;
 
-			if (varPointer != null && varPointer.getcontextIndex() == -1) {
+			if (varPointer != null && varPointer.getContextIndex() == -1) {
 
 				// Create new Object so we're not overwriting the story's own
 				// data
-				int contextIdx = state.getCallStack().ContextForVariableNamed(varPointer.getvariableName());
-				currentContentObj = new VariablePointerValue(varPointer.getvariableName(), contextIdx);
+				int contextIdx = state.getCallStack().contextForVariableNamed(varPointer.getVariableName());
+				currentContentObj = new VariablePointerValue(varPointer.getVariableName(), contextIdx);
 			}
 
 			// Expression evaluation content
@@ -1632,7 +1486,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		ControlCommand controlCmd = currentContentObj instanceof ControlCommand ? (ControlCommand) currentContentObj
 				: null;
 		if (controlCmd != null && controlCmd.getcommandType() == ControlCommand.CommandType.StartThread) {
-			state.getCallStack().PushThread();
+			state.getCallStack().pushThread();
 		}
 	}
 
@@ -1640,7 +1494,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * The Story itself in JSON representation.
 	 */
 	public String toJsonString() throws Exception {
-		List<?> rootContainerJsonList = (List<?>) Json.runtimeRTObjectToJToken(mainContentContainer);
+		List<?> rootContainerJsonList = (List<?>) Json.runtimeObjectToJToken(mainContentContainer);
 
 		HashMap<String, Object> rootObject = new HashMap<String, Object>();
 		rootObject.put("inkVersion", inkVersionCurrent);
@@ -1657,7 +1511,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// c.choicePoint.isInvisibleDefault).ToList();
 		ArrayList<Choice> invisibleChoices = new ArrayList<Choice>();
 		for (Choice c : allChoices) {
-			if (c.getchoicePoint().getisInvisibleDefault()) {
+			if (c.getchoicePoint().isInvisibleDefault()) {
 				invisibleChoices.add(c);
 			}
 		}
@@ -1667,7 +1521,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		Choice choice = invisibleChoices.get(0);
 
-		choosePath(choice.getchoicePoint().getchoiceTarget().getPath());
+		choosePath(choice.getchoicePoint().getChoiceTarget().getPath());
 
 		return true;
 	}

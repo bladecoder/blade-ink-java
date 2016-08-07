@@ -1,67 +1,32 @@
 package com.bladecoder.ink.runtime;
 
-import com.bladecoder.ink.runtime.FloatValue;
-import com.bladecoder.ink.runtime.IntValue;
-import com.bladecoder.ink.runtime.Value;
-import com.bladecoder.ink.runtime.ValueType;
-
 public class StringValue extends Value<String> {
-	@Override
-	public ValueType getvalueType() {
-		return ValueType.String;
-	}
+	private boolean isInlineWhitespace;
 
-	@Override
-	public boolean getisTruthy() {
-		return getValue().length() > 0;
-	}
+	private boolean isNewline;
 
-	private boolean __isNewline;
-
-	public boolean getisNewline() {
-		return __isNewline;
-	}
-
-	public void setisNewline(boolean value) {
-		__isNewline = value;
-	}
-
-	private boolean __isInlineWhitespace;
-
-	public boolean getisInlineWhitespace() {
-		return __isInlineWhitespace;
-	}
-
-	public void setisInlineWhitespace(boolean value) {
-		__isInlineWhitespace = value;
-	}
-
-	public boolean getisNonWhitespace() {
-		return !getisNewline() && !getisInlineWhitespace();
+	public StringValue() {
+		this("");
 	}
 
 	public StringValue(String str) {
 		super(str);
 		// Classify whitespace status
-		setisNewline("\n".equals(getValue()));
+		setIsNewline("\n".equals(getValue()));
 
-		setisInlineWhitespace(true);
+		setIsInlineWhitespace(true);
 		for (char c : getValue().toCharArray()) {
 			if (c != ' ' && c != '\t') {
-				setisInlineWhitespace(false);
+				setIsInlineWhitespace(false);
 				break;
 			}
 
 		}
 	}
 
-	public StringValue() throws Exception {
-		this("");
-	}
-
 	@Override
 	public AbstractValue cast(ValueType newType) throws Exception {
-		if (newType == getvalueType()) {
+		if (newType == getValueType()) {
 			return this;
 		}
 
@@ -86,6 +51,36 @@ public class StringValue extends Value<String> {
 		}
 
 		throw new Exception("Unexpected type cast of Value to new ValueType");
+	}
+
+	public boolean isInlineWhitespace() {
+		return isInlineWhitespace;
+	}
+
+	public boolean isNewline() {
+		return isNewline;
+	}
+
+	public boolean isNonWhitespace() {
+		return !isNewline() && !isInlineWhitespace();
+	}
+
+	@Override
+	public boolean isTruthy() {
+		return getValue().length() > 0;
+	}
+
+	@Override
+	public ValueType getValueType() {
+		return ValueType.String;
+	}
+
+	public void setIsInlineWhitespace(boolean value) {
+		isInlineWhitespace = value;
+	}
+
+	public void setIsNewline(boolean value) {
+		isNewline = value;
 	}
 
 }

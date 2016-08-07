@@ -1,141 +1,138 @@
 package com.bladecoder.ink.runtime;
 
 /**
-* The ChoicePoint represents the point within the Story where
-* a Choice instance gets generated. The distinction is made
-* because the text of the Choice can be dynamically generated.
-*/
-public class ChoicePoint extends RTObject 
-{
-    private Path __pathOnChoice;
-    public Path getpathOnChoice() {
-        return __pathOnChoice;
-    }
+ * The ChoicePoint represents the point within the Story where a Choice instance
+ * gets generated. The distinction is made because the text of the Choice can be
+ * dynamically generated.
+ */
+public class ChoicePoint extends RTObject {
+	private boolean hasChoiceOnlyContent;
 
-    public void setpathOnChoice(Path value) {
-        __pathOnChoice = value;
-    }
+	private boolean hasStartContent;
 
-    public Container getchoiceTarget() throws Exception {
-    	RTObject resolvePath = resolvePath(getpathOnChoice());
-    	
-        return resolvePath instanceof Container ? (Container)resolvePath : (Container)null;
-    }
+	private boolean isInvisibleDefault;
 
-    public String getpathStringOnChoice() throws Exception {
-        return compactPathString(getpathOnChoice());
-    }
+	private boolean onceOnly;
 
-    public void setpathStringOnChoice(String value) throws Exception {
-        setpathOnChoice(new Path(value));
-    }
+	private boolean hasCondition;
 
-    private boolean __hasCondition;
-    public boolean gethasCondition() {
-        return __hasCondition;
-    }
+	private Path pathOnChoice;
 
-    public void sethasCondition(boolean value) {
-        __hasCondition = value;
-    }
+	public ChoicePoint() throws Exception {
+		this(true);
+	}
 
-    private boolean __hasStartContent;
-    public boolean gethasStartContent() {
-        return __hasStartContent;
-    }
+	public ChoicePoint(boolean onceOnly) {
+		this.setOnceOnly(onceOnly);
+	}
 
-    public void sethasStartContent(boolean value) {
-        __hasStartContent = value;
-    }
+	public Container getChoiceTarget() throws Exception {
+		RTObject resolvePath = resolvePath(getPathOnChoice());
 
-    private boolean __hasChoiceOnlyContent;
-    public boolean gethasChoiceOnlyContent() {
-        return __hasChoiceOnlyContent;
-    }
+		return resolvePath instanceof Container ? (Container) resolvePath : (Container) null;
+	}
 
-    public void sethasChoiceOnlyContent(boolean value) {
-        __hasChoiceOnlyContent = value;
-    }
+	public int getFlags() {
+		int flags = 0;
+		if (hasCondition())
+			flags |= 1;
 
-    private boolean __onceOnly;
-    public boolean getonceOnly() {
-        return __onceOnly;
-    }
+		if (hasStartContent())
+			flags |= 2;
 
-    public void setonceOnly(boolean value) {
-        __onceOnly = value;
-    }
+		if (hasChoiceOnlyContent())
+			flags |= 4;
 
-    private boolean __isInvisibleDefault;
-    public boolean getisInvisibleDefault() {
-        return __isInvisibleDefault;
-    }
+		if (isInvisibleDefault())
+			flags |= 8;
 
-    public void setisInvisibleDefault(boolean value) {
-        __isInvisibleDefault = value;
-    }
+		if (isOnceOnly())
+			flags |= 16;
 
-    public int getflags() throws Exception {
-        int flags = 0;
-        if (gethasCondition())
-            flags |= 1;
-         
-        if (gethasStartContent())
-            flags |= 2;
-         
-        if (gethasChoiceOnlyContent())
-            flags |= 4;
-         
-        if (getisInvisibleDefault())
-            flags |= 8;
-         
-        if (getonceOnly())
-            flags |= 16;
-         
-        return flags;
-    }
+		return flags;
+	}
 
-    public void setflags(int value) throws Exception {
-        sethasCondition((value & 1) > 0);
-        sethasStartContent((value & 2) > 0);
-        sethasChoiceOnlyContent((value & 4) > 0);
-        setisInvisibleDefault((value & 8) > 0);
-        setonceOnly((value & 16) > 0);
-    }
+	public boolean hasChoiceOnlyContent() {
+		return hasChoiceOnlyContent;
+	}
 
-    public ChoicePoint(boolean onceOnly) throws Exception {
-        this.setonceOnly(onceOnly);
-    }
+	public boolean hasCondition() {
+		return hasCondition;
+	}
 
-    public ChoicePoint() throws Exception {
-        this(true);
-    }
+	public boolean hasStartContent() {
+		return hasStartContent;
+	}
 
-    public String toString() {
-        try
-        {
-            Integer targetLineNum = debugLineNumberOfPath(getpathOnChoice());
-            
-            String targetString = getpathOnChoice().toString();
-            
-            if (targetLineNum != null)
-            {
-                targetString = " line " + targetLineNum;
-            }
-             
-            return "Choice: -> " + targetString;
-        }
-        catch (RuntimeException __dummyCatchVar0)
-        {
-            throw __dummyCatchVar0;
-        }
-        catch (Exception __dummyCatchVar0)
-        {
-            throw new RuntimeException(__dummyCatchVar0);
-        }
-    
-    }
+	public boolean isInvisibleDefault() {
+		return isInvisibleDefault;
+	}
+
+	public boolean isOnceOnly() {
+		return onceOnly;
+	}
+
+	public Path getPathOnChoice() {
+
+		return pathOnChoice;
+	}
+
+	public String getPathStringOnChoice() {
+		return compactPathString(getPathOnChoice());
+	}
+
+	public void setFlags(int value) {
+		setHasCondition((value & 1) > 0);
+		setHasStartContent((value & 2) > 0);
+		setHasChoiceOnlyContent((value & 4) > 0);
+		setIsInvisibleDefault((value & 8) > 0);
+		setOnceOnly((value & 16) > 0);
+	}
+
+	public void setHasChoiceOnlyContent(boolean value) {
+		hasChoiceOnlyContent = value;
+	}
+
+	public void setHasCondition(boolean value) {
+		hasCondition = value;
+	}
+
+	public void setHasStartContent(boolean value) {
+		hasStartContent = value;
+	}
+
+	public void setIsInvisibleDefault(boolean value) {
+		isInvisibleDefault = value;
+	}
+
+	public void setOnceOnly(boolean value) {
+		onceOnly = value;
+	}
+
+	public void setPathOnChoice(Path value) {
+		pathOnChoice = value;
+	}
+
+	public void setPathStringOnChoice(String value) {
+		setPathOnChoice(new Path(value));
+	}
+
+	@Override
+	public String toString() {
+		try {
+			Integer targetLineNum = debugLineNumberOfPath(getPathOnChoice());
+
+			String targetString = getPathOnChoice().toString();
+
+			if (targetLineNum != null) {
+				targetString = " line " + targetLineNum;
+			}
+
+			return "Choice: -> " + targetString;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+	}
 
 }
-
-

@@ -8,9 +8,11 @@ public class NativeFunctionCall extends RTObject {
 	static interface BinaryOp {
 		Object invoke(Object left, Object right);
 	}
+
 	static interface UnaryOp {
 		Object invoke(Object val);
 	}
+
 	public static final String Add = "+";
 	public static final String And = "&&";
 	public static final String Divide = "/";
@@ -33,23 +35,23 @@ public class NativeFunctionCall extends RTObject {
 
 	public static final String Subtract = "-";
 
-	static void addFloatBinaryOp(String name, BinaryOp op) throws Exception {
+	static void addFloatBinaryOp(String name, BinaryOp op) {
 		addOpToNativeFunc(name, 2, ValueType.Float, op);
 	}
 
-	static void addFloatUnaryOp(String name, UnaryOp op) throws Exception {
+	static void addFloatUnaryOp(String name, UnaryOp op) {
 		addOpToNativeFunc(name, 1, ValueType.Float, op);
 	}
 
-	static void addIntBinaryOp(String name, BinaryOp op) throws Exception {
+	static void addIntBinaryOp(String name, BinaryOp op) {
 		addOpToNativeFunc(name, 2, ValueType.Int, op);
 	}
 
-	static void addIntUnaryOp(String name, UnaryOp op) throws Exception {
+	static void addIntUnaryOp(String name, UnaryOp op) {
 		addOpToNativeFunc(name, 1, ValueType.Int, op);
 	}
 
-	static void addOpToNativeFunc(String name, int args, ValueType valType, Object op) throws Exception {
+	static void addOpToNativeFunc(String name, int args, ValueType valType, Object op) {
 		NativeFunctionCall nativeFunc = nativeFunctions.get(name);
 
 		// Operations for each data type, for a single operation (e.g. "+")
@@ -62,21 +64,20 @@ public class NativeFunctionCall extends RTObject {
 		nativeFunc.addOpFuncForType(valType, op);
 	}
 
-	static void addStringBinaryOp(String name, BinaryOp op) throws Exception {
+	static void addStringBinaryOp(String name, BinaryOp op) {
 		addOpToNativeFunc(name, 2, ValueType.String, op);
 	}
 
-	public static boolean callExistsWithName(String functionName) throws Exception {
+	public static boolean callExistsWithName(String functionName) {
 		generateNativeFunctionsIfNecessary();
 		return nativeFunctions.containsKey(functionName);
 	}
 
-	public static NativeFunctionCall callWithName(String functionName) throws Exception {
+	public static NativeFunctionCall callWithName(String functionName) {
 		return new NativeFunctionCall(functionName);
 	}
 
-	// TODO
-	static void generateNativeFunctionsIfNecessary() throws Exception {
+	static void generateNativeFunctionsIfNecessary() {
 		if (nativeFunctions == null) {
 			nativeFunctions = new HashMap<String, NativeFunctionCall>();
 
@@ -352,23 +353,23 @@ public class NativeFunctionCall extends RTObject {
 	private NativeFunctionCall prototype;
 
 	// Require default constructor for serialisation
-	public NativeFunctionCall() throws Exception {
+	public NativeFunctionCall() {
 		generateNativeFunctionsIfNecessary();
 	}
 
-	public NativeFunctionCall(String name) throws Exception {
+	public NativeFunctionCall(String name) {
 		generateNativeFunctionsIfNecessary();
 		this.setName(name);
 	}
 
 	// Only called internally to generate prototypes
-	NativeFunctionCall(String name, int numberOfParamters) throws Exception {
+	NativeFunctionCall(String name, int numberOfParamters) {
 		isPrototype = true;
 		this.setName(name);
 		this.setNumberOfParameters(numberOfParamters);
 	}
 
-	void addOpFuncForType(ValueType valType, Object op) throws Exception {
+	void addOpFuncForType(ValueType valType, Object op) {
 		if (operationFuncs == null) {
 			operationFuncs = new HashMap<ValueType, Object>();
 		}
@@ -394,7 +395,7 @@ public class NativeFunctionCall extends RTObject {
 		}
 
 		List<Value<?>> coercedParams = coerceValuesToSingleType(parameters);
-		ValueType coercedType = coercedParams.get(0).getvalueType();
+		ValueType coercedType = coercedParams.get(0).getValueType();
 
 		// Originally CallType gets a type parameter taht is used to do some
 		// casting, but we can do without.
@@ -412,10 +413,10 @@ public class NativeFunctionCall extends RTObject {
 
 	}
 
-	private RTObject callType(List<Value<?>> parametersOfSingleType) throws Exception {
+	private RTObject callType(List<Value<?>> parametersOfSingleType) throws StoryException, Exception {
 
 		Value<?> param1 = parametersOfSingleType.get(0);
-		ValueType valType = param1.getvalueType();
+		ValueType valType = param1.getValueType();
 		Value<?> val1 = param1;
 
 		int paramCount = parametersOfSingleType.size();
@@ -445,9 +446,7 @@ public class NativeFunctionCall extends RTObject {
 
 				return AbstractValue.create(resultVal);
 			}
-		} else
-
-		{
+		} else {
 			throw new Exception(
 					"Unexpected number of parameters to NativeFunctionCall: " + parametersOfSingleType.size());
 		}
@@ -462,50 +461,47 @@ public class NativeFunctionCall extends RTObject {
 			// use the same type on both sides. e.g. binary operation of
 			// int and float causes the int to be casted to a float.
 			Value<?> val = (Value<?>) obj;
-			if (val.getvalueType().ordinal() > valType.ordinal()) {
-				valType = val.getvalueType();
+			if (val.getValueType().ordinal() > valType.ordinal()) {
+				valType = val.getValueType();
 			}
 
 		}
 		// // Coerce to this chosen type
 		ArrayList<Value<?>> parametersOut = new ArrayList<Value<?>>();
-		for (RTObject __dummyForeachVar2 : parametersIn) {
-			Value<?> val = (Value<?>) __dummyForeachVar2;
+		for (RTObject p : parametersIn) {
+			Value<?> val = (Value<?>) p;
 			Value<?> castedValue = (Value<?>) val.cast(valType);
 			parametersOut.add(castedValue);
 		}
 		return parametersOut;
 	}
 
-	public String getName() throws Exception {
+	public String getName() {
 		return name;
 	}
 
-	public int getNumberOfParameters() throws Exception {
+	public int getNumberOfParameters() {
 		if (prototype != null) {
 			return prototype.getNumberOfParameters();
 		} else {
 			return numberOfParameters;
 		}
 	}
-	public void setName(String value) throws Exception {
+
+	public void setName(String value) {
 		name = value;
 		if (!isPrototype)
 			prototype = nativeFunctions.get(name);
 
 	}
+
 	public void setNumberOfParameters(int value) {
 		numberOfParameters = value;
 	}
+
 	@Override
 	public String toString() {
-		try {
-			return "Native '" + getName() + "'";
-		} catch (RuntimeException __dummyCatchVar0) {
-			throw __dummyCatchVar0;
-		} catch (Exception __dummyCatchVar0) {
-			throw new RuntimeException(__dummyCatchVar0);
-		}
+		return "Native '" + getName() + "'";
 
 	}
 }

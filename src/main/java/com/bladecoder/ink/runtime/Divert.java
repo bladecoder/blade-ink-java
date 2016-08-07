@@ -9,13 +9,13 @@ public class Divert extends RTObject {
 
 	private boolean pushesToStack;
 
-	private String variableDivertName;
+	private PushPopType stackPushType = PushPopType.Tunnel;
 
 	private RTObject targetContent;
 
 	private Path targetPath;
 
-	public PushPopType stackPushType = PushPopType.Tunnel;
+	private String variableDivertName;
 
 	public Divert() {
 		setPushesToStack(false);
@@ -23,7 +23,7 @@ public class Divert extends RTObject {
 
 	public Divert(PushPopType stackPushType) {
 		setPushesToStack(true);
-		this.stackPushType = stackPushType;
+		this.setStackPushType(stackPushType);
 	}
 
 	public boolean equals(RTObject obj) {
@@ -41,31 +41,22 @@ public class Divert extends RTObject {
 			}
 
 			return false;
-		} catch (RuntimeException __dummyCatchVar0) {
-			throw __dummyCatchVar0;
-		} catch (Exception __dummyCatchVar0) {
-			throw new RuntimeException(__dummyCatchVar0);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 
 	}
 
-	public int getexternalArgs() {
+	public int getExternalArgs() {
 		return externalArgs;
 	}
 
-	public boolean hasVariableTarget() {
-		return getVariableDivertName() != null;
-	}
-
-	public boolean isConditional() {
-		return isConditional;
-	}
-
-	public boolean isExternal() {
-		return isExternal;
-	}
-	public boolean getpushesToStack() {
+	public boolean getPushesToStack() {
 		return pushesToStack;
+	}
+
+	public PushPopType getStackPushType() {
+		return stackPushType;
 	}
 
 	public RTObject getTargetContent() throws Exception {
@@ -119,8 +110,16 @@ public class Divert extends RTObject {
 
 	}
 
-	public void setExternalArgs(int value) {
-		externalArgs = value;
+	public boolean hasVariableTarget() {
+		return getVariableDivertName() != null;
+	}
+
+	public boolean isConditional() {
+		return isConditional;
+	}
+
+	public boolean isExternal() {
+		return isExternal;
 	}
 
 	public void setConditional(boolean value) {
@@ -131,8 +130,16 @@ public class Divert extends RTObject {
 		isExternal = value;
 	}
 
+	public void setExternalArgs(int value) {
+		externalArgs = value;
+	}
+
 	public void setPushesToStack(boolean value) {
 		pushesToStack = value;
+	}
+
+	public void setStackPushType(PushPopType stackPushType) {
+		this.stackPushType = stackPushType;
 	}
 
 	public void setTargetPath(Path value) {
@@ -168,8 +175,8 @@ public class Divert extends RTObject {
 				}
 
 				sb.append("Divert");
-				if (getpushesToStack()) {
-					if (stackPushType == PushPopType.Function) {
+				if (getPushesToStack()) {
+					if (getStackPushType() == PushPopType.Function) {
 						sb.append(" function");
 					} else {
 						sb.append(" tunnel");
