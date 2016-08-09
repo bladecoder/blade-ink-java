@@ -64,11 +64,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * possible to write a client-side C# external function, but you don't want
 	 * it to fail to run.
 	 */
-	public boolean allowExternalFunctionFallbacks;
+	private boolean allowExternalFunctionFallbacks;
 
 	private HashMap<String, ExternalFunction> externals;
 
-	boolean hasValidatedExternals;
+	private boolean hasValidatedExternals;
 
 	private StoryState state;
 
@@ -222,7 +222,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (func == null) {
 			if (allowExternalFunctionFallbacks) {
 
-				RTObject contentAtPath = ContentAtPath(new Path(funcName));
+				RTObject contentAtPath = contentAtPath(new Path(funcName));
 				fallbackFunctionContainer = contentAtPath instanceof Container ? (Container) contentAtPath : null;
 
 				Assert(fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName
@@ -325,7 +325,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		choosePath(new Path(path));
 	}
 
-	RTObject ContentAtPath(Path path) throws Exception {
+	RTObject contentAtPath(Path path) throws Exception {
 		return mainContentContainer().contentAtPath(path);
 	}
 
@@ -460,7 +460,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					error("Thread available to pop, threads should always be flat by the end of evaluation?");
 				}
 
-				if (getCurrentChoices().size() == 0 && !getState().isDidSafeExit()) {
+				if (getCurrentChoices().size() == 0 && !getState().isDidSafeExit()
+						&& temporaryEvaluationContainer == null) {
 					if (getState().getCallStack().canPop(PushPopType.Tunnel)) {
 						error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
 					} else if (getState().getCallStack().canPop(PushPopType.Function)) {
@@ -510,7 +511,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// Try to get from the current path first
 		RTObject currentContent = state.getCurrentContentObject();
 		if (currentContent != null) {
-			dm = currentContent.debugMetadata;
+			dm = currentContent.getDebugMetadata();
 			if (dm != null) {
 				return dm;
 			}
@@ -519,8 +520,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// Move up callstack if possible
 		for (int i = state.getCallStack().getElements().size() - 1; i >= 0; --i) {
 			RTObject currentObj = state.getCallStack().getElements().get(i).currentRTObject;
-			if (currentObj != null && currentObj.debugMetadata != null) {
-				return currentObj.debugMetadata;
+			if (currentObj != null && currentObj.getDebugMetadata() != null) {
+				return currentObj.getDebugMetadata();
 			}
 		}
 
@@ -529,7 +530,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// As a last resort, try to grab something from the output stream
 		for (int i = state.getOutputStream().size() - 1; i >= 0; --i) {
 			RTObject outputObj = state.getOutputStream().get(i);
-			dm = outputObj.debugMetadata;
+			dm = outputObj.getDebugMetadata();
 			if (dm != null) {
 				return dm;
 			}
@@ -993,7 +994,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				DivertTargetValue target = (DivertTargetValue) varContents;
-				state.setDivertedTargetObject(ContentAtPath(target.getTargetPath()));
+				state.setDivertedTargetObject(contentAtPath(target.getTargetPath()));
 
 			} else if (currentDivert.isExternal()) {
 				callExternalFunction(currentDivert.getTargetPathString(), currentDivert.getExternalArgs());
@@ -1010,8 +1011,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				// Human readable name available - runtime divert is part of a
 				// hard-written divert that to missing content
-				if (currentDivert != null && currentDivert.debugMetadata.sourceName != null) {
-					error("Divert target doesn't exist: " + currentDivert.debugMetadata.sourceName);
+				if (currentDivert != null && currentDivert.getDebugMetadata().sourceName != null) {
+					error("Divert target doesn't exist: " + currentDivert.getDebugMetadata().sourceName);
 				} else {
 					error("Divert resolution failed: " + currentDivert);
 				}
@@ -1165,8 +1166,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				DivertTargetValue divertTarget = target instanceof DivertTargetValue ? (DivertTargetValue) target
 						: null;
-				Container container = ContentAtPath(divertTarget.getTargetPath()) instanceof Container
-						? (Container) ContentAtPath(divertTarget.getTargetPath()) : null;
+				Container container = contentAtPath(divertTarget.getTargetPath()) instanceof Container
+						? (Container) contentAtPath(divertTarget.getTargetPath()) : null;
 
 				int turnCount = turnsSinceForContainer(container);
 				state.pushEvaluationStack(new IntValue(turnCount));
@@ -1528,7 +1529,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	int turnsSinceForContainer(Container container) throws Exception {
 		if (!container.getTurnIndexShouldBeCounted()) {
-			error("TURNS_SINCE() for target (" + container.getName() + " - on " + container.debugMetadata
+			error("TURNS_SINCE() for target (" + container.getName() + " - on " + container.getDebugMetadata()
 					+ ") unknown. The story may need to be compiled with countAllVisits flag (-c).");
 		}
 
@@ -1584,10 +1585,23 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				INamedContent fallbackFunction = mainContentContainer().getNamedContent().get(name);
 
+				String message = null;
+
 				if (!allowExternalFunctionFallbacks)
-					error("Missing function binding for external '" + name + "' (ink fallbacks disabled)");
+					message = "Missing function binding for external '" + name + "' (ink fallbacks disabled)";
 				else if (fallbackFunction == null) {
-					error("Missing function binding for external '" + name + "', and no fallback ink function found.");
+					message = "Missing function binding for external '" + name
+							+ "', and no fallback ink function found.";
+				}
+
+				if (message != null) {
+					String errorPreamble = "ERROR: ";
+					if (divert.getDebugMetadata() != null) {
+						errorPreamble += String.format("'{0}' line {1}: ", divert.getDebugMetadata().fileName,
+								divert.getDebugMetadata().startLineNumber);
+					}
+
+					throw new StoryException(errorPreamble + message);
 				}
 			}
 		}
@@ -1658,7 +1672,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	int visitCountForContainer(Container container) throws Exception {
 		if (!container.getVisitsShouldBeCounted()) {
-			error("Read count for target (" + container.getName() + " - on " + container.debugMetadata
+			error("Read count for target (" + container.getName() + " - on " + container.getDebugMetadata()
 					+ ") unknown. The story may need to be compiled with countAllVisits flag (-c).");
 			return 0;
 		}
@@ -1666,5 +1680,153 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		String containerPathStr = container.getPath().toString();
 		Integer count = state.getVisitCounts().get(containerPathStr);
 		return count == null ? 0 : count;
+	}
+
+	public boolean allowExternalFunctionFallbacks() {
+		return allowExternalFunctionFallbacks;
+	}
+
+	public void setAllowExternalFunctionFallbacks(boolean allowExternalFunctionFallbacks) {
+		this.allowExternalFunctionFallbacks = allowExternalFunctionFallbacks;
+	}
+
+	/**
+	 * Evaluates a function defined in ink.
+	 * 
+	 * @param functionName
+	 *            The name of the function as declared in ink.
+	 * @param arguments
+	 *            The arguments that the ink function takes, if any. Note that
+	 *            we don't (can't) do any validation on the number of arguments
+	 *            right now, so make sure you get it right!
+	 * @return The return value as returned from the ink function with `~ return
+	 *         myValue`, or null if nothing is returned.
+	 * @throws Exception
+	 */
+	public Object evaluateFunction(String functionName, Object[] arguments) throws Exception {
+		return evaluateFunction(functionName, null, arguments);
+	}
+
+	/**
+	 * Checks if a function exists.
+	 * 
+	 * @returns True if the function exists, else false.
+	 * @param functionName
+	 *            The name of the function as declared in ink.
+	 */
+	public boolean hasFunction(String functionName) throws Exception {
+		try {
+			return contentAtPath(new Path(functionName)) instanceof Container;
+		} catch (StoryException e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Evaluates a function defined in ink, and gathers the possibly multi-line
+	 * text as generated by the function.
+	 * 
+	 * @param arguments
+	 *            The arguments that the ink function takes, if any. Note that
+	 *            we don't (can't) do any validation on the number of arguments
+	 *            right now, so make sure you get it right!
+	 * @param functionName
+	 *            The name of the function as declared in ink.
+	 * @param textOutput
+	 *            This text output is any text written as normal content within
+	 *            the function, as opposed to the return value, as returned with
+	 *            `~ return`.
+	 * @return The return value as returned from the ink function with `~ return
+	 *         myValue`, or null if nothing is returned.
+	 * @throws Exception
+	 */
+	public Object evaluateFunction(String functionName, StringBuffer textOutput, Object[] arguments) throws Exception {
+		Container funcContainer = null;
+
+		try {
+			RTObject contentAtPath = contentAtPath(new Path(functionName));
+			if (contentAtPath instanceof Container)
+				funcContainer = (Container) contentAtPath;
+		} catch (StoryException e) {
+			if (e.getMessage().contains("not found"))
+				throw new Exception("Function doesn't exist: '" + functionName + "'");
+			else
+				throw e;
+		}
+
+		// We'll start a new callstack, so keep hold of the original,
+		// as well as the evaluation stack so we know if the function
+		// returned something
+		CallStack originalCallstack = state.getCallStack();
+		int originalEvaluationStackHeight = state.getEvaluationStack().size();
+
+		// Create a new base call stack element.
+		// By making it point at element 0 of the base, when NextContent is
+		// called, it'll actually step past the entire content of the game (!)
+		// and straight onto the Done. Bit of a hack :-/ We don't really have
+		// a better way of creating a temporary context that ends correctly.
+		state.setCallStack(new CallStack(mainContentContainer));
+		state.getCallStack().currentElement().currentContainer = mainContentContainer;
+		state.getCallStack().currentElement().currentContentIndex = 0;
+
+		if (arguments != null) {
+			for (int i = 0; i < arguments.length; i++) {
+				if (!(arguments[i] instanceof Integer || arguments[i] instanceof Float
+						|| arguments[i] instanceof String)) {
+					throw new IllegalArgumentException(
+							"ink arguments when calling EvaluateFunction must be int, float or string");
+				}
+
+				state.getEvaluationStack().add(Value.create(arguments[i]));
+			}
+		}
+
+		// Jump into the function!
+		state.getCallStack().push(PushPopType.Function);
+		state.setCurrentContentObject(funcContainer);
+
+		// Evaluate the function, and collect the string output
+		while (canContinue()) {
+			String text = Continue();
+
+			if (textOutput != null)
+				textOutput.append(text);
+		}
+
+		// Restore original stack
+		state.setCallStack(originalCallstack);
+
+		// Do we have a returned value?
+		// Potentially pop multiple values off the stack, in case we need
+		// to clean up after ourselves (e.g. caller of EvaluateFunction may
+		// have passed too many arguments, and we currently have no way to check
+		// for that)
+		RTObject returnedObj = null;
+		while (state.getEvaluationStack().size() > originalEvaluationStackHeight) {
+			RTObject poppedObj = state.popEvaluationStack();
+			if (returnedObj == null)
+				returnedObj = poppedObj;
+		}
+
+		if (returnedObj != null) {
+			if (returnedObj instanceof Void)
+				return null;
+
+			// Some kind of value, if not void
+			Value<?> returnVal = (Value<?>) returnedObj;
+
+			// DivertTargets get returned as the string of components
+			// (rather than a Path, which isn't public)
+			if (returnVal.getValueType() == ValueType.DivertTarget) {
+				return returnVal.getValueRTObject().toString();
+			}
+
+			// Other types can just have their exact object type:
+			// int, float, string. VariablePointers get returned as strings.
+			return returnVal.getValueRTObject();
+
+		}
+
+		return null;
 	}
 }
