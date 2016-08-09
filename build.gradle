@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'signing'
+apply plugin: 'maven'
 
 group = 'com.bladecoder.ink'
 
@@ -12,6 +13,45 @@ repositories {
 
 dependencies {
     testCompile 'junit:junit:4.12'
+}
+
+jar {
+	manifest.attributes += [
+			'github': 'https://github.com/bladecoder/blade-ink/',
+			'license': 'Apache-2.0',
+			'group': project.group,
+			'version': project.version,
+			'java': targetCompatibility,
+			'timestamp': System.currentTimeMillis()
+	]
+}
+
+javadoc {
+	title = "Blade Ink"
+	options {
+		memberLevel = JavadocMemberLevel.PUBLIC
+		author true
+		setUse true
+    		encoding "UTF-8"
+	}
+}
+
+
+task enginedocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from 'build/docs/javadoc'
+}
+
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+artifacts {
+    archives jar
+    archives enginedocJar
+    archives sourcesJar
 }
 
 def isDevBuild

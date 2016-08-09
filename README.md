@@ -66,4 +66,27 @@ Here's a taster of the code you need to get started:
 
 From there on, you can follow [the official guide](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#getting-started-with-the-runtime-api). All functions are named exactly the same.
 
+## Integration
+
+The **blade-ink** library is available in the Maven archives.
+
+### Gradle
+
+Add the following line to your build.gradle file under the dependencies section of the core project:
+
+```
+compile "com.bladecoder.ink:ink-engine:{version}"
+```
+
+Replace **{version}** with the newest version number!
+
+Then simply right-click the project and choose `Gradle->Refresh All`.
+
+### Maven
+
+Right-click on your project and choose `Maven->Add Dependency` and search for **bladecoder**. Make sure to choose the most recent version if multiple appear!
+
+### Eclipse
+
+First, clone this project to your computer and add it to Eclipse. Then simply click on your project, and choose `Build Path->Configure Build Path`. Then go to `Projects->Add` and add the cloned project.
 
