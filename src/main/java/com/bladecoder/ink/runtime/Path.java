@@ -22,8 +22,14 @@ public class Path {
 	}
 
 	public Path(Collection<Component> components) {
+		this(components, false);
+	}
+	
+	public Path(Collection<Component> components, boolean relative) {
 		this();
 		getComponents().addAll(components);
+		
+		this.isRelative = relative;
 	}
 
 	public Path(String componentsString) {
@@ -43,7 +49,7 @@ public class Path {
 		return isRelative;
 	}
 
-	public void setRelative(boolean value) {
+	private void setRelative(boolean value) {
 		isRelative = value;
 	}
 
@@ -135,9 +141,15 @@ public class Path {
 			return compsStr;
 	}
 
-	public void setComponentsString(String value) {
+	private void setComponentsString(String value) {
 		getComponents().clear();
 		String componentsStr = value;
+
+		// Empty path, empty components
+		// (path is to root, like "/" in file system)
+		if (componentsStr == null || componentsStr.isEmpty())
+			return;
+
 		// When components start with ".", it indicates a relative path, e.g.
 		// .^.^.hello.5
 		// is equivalent to file system style path:
@@ -145,6 +157,8 @@ public class Path {
 		if (componentsStr.charAt(0) == '.') {
 			setRelative(true);
 			componentsStr = componentsStr.substring(1);
+		} else {
+			setRelative(false);
 		}
 
 		String[] componentStrings = componentsStr.split("\\.");

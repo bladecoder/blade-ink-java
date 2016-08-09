@@ -152,8 +152,7 @@ public class RTObject {
 			newPathComps.add(com.bladecoder.ink.runtime.Path.Component.toParent());
 		for (int down = lastSharedPathCompIndex + 1; down < globalPath.getComponents().size(); ++down)
 			newPathComps.add(globalPath.getComponents().get(down));
-		Path relativePath = new Path(newPathComps);
-		relativePath.setRelative(true);
+		Path relativePath = new Path(newPathComps, true);
 		return relativePath;
 	}
 
