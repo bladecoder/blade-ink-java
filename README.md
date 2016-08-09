@@ -70,19 +70,19 @@ From there on, you can follow [the official guide](https://github.com/inkle/ink/
 
 The **blade-ink** library is available in the Maven archives.
 
-### Gradle
+### Using with Gradle
 
 Add the following line to your build.gradle file under the dependencies section of the core project:
 
 ```
-compile "com.bladecoder.ink:ink-engine:{version}"
+compile "com.bladecoder.ink:blade-ink:{version}"
 ```
 
 Replace **{version}** with the newest version number!
 
 Then simply right-click the project and choose `Gradle->Refresh All`.
 
-### Maven
+### Using with Maven
 
 Right-click on your project and choose `Maven->Add Dependency` and search for **bladecoder**. Make sure to choose the most recent version if multiple appear!
 
