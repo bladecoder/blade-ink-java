@@ -24,7 +24,7 @@ public class RTObject {
 	// TODO: Come up with some clever solution for not having
 	// to have debug metadata on the RTObject itself, perhaps
 	// for serialisation purposes at least.
-	DebugMetadata debugMetadata;
+	private DebugMetadata debugMetadata;
 
 	public RTObject getParent() {
 		return parent;
@@ -34,7 +34,7 @@ public class RTObject {
 		parent = value;
 	}
 
-	public DebugMetadata getDebugMetadata() throws Exception {
+	public DebugMetadata getDebugMetadata() {
 		if (debugMetadata == null) {
 			if (getParent() != null) {
 				return getParent().getDebugMetadata();
@@ -44,7 +44,7 @@ public class RTObject {
 		return debugMetadata;
 	}
 
-	public void setDebugMetadata(DebugMetadata value) throws Exception {
+	public void setDebugMetadata(DebugMetadata value) {
 		debugMetadata = value;
 	}
 

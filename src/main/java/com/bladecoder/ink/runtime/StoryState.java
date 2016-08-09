@@ -477,7 +477,7 @@ public class StoryState {
 
 	void setCurrentPath(Path value) throws Exception {
 		if (value != null)
-			setCurrentContentObject(story.ContentAtPath(value));
+			setCurrentContentObject(story.contentAtPath(value));
 		else
 			setCurrentContentObject(null);
 	}
@@ -520,7 +520,7 @@ public class StoryState {
 		Object currentDivertTargetPath = jObject.get("currentDivertTarget");
 		if (currentDivertTargetPath != null) {
 			Path divertPath = new Path(currentDivertTargetPath.toString());
-			setDivertedTargetObject(story.ContentAtPath(divertPath));
+			setDivertedTargetObject(story.contentAtPath(divertPath));
 		}
 
 		visitCounts = Json.jObjectToIntHashMap((HashMap<String, Object>) jObject.get("visitCounts"));
@@ -532,7 +532,7 @@ public class StoryState {
 		HashMap<String, Object> jChoiceThreads = (HashMap<String, Object>) jChoiceThreadsObj;
 
 		for (Choice c : currentChoices) {
-			c.setChoicePoint((ChoicePoint) story.ContentAtPath(new Path(c.originalChoicePath)));
+			c.setChoicePoint((ChoicePoint) story.contentAtPath(new Path(c.originalChoicePath)));
 
 			Thread foundActiveThread = callStack.getThreadWithIndex(c.originalThreadIndex);
 			if (foundActiveThread != null) {
@@ -742,5 +742,9 @@ public class StoryState {
 
 	public void setDidSafeExit(boolean didSafeExit) {
 		this.didSafeExit = didSafeExit;
+	}
+
+	void setCallStack(CallStack cs) {
+		callStack = cs;
 	}
 }

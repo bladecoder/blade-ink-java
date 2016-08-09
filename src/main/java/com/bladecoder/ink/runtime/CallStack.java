@@ -94,7 +94,7 @@ class CallStack {
 				Object currentContainerPathStrToken = jElementObj.get("cPath");
 				if (currentContainerPathStrToken != null) {
 					currentContainerPathStr = currentContainerPathStrToken.toString();
-					RTObject contentAtPath = storyContext.ContentAtPath(new Path(currentContainerPathStr));
+					RTObject contentAtPath = storyContext.contentAtPath(new Path(currentContainerPathStr));
 					currentContainer = contentAtPath instanceof Container ? (Container) contentAtPath : null;
 
 					contentIndex = (int) jElementObj.get("idx");
@@ -113,7 +113,7 @@ class CallStack {
 			Object prevContentObjPath = jThreadObj.get("previousContentRTObject");
 			if (prevContentObjPath != null) {
 				Path prevPath = new Path((String) prevContentObjPath);
-				previousContentRTObject = storyContext.ContentAtPath(prevPath);
+				previousContentRTObject = storyContext.contentAtPath(prevPath);
 			}
 		}
 
