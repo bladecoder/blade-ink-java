@@ -259,24 +259,24 @@ class CallStack {
 		return varValue;
 	}
 
-	public void pop() {
+	public void pop() throws Exception {
 		pop(null);
 	}
 
-	public void pop(PushPopType type) {
+	public void pop(PushPopType type) throws Exception {
 		if (canPop(type)) {
 			getCallStack().remove(getCallStack().size() - 1);
 			return;
 		} else {
-			// Debug.Fail ("Mismatched push/pop in Callstack");
+			throw new Exception("Mismatched push/pop in Callstack");
 		}
 	}
 
-	public void popThread() {
+	public void popThread() throws Exception {
 		if (canPopThread()) {
 			threads.remove(getcurrentThread());
 		} else {
-			// Debug.Fail("Can't pop thread");
+			throw new Exception("Can't pop thread");
 		}
 	}
 

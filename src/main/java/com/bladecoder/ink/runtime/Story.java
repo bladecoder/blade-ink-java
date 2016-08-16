@@ -829,7 +829,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 	}
 
-	private void nextContent() {
+	private void nextContent() throws Exception {
 		// Setting previousContentObject is critical for
 		// VisitChangedContainersDueToDivert
 		state.setPreviousContentObject(state.getCurrentContentObject());
@@ -1714,10 +1714,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @param functionName
 	 *            The name of the function as declared in ink.
 	 */
-	public boolean hasFunction(String functionName) throws Exception {
+	public boolean hasFunction(String functionName) {
 		try {
 			return contentAtPath(new Path(functionName)) instanceof Container;
-		} catch (StoryException e) {
+		} catch (Exception e) {
 			return false;
 		}
 	}
