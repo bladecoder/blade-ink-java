@@ -171,7 +171,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (value == null)
 			return null;
 
-		if (value.getClass() == type)
+		if (type.isAssignableFrom(value.getClass()))
 			return (T) value;
 
 		if (value instanceof Float && type == Integer.class) {
