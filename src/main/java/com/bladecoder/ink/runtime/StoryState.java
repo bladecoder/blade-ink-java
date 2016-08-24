@@ -409,9 +409,7 @@ public class StoryState {
 			}
 
 			includeInOutput = glue.isBi() || isNewRightGlue;
-		}
-
-		else if (text != null) {
+		} else if (text != null) {
 
 			if (currentGlueIndex() != -1) {
 

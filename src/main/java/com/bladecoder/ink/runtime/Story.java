@@ -1139,7 +1139,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				// Build String out of the content we collected
 				StringBuilder sb = new StringBuilder();
-				for (RTObject c : contentStackForString) {
+				while (contentStackForString.size() > 0) {
+					RTObject c = contentStackForString.pop();
 					sb.append(c.toString());
 				}
 
