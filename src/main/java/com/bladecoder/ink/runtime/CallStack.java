@@ -30,7 +30,7 @@ class CallStack {
 		public Element copy() {
 			Element copy = new Element(this.type, this.currentContainer, this.currentContentIndex,
 					this.inExpressionEvaluation);
-			copy.temporaryVariables = this.temporaryVariables;
+			copy.temporaryVariables = new HashMap<String,RTObject>(this.temporaryVariables);
 			return copy;
 		}
 
