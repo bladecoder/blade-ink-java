@@ -5,4 +5,3 @@
               -> knot.stitch_two
           = stitch_two
             * {gatherpoint} Found gatherpoint
-          -> END

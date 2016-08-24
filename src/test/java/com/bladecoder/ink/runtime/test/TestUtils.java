@@ -96,6 +96,10 @@ public class TestUtils {
 		return sb.toString();
 	}
 	
+	public static final boolean isEnded(Story story) {
+		return !story.canContinue() && story.getCurrentChoices().size() == 0;
+	}
+	
 	public static final void nextAll(Story story, List<String> text) throws StoryException, Exception {
 		while (story.canContinue()) {
 			String line = story.Continue();
