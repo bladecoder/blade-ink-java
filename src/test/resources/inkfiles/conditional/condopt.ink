@@ -11,8 +11,8 @@ I looked...
         === leave
         I stood up and...        
         { door_open:
-            *   I strode out of the compartment[] and I fancied I heard my master quietly tutting to himself.           -> go_outside
+            *   I strode out of the compartment[] and I fancied I heard my master quietly tutting to himself.          
         - else:
-            *   I asked permission to leave[] and Monsieur Fogg looked surprised.   -> open_door
-            *   I stood and went to open the door[]. Monsieur Fogg seemed untroubled by this small rebellion. -> open_door
+            *   I asked permission to leave[] and Monsieur Fogg looked surprised.   
+            *   I stood and went to open the door[]. Monsieur Fogg seemed untroubled by this small rebellion.
         }

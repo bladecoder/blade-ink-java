@@ -910,7 +910,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		int numElements = numElementsIntVal.value;
 
 		IntValue seqCountVal = (IntValue) state.popEvaluationStack();
-		Integer seqCount = seqCountVal.value;
+		int seqCount = seqCountVal.value;
 		int loopIndex = seqCount / numElements;
 		int iterationIndex = seqCount % numElements;
 
@@ -934,7 +934,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 
 		for (int i = 0; i <= iterationIndex; ++i) {
-			int chosen = random.nextInt() % unpickedIndices.size();
+			int chosen = random.nextInt(Integer.MAX_VALUE) % unpickedIndices.size();
 			int chosenIndex = unpickedIndices.get(chosen);
 			unpickedIndices.remove(chosen);
 

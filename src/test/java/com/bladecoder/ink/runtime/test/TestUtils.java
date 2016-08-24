@@ -104,7 +104,9 @@ public class TestUtils {
 		while (story.canContinue()) {
 			String line = story.Continue();
 			System.out.print(line);
-			text.add(line.trim());
+			
+			if(!line.isEmpty())
+				text.add(line.trim());
 		}
 
 		if (story.hasError()) {
