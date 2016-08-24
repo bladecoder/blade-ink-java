@@ -1742,6 +1742,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	public Object evaluateFunction(String functionName, StringBuffer textOutput, Object[] arguments) throws Exception {
 		Container funcContainer = null;
+		
+		if(functionName == null) {
+			throw new Exception ("Function is null");
+		} else if(functionName.trim().isEmpty()) {
+			throw new Exception ("Function is empty or white space.");
+		}
 
 		try {
 			RTObject contentAtPath = contentAtPath(new Path(functionName));
