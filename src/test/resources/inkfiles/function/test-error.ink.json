@@ -1,0 +1,1 @@
+﻿{"inkVersion":12,"root":[[["G>",[["ev",{"VAR?":"roll"},0,"==","/ev",null],[{"->":".^.b","c":true},{"b":[["ev",2,"/ev",null],{"temp=":"roll","re":true},{"->":"0.0.1.2"},null]}],"nop",null],"G<",null],"\n","^Hola","\n",null],"done",{"global decl":["ev",0,{"VAR=":"roll"},"/ev","end",null],"#f":3}]}
