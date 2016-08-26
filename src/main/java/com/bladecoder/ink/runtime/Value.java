@@ -12,8 +12,8 @@ public abstract class Value<T> extends AbstractValue {
 	}
 
 	@Override
-	public RTObject getValueRTObject() {
-		return (RTObject) value;
+	public Object getValueObject() {
+		return (Object) value;
 	}
 
 	public Value(T val) {

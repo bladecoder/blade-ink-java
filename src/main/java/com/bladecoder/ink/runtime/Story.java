@@ -22,7 +22,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * BindExternalFunction.
 	 */
 	public interface ExternalFunction {
-		Object call(Object[] args);
+		Object call(Object[] args) throws Exception;
 	}
 
 	// Version numbers are for engine itself and story file, rather
@@ -166,7 +166,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	@SuppressWarnings("unchecked")
-	<T> T tryCoerce(Object value, Class<T> type) throws Exception {
+	public <T> T tryCoerce(Object value, Class<T> type) throws Exception {
 
 		if (value == null)
 			return null;
@@ -243,7 +243,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		ArrayList<Object> arguments = new ArrayList<Object>();
 		for (int i = 0; i < numberOfArguments; ++i) {
 			Value<?> poppedObj = (Value<?>) state.popEvaluationStack();
-			RTObject valueObj = poppedObj.getValueRTObject();
+			Object valueObj = poppedObj.getValueObject();
 			arguments.add(valueObj);
 		}
 
@@ -816,7 +816,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			Value<?> val = (Value<?>) newValueObj;
 
 			for (VariableObserver o : observers) {
-				o.call(variableName, val.getValueRTObject());
+				o.call(variableName, val.getValueObject());
 			}
 		}
 	}
@@ -1825,12 +1825,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			// DivertTargets get returned as the string of components
 			// (rather than a Path, which isn't public)
 			if (returnVal.getValueType() == ValueType.DivertTarget) {
-				return returnVal.getValueRTObject().toString();
+				return returnVal.getValueObject().toString();
 			}
 
 			// Other types can just have their exact object type:
 			// int, float, string. VariablePointers get returned as strings.
-			return returnVal.getValueRTObject();
+			return returnVal.getValueObject();
 
 		}
 

@@ -7,7 +7,7 @@ public abstract class AbstractValue extends RTObject {
 
 	public abstract AbstractValue cast(ValueType newType) throws Exception;
 
-	public abstract RTObject getValueRTObject();
+	public abstract Object getValueObject();
 
 	public static AbstractValue create(Object val) {
 		// Implicitly lose precision from any doubles we get passed in
@@ -41,7 +41,7 @@ public abstract class AbstractValue extends RTObject {
 
 	@Override
 	public RTObject copy() {
-		return create(getValueRTObject());
+		return create(getValueObject());
 	}
 
 }
