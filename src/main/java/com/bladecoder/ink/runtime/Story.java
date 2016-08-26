@@ -41,7 +41,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Delegate definition for variable observation - see ObserveVariable.
 	 */
 	public interface VariableObserver {
-		Object call(String variableName, Object newValue);
+		void call(String variableName, Object newValue);
 	}
 
 	/**

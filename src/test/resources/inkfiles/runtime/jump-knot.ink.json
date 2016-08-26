@@ -1,0 +1,1 @@
+﻿{"inkVersion":12,"root":[{"->":"one"},"done",{"one":[["^One ",{"->":"end"},"\n",null],{"#f":3}],"two":[["^Two ",{"->":"end"},"\n",null],{"#f":3}],"three":[["^Three ",{"->":"end"},"\n",null],{"#f":3}],"end":[["end",null],{"#f":3}],"#f":3}]}
