@@ -78,7 +78,7 @@ Add the following line to your build.gradle file under the dependencies section 
 compile "com.bladecoder.ink:blade-ink:{version}"
 ```
 
-Replace **{version}** with the newest version number!
+Replace **{version}** with the newest version number! 
 
 Then simply right-click the project and choose `Gradle->Refresh All`.
 
