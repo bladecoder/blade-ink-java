@@ -20,7 +20,7 @@ public class RuntimeSpecTest {
 		List<String> text = new ArrayList<String>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json").replace('\uFEFF', ' ');
-		Story story = new Story(json);
+		final Story story = new Story(json);
 
 		story.bindExternalFunction("externalFunction", new ExternalFunction() {
 
