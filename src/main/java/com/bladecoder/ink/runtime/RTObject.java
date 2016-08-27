@@ -183,6 +183,6 @@ public class RTObject {
 	}
 
 	public RTObject copy() throws Exception {
-		throw new UnsupportedOperationException(this.getClass().getTypeName() + " doesn't support copying");
+		throw new UnsupportedOperationException(this.getClass().getSimpleName() + " doesn't support copying");
 	}
 }
