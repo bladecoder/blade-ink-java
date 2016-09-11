@@ -23,7 +23,7 @@ public class FunctionSpecTest {
 		TestUtils.nextAll(story, text);
 
 		Assert.assertEquals(1, text.size());
-		Assert.assertEquals("The value of x is 3.8.", text.get(0));
+		Assert.assertEquals("The value of x is 4.4.", text.get(0));
 	}
 	
 	/**
@@ -54,7 +54,7 @@ public class FunctionSpecTest {
 		TestUtils.nextAll(story, text);
 
 		Assert.assertEquals(1, text.size());
-		Assert.assertEquals("The value of x is 3.8.", text.get(0));
+		Assert.assertEquals("The value of x is 4.4.", text.get(0));
 	}
 	
 	/**

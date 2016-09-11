@@ -1,5 +1,5 @@
 VAR x = 0.0
-~ x = lerp(2, 8, 0.3)
+~ x = lerp(2, 8, 0.4)
   The value of x is {x}.
   -> END
   
