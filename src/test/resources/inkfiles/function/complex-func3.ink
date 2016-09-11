@@ -1,7 +1,7 @@
 === merchant
      ~ merchant_init()
       "I will pay you {fee} reales if you get the goods to their destination. The goods will take up {weight} cargo spaces."
-     
+     -> END
      
      === function merchant_init()
      VAR weight = 20
@@ -12,7 +12,7 @@
         ~ mult = 2
      }
      
-     { mult == 2:
+     { mult == 2:
         ~ roll = 1
      }
      

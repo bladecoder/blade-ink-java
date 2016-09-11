@@ -52,7 +52,7 @@ public class RuntimeSpecTest {
 
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals(1, text.size());
-		Assert.assertEquals("The value is 7.", text.get(0));
+		Assert.assertEquals("The value is 7.0.", text.get(0));
 	}
 	
 	private static int variableObserversExceptedValue = 5;
