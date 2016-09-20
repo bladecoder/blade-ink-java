@@ -12,7 +12,7 @@ public class DebugMetadata {
 	@Override
 	public String toString() {
 		if (fileName != null) {
-			return String.format("line {0} of {1}", startLineNumber, fileName);
+			return String.format("line %d of %s", startLineNumber, fileName);
 		} else {
 			return "line " + startLineNumber;
 		}

@@ -54,7 +54,7 @@ public class RuntimeSpecTest {
 		Assert.assertEquals(1, text.size());
 		Assert.assertEquals("The value is 7.0.", text.get(0));
 	}
-	
+
 	private static int variableObserversExceptedValue = 5;
 
 	/**
@@ -74,9 +74,9 @@ public class RuntimeSpecTest {
 				if (!"x".equals(variableName))
 					Assert.fail();
 				try {
-					if ((int)newValue != variableObserversExceptedValue)
+					if ((int) newValue != variableObserversExceptedValue)
 						Assert.fail();
-					
+
 					variableObserversExceptedValue = 10;
 				} catch (Exception e) {
 					Assert.fail();
@@ -88,7 +88,7 @@ public class RuntimeSpecTest {
 		story.chooseChoiceIndex(0);
 		TestUtils.nextAll(story, text);
 	}
-	
+
 	/**
 	 * Test set/get variables from code.
 	 */
@@ -100,21 +100,20 @@ public class RuntimeSpecTest {
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
-		
-		Assert.assertEquals(10, (int)story.getVariablesState().get("x"));
-		
+
+		Assert.assertEquals(10, (int) story.getVariablesState().get("x"));
+
 		story.getVariablesState().set("x", 15);
-		
-		Assert.assertEquals(15, (int)story.getVariablesState().get("x"));
-		
+
+		Assert.assertEquals(15, (int) story.getVariablesState().get("x"));
+
 		story.chooseChoiceIndex(0);
-		
+
 		text.clear();
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals("OK", text.get(0));
 	}
 
-	
 	/**
 	 * Jump to knot from code.
 	 */
@@ -124,27 +123,27 @@ public class RuntimeSpecTest {
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/jump-knot.ink.json").replace('\uFEFF', ' ');
 		Story story = new Story(json);
-		
+
 		story.choosePathString("two");
-		TestUtils.nextAll(story, text);		
+		TestUtils.nextAll(story, text);
 		Assert.assertEquals("Two", text.get(0));
-		
+
 		text.clear();
 		story.choosePathString("three");
-		TestUtils.nextAll(story, text);		
+		TestUtils.nextAll(story, text);
 		Assert.assertEquals("Three", text.get(0));
-		
+
 		text.clear();
 		story.choosePathString("one");
-		TestUtils.nextAll(story, text);		
+		TestUtils.nextAll(story, text);
 		Assert.assertEquals("One", text.get(0));
-		
+
 		text.clear();
 		story.choosePathString("two");
-		TestUtils.nextAll(story, text);		
+		TestUtils.nextAll(story, text);
 		Assert.assertEquals("Two", text.get(0));
 	}
-	
+
 	/**
 	 * Jump to stitch from code.
 	 */
@@ -154,28 +153,28 @@ public class RuntimeSpecTest {
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/jump-stitch.ink.json").replace('\uFEFF', ' ');
 		Story story = new Story(json);
-		
+
 		story.choosePathString("two.sthree");
-		TestUtils.nextAll(story, text);		
+		TestUtils.nextAll(story, text);
 		Assert.assertEquals(1, text.size());
 		Assert.assertEquals("Two.3", text.get(0));
-		
+
 		text.clear();
 		story.choosePathString("one.stwo");
-		TestUtils.nextAll(story, text);		
+		TestUtils.nextAll(story, text);
 		Assert.assertEquals("One.2", text.get(0));
-		
+
 		text.clear();
 		story.choosePathString("one.sone");
-		TestUtils.nextAll(story, text);		
+		TestUtils.nextAll(story, text);
 		Assert.assertEquals("One.1", text.get(0));
-		
+
 		text.clear();
 		story.choosePathString("two.stwo");
-		TestUtils.nextAll(story, text);		
+		TestUtils.nextAll(story, text);
 		Assert.assertEquals("Two.2", text.get(0));
 	}
-	
+
 	/**
 	 * Read the visit counts from code.
 	 */
@@ -185,9 +184,45 @@ public class RuntimeSpecTest {
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/read-visit-counts.ink.json").replace('\uFEFF', ' ');
 		Story story = new Story(json);
-		
+
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals(4, story.getState().visitCountAtPathString("two.s2"));
 		Assert.assertEquals(5, story.getState().visitCountAtPathString("two"));
 	}
+
+	@Test
+	public void testLoadSave() throws Exception {
+		String json = TestUtils.getJsonString("inkfiles/runtime/load-save.ink.json").replace('\uFEFF', ' ');
+		Story story = new Story(json);
+				
+		List<String> text = new ArrayList<String>();
+		
+		TestUtils.nextAll(story, text);
+
+		Assert.assertEquals(1, text.size());
+		Assert.assertEquals("We arrived into London at 9.45pm exactly.", text.get(0));
+
+//		String choicesText = getChoicesText(story);
+//		assertThat(choicesText, is(
+//				"0:\"There is not a moment to lose!\"\n1:\"Monsieur, let us savour this moment!\"\n2:We hurried home\n"));
+
+		// save the game state
+		String saveString = story.getState().toJson();
+
+		// recreate game and load state
+		story = new Story(json);
+		story.getState().loadJson(saveString);
+
+		story.chooseChoiceIndex(0);
+
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(
+				"\"There is not a moment to lose!\" I declared.", text.get(1));
+		Assert.assertEquals("We hurried home to Savile Row  as fast as we could.", text.get(2));
+
+		// check that we are at the end
+		Assert.assertEquals(false, story.canContinue());
+		Assert.assertEquals(0, story.getCurrentChoices().size());
+	}
+
 }

@@ -268,7 +268,7 @@ public class SimpleJson {
 				str = str.replace("\"", "\\\"");
 				str = str.replace("\n", "\\n");
 				str = str.replace("\r", "");
-				_sb.append(String.format("\"{0}\"", str));
+				_sb.append(String.format("\"%s\"", str));
 			} else if (obj instanceof HashMap<?, ?>) {
 				writeHashMap((HashMap<String, Object>) obj);
 			} else if (obj instanceof List<?>) {

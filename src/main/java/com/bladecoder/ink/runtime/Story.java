@@ -122,7 +122,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		if (dm != null) {
 			int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
-			message = String.format("RUNTIME ERROR: '{0}' line {1}: {2}", dm.fileName, lineNum, message);
+			message = String.format("RUNTIME ERROR: '%s' line %d: %s", dm.fileName, lineNum, message);
 		} else {
 			message = "RUNTIME ERROR: " + message;
 		}
@@ -1091,7 +1091,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 						expected = "end of flow (-> END or choice)";
 					}
 
-					String errorMsg = String.format("Found {0}, when expected {1}", names.get(popType), expected);
+					String errorMsg = String.format("Found %s, when expected %s", names.get(popType), expected);
 
 					error(errorMsg);
 				}
@@ -1598,7 +1598,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				if (message != null) {
 					String errorPreamble = "ERROR: ";
 					if (divert.getDebugMetadata() != null) {
-						errorPreamble += String.format("'{0}' line {1}: ", divert.getDebugMetadata().fileName,
+						errorPreamble += String.format("'%s' line %d: ", divert.getDebugMetadata().fileName,
 								divert.getDebugMetadata().startLineNumber);
 					}
 

@@ -54,10 +54,10 @@ public class VariableReference extends RTObject {
 	public String toString() {
 		try {
 			if (getName() != null) {
-				return String.format("var({0})", getName());
+				return String.format("var(%s)", getName());
 			} else {
 				String pathStr = getPathStringForCount();
-				return String.format("read_count({0})", pathStr);
+				return String.format("read_count(%s)", pathStr);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
