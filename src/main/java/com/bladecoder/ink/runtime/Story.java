@@ -1197,18 +1197,19 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                      error ("Invalid value for maximum parameter of RANDOM(min, max)");
 
                  // +1 because it's inclusive of min and max, for e.g. RANDOM(1,6) for a dice roll.
-                 //var randomRange = maxInt.value - minInt.value + 1;
-                 if (maxInt.value < minInt.value)
+                 int randomRange = maxInt.value - minInt.value + 1;
+                 if (randomRange <= 0)
                      error ("RANDOM was called with minimum as " + minInt.value + " and maximum as " + maxInt.value + ". The maximum must be larger");
 
-                 int resultSeed = state.getStorySeed() + state.getRandomIndex();
+                 int resultSeed = state.getStorySeed() + state.getPreviousRandom();
                  Random random = new Random(resultSeed);
 
-                 int chosenValue = random.nextInt (minInt.value + maxInt.value+1) + minInt.value;// //(random.Next () % randomRange) + minInt.value;
+                 int nextRandom = random.nextInt();
+                 int chosenValue = (nextRandom % randomRange) + minInt.value;
                  state.pushEvaluationStack (new IntValue (chosenValue));
 
                  // Next random number (rather than keeping the Random object around)
-                 state.setRandomIndex(state.getRandomIndex()+1);
+                 state.setPreviousRandom(state.getPreviousRandom() + 1);
                  break;
 			 }
 
@@ -1225,6 +1226,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                  // Story seed affects both RANDOM and shuffle behaviour
                  state.setStorySeed(seed.value);
+                 state.setPreviousRandom(0);
+                 
+                 // SEED_RANDOM returns nothing.
+                 state.pushEvaluationStack (new Void ());
                  break;				
 
 			case VisitIndex:
