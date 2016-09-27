@@ -1202,6 +1202,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				// In normal flow - allow safe exit without warning
 				else {
 					state.setDidSafeExit(true);
+					
+					// Stop flow in current thread
+					state.setCurrentContentObject(null);
 				}
 
 				break;
