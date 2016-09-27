@@ -18,10 +18,8 @@ public class StoryState {
 	/**
 	 * The current version of the state save file JSON-based format.
 	 */
-	public static final int kInkSaveStateVersion = 4;
+	public static final int kInkSaveStateVersion = 5;
 	public static final int kMinCompatibleLoadVersion = 4;
-
-	private Glue currentRightGlue;
 
 	// REMEMBER! REMEMBER! REMEMBER!
 	// When adding state, update the Copy method and serialisation
@@ -93,8 +91,6 @@ public class StoryState {
 
 		copy.callStack = new CallStack(callStack);
 
-		copy.currentRightGlue = currentRightGlue;
-
 		copy.variablesState = new VariablesState(copy.callStack);
 		copy.variablesState.copyFrom(variablesState);
 
@@ -156,7 +152,7 @@ public class StoryState {
 			callStack.pop();
 
 		currentChoices.clear();
-		
+
 		setPreviousContentObject(null);
 
 		setDidSafeExit(true);
@@ -180,9 +176,9 @@ public class StoryState {
 
 	/**
 	 * Object representation of full JSON state. Usually you should use LoadJson
-	 * and ToJson since they serialise directly to String for you.
-	 * But it may be useful to get the object representation so that you
-	 * can integrate it into your own serialisation system.
+	 * and ToJson since they serialise directly to String for you. But it may be
+	 * useful to get the object representation so that you can integrate it into
+	 * your own serialisation system.
 	 */
 	public HashMap<String, Object> getJsonToken() throws Exception {
 
@@ -211,13 +207,6 @@ public class StoryState {
 		obj.put("outputStream", Json.listToJArray(outputStream));
 
 		obj.put("currentChoices", Json.listToJArray(currentChoices));
-
-		if (currentRightGlue != null) {
-			int rightGluePos = outputStream.indexOf(currentRightGlue);
-			if (rightGluePos != -1) {
-				obj.put("currRightGlue", outputStream.indexOf(currentRightGlue));
-			}
-		}
 
 		if (getDivertedTargetObject() != null)
 			obj.put("currentDivertTarget", getDivertedTargetObject().getPath().getComponentsString());
@@ -303,15 +292,15 @@ public class StoryState {
 	int getStorySeed() {
 		return storySeed;
 	}
-	
+
 	void setStorySeed(int s) {
 		storySeed = s;
 	}
-	
+
 	int getPreviousRandom() {
 		return previousRandom;
 	}
-	
+
 	void setPreviousRandom(int i) {
 		previousRandom = i;
 	}
@@ -330,6 +319,21 @@ public class StoryState {
 				return true;
 		}
 		return false;
+	}
+
+	Glue getCurrentRightGlue() {
+		for (int i = outputStream.size() - 1; i >= 0; i--) {
+			RTObject c = outputStream.get(i);
+
+			Glue glue = null;
+			if (c instanceof Glue)
+				glue = (Glue) c;
+			if (glue != null && glue.isRight())
+				return glue;
+			else if (c instanceof ControlCommand) // e.g. BeginString
+				break;
+		}
+		return null;
 	}
 
 	boolean outputStreamEndsInNewline() {
@@ -407,11 +411,10 @@ public class StoryState {
 		if (glue != null) {
 
 			// Found matching left-glue for right-glue? Close it.
-			boolean foundMatchingLeftGlue = glue.isLeft() && currentRightGlue != null
-					&& glue.getParent() == currentRightGlue.getParent();
-			if (foundMatchingLeftGlue) {
-				currentRightGlue = null;
-			}
+
+			Glue existingRightGlue = getCurrentRightGlue();
+			boolean foundMatchingLeftGlue = glue.isLeft() && existingRightGlue != null
+					&& glue.getParent() == existingRightGlue.getParent();
 
 			// Left/Right glue is auto-generated for inline expressions
 			// where we want to absorb newlines but only in a certain direction.
@@ -421,12 +424,7 @@ public class StoryState {
 			}
 
 			// New right-glue
-			boolean isNewRightGlue = glue.isRight() && currentRightGlue == null;
-			if (isNewRightGlue) {
-				currentRightGlue = glue;
-			}
-
-			includeInOutput = glue.isBi() || isNewRightGlue;
+			includeInOutput = glue.isBi() || glue.isRight();
 		} else if (text != null) {
 
 			if (currentGlueIndex() != -1) {
@@ -442,7 +440,6 @@ public class StoryState {
 				// Able to completely reset when
 				else if (text.isNonWhitespace()) {
 					removeExistingGlue();
-					currentRightGlue = null;
 				}
 			} else if (text.isNewline()) {
 				if (outputStreamEndsInNewline() || !outputStreamContainsContent())
@@ -525,14 +522,6 @@ public class StoryState {
 
 		currentChoices = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("currentChoices"));
 
-		Object propValue = jObject.get("currRightGlue");
-		if (propValue != null) {
-			int gluePos = (int) propValue;
-			if (gluePos >= 0) {
-				currentRightGlue = (Glue) outputStream.get(gluePos);
-			}
-		}
-
 		Object currentDivertTargetPath = jObject.get("currentDivertTarget");
 		if (currentDivertTargetPath != null) {
 			Path divertPath = new Path(currentDivertTargetPath.toString());
@@ -544,7 +533,6 @@ public class StoryState {
 		currentTurnIndex = (int) jObject.get("turnIdx");
 		storySeed = (int) jObject.get("storySeed");
 		previousRandom = (int) jObject.get("previousRandom");
-		
 
 		Object jChoiceThreadsObj = jObject.get("choiceThreads");
 		HashMap<String, Object> jChoiceThreads = (HashMap<String, Object>) jChoiceThreadsObj;

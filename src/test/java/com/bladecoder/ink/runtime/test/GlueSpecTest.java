@@ -39,4 +39,20 @@ public class GlueSpecTest {
 		Assert.assertEquals(1, text.size());
 		Assert.assertEquals("We hurried home to Savile Row as fast as we could.", text.get(0));
 	}
+	
+	/**
+	 *      "- bind text together across multiple lines of text"
+	 */
+	@Test
+	public void TestLeftRightGlueMatching() throws Exception {
+		List<String> text = new ArrayList<String>();
+		
+		String json = TestUtils.getJsonString("inkfiles/glue/left-right-glue-matching.ink.json").replace('\uFEFF', ' ');
+		Story story = new Story(json);
+		
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(2, text.size());
+		Assert.assertEquals("A line.", text.get(0));
+		Assert.assertEquals("Another line.", text.get(1));
+	}
 }
