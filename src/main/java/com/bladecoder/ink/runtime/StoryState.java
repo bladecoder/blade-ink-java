@@ -36,6 +36,7 @@ public class StoryState {
 	private List<RTObject> evaluationStack;
 	private Story story;
 	private int storySeed;
+	private int randomIndex;
 	private HashMap<String, Integer> turnIndices;
 	private VariablesState variablesState;
 	private HashMap<String, Integer> visitCounts;
@@ -58,6 +59,7 @@ public class StoryState {
 		long timeSeed = System.currentTimeMillis();
 
 		storySeed = new Random(timeSeed).nextInt() % 100;
+		randomIndex = 0;
 
 		currentChoices = new ArrayList<Choice>();
 
@@ -107,6 +109,7 @@ public class StoryState {
 		copy.turnIndices = new HashMap<String, Integer>(turnIndices);
 		copy.currentTurnIndex = currentTurnIndex;
 		copy.storySeed = storySeed;
+		copy.randomIndex = randomIndex;
 
 		copy.setDidSafeExit(didSafeExit);
 
@@ -223,6 +226,7 @@ public class StoryState {
 		obj.put("turnIndices", Json.intHashMapToJObject(turnIndices));
 		obj.put("turnIdx", currentTurnIndex);
 		obj.put("storySeed", storySeed);
+		obj.put("randomIndex", randomIndex);
 
 		obj.put("inkSaveVersion", kInkSaveStateVersion);
 
@@ -298,6 +302,18 @@ public class StoryState {
 
 	int getStorySeed() {
 		return storySeed;
+	}
+	
+	void setStorySeed(int s) {
+		storySeed = s;
+	}
+	
+	int getRandomIndex() {
+		return randomIndex;
+	}
+	
+	void setRandomIndex(int i) {
+		randomIndex = i;
 	}
 
 	HashMap<String, Integer> getTurnIndices() {
@@ -527,6 +543,8 @@ public class StoryState {
 		turnIndices = Json.jObjectToIntHashMap((HashMap<String, Object>) jObject.get("turnIndices"));
 		currentTurnIndex = (int) jObject.get("turnIdx");
 		storySeed = (int) jObject.get("storySeed");
+		randomIndex = (int) jObject.get("randomIndex");
+		
 
 		Object jChoiceThreadsObj = jObject.get("choiceThreads");
 		HashMap<String, Object> jChoiceThreads = (HashMap<String, Object>) jChoiceThreadsObj;

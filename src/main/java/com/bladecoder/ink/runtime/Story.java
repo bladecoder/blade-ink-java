@@ -47,7 +47,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * The current version of the ink story file format.
 	 */
-	public static final int inkVersionCurrent = 12;
+	public static final int inkVersionCurrent = 13;
 
 	/**
 	 * The minimum legacy version of ink that can be loaded by the current
@@ -1173,6 +1173,59 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				int turnCount = turnsSinceForContainer(container);
 				state.pushEvaluationStack(new IntValue(turnCount));
 				break;
+				
+			 case Random: {
+				 IntValue maxInt = null;
+				 
+				 RTObject o = state.popEvaluationStack ();
+				 
+				 if(o instanceof IntValue)
+					 maxInt = (IntValue)o;
+				 
+				 
+				 IntValue minInt = null;
+				 
+				 o = state.popEvaluationStack ();
+				 
+				 if(o instanceof IntValue)
+					 minInt = (IntValue)o;
+
+                 if (minInt == null)
+                     error ("Invalid value for minimum parameter of RANDOM(min, max)");
+
+                 if (maxInt == null)
+                     error ("Invalid value for maximum parameter of RANDOM(min, max)");
+
+                 // +1 because it's inclusive of min and max, for e.g. RANDOM(1,6) for a dice roll.
+                 //var randomRange = maxInt.value - minInt.value + 1;
+                 if (maxInt.value < minInt.value)
+                     error ("RANDOM was called with minimum as " + minInt.value + " and maximum as " + maxInt.value + ". The maximum must be larger");
+
+                 int resultSeed = state.getStorySeed() + state.getRandomIndex();
+                 Random random = new Random(resultSeed);
+
+                 int chosenValue = random.nextInt (minInt.value + maxInt.value+1) + minInt.value;// //(random.Next () % randomRange) + minInt.value;
+                 state.pushEvaluationStack (new IntValue (chosenValue));
+
+                 // Next random number (rather than keeping the Random object around)
+                 state.setRandomIndex(state.getRandomIndex()+1);
+                 break;
+			 }
+
+             case SeedRandom:
+            	 IntValue seed = null;
+            	 
+            	 RTObject o = state.popEvaluationStack ();
+            	 
+            	 if(o instanceof IntValue)
+            		 seed = (IntValue)o;
+                 
+            	 if (seed == null)
+                     error ("Invalid value passed to SEED_RANDOM");
+
+                 // Story seed affects both RANDOM and shuffle behaviour
+                 state.setStorySeed(seed.value);
+                 break;				
 
 			case VisitIndex:
 				int count = visitCountForContainer(state.currentContainer()) - 1; // index
