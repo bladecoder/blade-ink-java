@@ -592,6 +592,8 @@ public class Json {
 		controlCommandNames[CommandType.NoOp.ordinal() - 1] = "nop";
 		controlCommandNames[CommandType.ChoiceCount.ordinal() - 1] = "choiceCnt";
 		controlCommandNames[CommandType.TurnsSince.ordinal() - 1] = "turns";
+		controlCommandNames[CommandType.Random.ordinal() - 1] = "rnd";
+		controlCommandNames[CommandType.SeedRandom.ordinal() - 1] = "srnd";
 		controlCommandNames[CommandType.VisitIndex.ordinal() - 1] = "visit";
 		controlCommandNames[CommandType.SequenceShuffleIndex.ordinal() - 1] = "seq";
 		controlCommandNames[CommandType.StartThread.ordinal() - 1] = "thread";
