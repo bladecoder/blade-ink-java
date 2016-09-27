@@ -143,7 +143,7 @@ public class StoryState {
 		return sb.toString();
 	}
 
-	void forceEndFlow() throws Exception {
+	void forceEnd() throws Exception {
 		setCurrentContentObject(null);
 
 		while (callStack.canPopThread())
@@ -153,6 +153,8 @@ public class StoryState {
 			callStack.pop();
 
 		currentChoices.clear();
+		
+		setPreviousContentObject(null);
 
 		setDidSafeExit(true);
 	}

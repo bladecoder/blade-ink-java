@@ -130,7 +130,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		state.addError(message);
 
 		// In a broken state don't need to know about any other errors.
-		state.forceEndFlow();
+		state.forceEnd();
 	}
 
 	void Assert(boolean condition, Object... formatParams) throws Exception {
@@ -1208,7 +1208,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 			// Force flow to end completely
 			case End:
-				state.forceEndFlow();
+				state.forceEnd();
 				break;
 
 			default:
@@ -1340,7 +1340,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * already.
 	 */
 	public void resetCallstack() throws Exception {
-		state.forceEndFlow();
+		state.forceEnd();
 	}
 
 	/**
