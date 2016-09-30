@@ -1204,7 +1204,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                  int resultSeed = state.getStorySeed() + state.getPreviousRandom();
                  Random random = new Random(resultSeed);
 
-                 int nextRandom = random.nextInt();
+                 int nextRandom = random.nextInt(Integer.MAX_VALUE);
                  int chosenValue = (nextRandom % randomRange) + minInt.value;
                  state.pushEvaluationStack (new IntValue (chosenValue));
 

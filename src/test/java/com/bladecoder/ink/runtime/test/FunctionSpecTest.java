@@ -120,4 +120,23 @@ public class FunctionSpecTest {
 		Assert.assertEquals(1, text.size());
 		Assert.assertEquals("\"I will pay you 120 reales if you get the goods to their destination. The goods will take up 20 cargo spaces.\"", text.get(0));
 	}
+	
+	/**
+	 *     "- random function"
+	 */
+	@Test
+	public void rnd() throws Exception {
+		List<String> text = new ArrayList<String>();
+		
+		String json = TestUtils.getJsonString("inkfiles/function/rnd-func.ink.json").replace('\uFEFF', ' ');
+		Story story = new Story(json);
+		
+		TestUtils.nextAll(story, text);
+
+		Assert.assertEquals(4, text.size());
+		Assert.assertEquals("Rolling dice 1: 4.", text.get(0));
+		Assert.assertEquals("Rolling dice 2: 1.", text.get(1));
+		Assert.assertEquals("Rolling dice 3: 1.", text.get(2));
+		Assert.assertEquals("Rolling dice 4: 5.", text.get(3));
+	}
 }
