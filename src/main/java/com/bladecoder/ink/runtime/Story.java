@@ -47,7 +47,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * The current version of the ink story file format.
 	 */
-	public static final int inkVersionCurrent = 13;
+	public static final int inkVersionCurrent = 14;
 
 	/**
 	 * The minimum legacy version of ink that can be loaded by the current
@@ -614,6 +614,14 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
+	 * Gets a list of tags as defined with '#' in source that were seen during
+	 * the latest Continue() call.
+	 */
+	public List<String> getCurrentTags() {
+		return state.getCurrentTags();
+	}
+
+	/**
 	 * Any errors generated during evaluation of the Story.
 	 */
 	public List<String> getCurrentErrors() {
@@ -1173,64 +1181,66 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				int turnCount = turnsSinceForContainer(container);
 				state.pushEvaluationStack(new IntValue(turnCount));
 				break;
-				
-			 case Random: {
-				 IntValue maxInt = null;
-				 
-				 RTObject o = state.popEvaluationStack ();
-				 
-				 if(o instanceof IntValue)
-					 maxInt = (IntValue)o;
-				 
-				 
-				 IntValue minInt = null;
-				 
-				 o = state.popEvaluationStack ();
-				 
-				 if(o instanceof IntValue)
-					 minInt = (IntValue)o;
 
-                 if (minInt == null)
-                     error ("Invalid value for minimum parameter of RANDOM(min, max)");
+			case Random: {
+				IntValue maxInt = null;
 
-                 if (maxInt == null)
-                     error ("Invalid value for maximum parameter of RANDOM(min, max)");
+				RTObject o = state.popEvaluationStack();
 
-                 // +1 because it's inclusive of min and max, for e.g. RANDOM(1,6) for a dice roll.
-                 int randomRange = maxInt.value - minInt.value + 1;
-                 if (randomRange <= 0)
-                     error ("RANDOM was called with minimum as " + minInt.value + " and maximum as " + maxInt.value + ". The maximum must be larger");
+				if (o instanceof IntValue)
+					maxInt = (IntValue) o;
 
-                 int resultSeed = state.getStorySeed() + state.getPreviousRandom();
-                 Random random = new Random(resultSeed);
+				IntValue minInt = null;
 
-                 int nextRandom = random.nextInt(Integer.MAX_VALUE);
-                 int chosenValue = (nextRandom % randomRange) + minInt.value;
-                 state.pushEvaluationStack (new IntValue (chosenValue));
+				o = state.popEvaluationStack();
 
-                 // Next random number (rather than keeping the Random object around)
-                 state.setPreviousRandom(state.getPreviousRandom() + 1);
-                 break;
-			 }
+				if (o instanceof IntValue)
+					minInt = (IntValue) o;
 
-             case SeedRandom:
-            	 IntValue seed = null;
-            	 
-            	 RTObject o = state.popEvaluationStack ();
-            	 
-            	 if(o instanceof IntValue)
-            		 seed = (IntValue)o;
-                 
-            	 if (seed == null)
-                     error ("Invalid value passed to SEED_RANDOM");
+				if (minInt == null)
+					error("Invalid value for minimum parameter of RANDOM(min, max)");
 
-                 // Story seed affects both RANDOM and shuffle behaviour
-                 state.setStorySeed(seed.value);
-                 state.setPreviousRandom(0);
-                 
-                 // SEED_RANDOM returns nothing.
-                 state.pushEvaluationStack (new Void ());
-                 break;				
+				if (maxInt == null)
+					error("Invalid value for maximum parameter of RANDOM(min, max)");
+
+				// +1 because it's inclusive of min and max, for e.g.
+				// RANDOM(1,6) for a dice roll.
+				int randomRange = maxInt.value - minInt.value + 1;
+				if (randomRange <= 0)
+					error("RANDOM was called with minimum as " + minInt.value + " and maximum as " + maxInt.value
+							+ ". The maximum must be larger");
+
+				int resultSeed = state.getStorySeed() + state.getPreviousRandom();
+				Random random = new Random(resultSeed);
+
+				int nextRandom = random.nextInt(Integer.MAX_VALUE);
+				int chosenValue = (nextRandom % randomRange) + minInt.value;
+				state.pushEvaluationStack(new IntValue(chosenValue));
+
+				// Next random number (rather than keeping the Random object
+				// around)
+				state.setPreviousRandom(state.getPreviousRandom() + 1);
+				break;
+			}
+
+			case SeedRandom:
+				IntValue seed = null;
+
+				RTObject o = state.popEvaluationStack();
+
+				if (o instanceof IntValue)
+					seed = (IntValue) o;
+
+				if (seed == null)
+					error("Invalid value passed to SEED_RANDOM");
+
+				// Story seed affects both RANDOM and shuffle behaviour
+				state.setStorySeed(seed.value);
+				state.setPreviousRandom(0);
+
+				// SEED_RANDOM returns nothing.
+				state.pushEvaluationStack(new Void());
+				break;
 
 			case VisitIndex:
 				int count = visitCountForContainer(state.currentContainer()) - 1; // index
@@ -1260,7 +1270,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				// In normal flow - allow safe exit without warning
 				else {
 					state.setDidSafeExit(true);
-					
+
 					// Stop flow in current thread
 					state.setCurrentContentObject(null);
 				}
@@ -1804,11 +1814,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	public Object evaluateFunction(String functionName, StringBuffer textOutput, Object[] arguments) throws Exception {
 		Container funcContainer = null;
-		
-		if(functionName == null) {
-			throw new Exception ("Function is null");
-		} else if(functionName.trim().isEmpty()) {
-			throw new Exception ("Function is empty or white space.");
+
+		if (functionName == null) {
+			throw new Exception("Function is null");
+		} else if (functionName.trim().isEmpty()) {
+			throw new Exception("Function is empty or white space.");
 		}
 
 		try {
