@@ -201,56 +201,61 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Get any global tags associated with the story. These are defined as hash
 	 * tags defined at the very top of the story.
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 */
 	public List<String> getGlobalTags() throws Exception {
 		return tagsAtStartOfFlowContainerWithPathString("");
 	}
 
 	/**
-	 * Gets any tags associated with a particular knot or knot.stitch.
-	 * These are defined as hash tags defined at the very top of a
-	 * knot or stitch. 
-	 * @param path The path of the knot or stitch, in the form "knot" or 
-	 * "knot.stitch".
-	 * @throws Exception 
+	 * Gets any tags associated with a particular knot or knot.stitch. These are
+	 * defined as hash tags defined at the very top of a knot or stitch.
+	 * 
+	 * @param path
+	 *            The path of the knot or stitch, in the form "knot" or
+	 *            "knot.stitch".
+	 * @throws Exception
 	 */
 	public List<String> tagsForContentAtPath(String path) throws Exception {
 		return tagsAtStartOfFlowContainerWithPathString(path);
 	}
 
-	List<String> tagsAtStartOfFlowContainerWithPathString (String pathString) throws Exception {
-		Path path = new Path (pathString);
+	List<String> tagsAtStartOfFlowContainerWithPathString(String pathString) throws Exception {
+		Path path = new Path(pathString);
 
-            // Expected to be global story, knot or stitch
-            Container flowContainer = null;
-            RTObject c = contentAtPath(path);
+		// Expected to be global story, knot or stitch
+		Container flowContainer = null;
+		RTObject c = contentAtPath(path);
 
-            if (c instanceof Container)
-            	flowContainer = (Container)c;
+		if (c instanceof Container)
+			flowContainer = (Container) c;
 
-            // First element of the above constructs is a compiled weave
-            Container innerWeaveContainer = null;
-            
-            if(flowContainer.getContent().get(0) instanceof Container)
-            	innerWeaveContainer = (Container)flowContainer.getContent().get(0);
+		// First element of the above constructs is a compiled weave
+		Container innerWeaveContainer = null;
 
-            // Any initial tag objects count as the "main tags" associated with that story/knot/stitch
-            List<String> tags = null;
-            for ( RTObject c2 :innerWeaveContainer.getContent()) {
-                Tag tag = null;
-                
-                if(c2 instanceof Tag)
-                	tag = (Tag)c2;
-                
-                if (tag != null) {
-                    if (tags == null) tags = new ArrayList<String> ();
-                    tags.add (tag.getText());
-                } else break;
-            }
+		if (flowContainer.getContent().get(0) instanceof Container)
+			innerWeaveContainer = (Container) flowContainer.getContent().get(0);
 
-            return tags;
-        }
+		// Any initial tag objects count as the "main tags" associated with that
+		// story/knot/stitch
+		List<String> tags = null;
+		for (RTObject c2 : innerWeaveContainer.getContent()) {
+			Tag tag = null;
+
+			if (c2 instanceof Tag)
+				tag = (Tag) c2;
+
+			if (tag != null) {
+				if (tags == null)
+					tags = new ArrayList<String>();
+				tags.add(tag.getText());
+			} else
+				break;
+		}
+
+		return tags;
+	}
 
 	/**
 	 * Useful when debugging a (very short) story, to visualise the state of the
@@ -457,8 +462,17 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 						String currText = getCurrentText();
 						int prevTextLength = stateAtLastNewline.currentText().length();
 
+						// Take tags into account too, so that a tag following a
+						// content line:
+						// Content
+						// # tag
+						// ... doesn't cause the tag to be wrongly associated
+						// with the content above.
+						int prevTagCount = stateAtLastNewline.getCurrentTags().size();
+
 						// Output has been extended?
-						if (!currText.equals(stateAtLastNewline.currentText())) {
+						if (!currText.equals(stateAtLastNewline.currentText())
+								|| prevTagCount != getCurrentTags().size()) {
 
 							// Original newline still exists?
 							if (currText.length() >= prevTextLength && currText.charAt(prevTextLength - 1) == '\n') {
