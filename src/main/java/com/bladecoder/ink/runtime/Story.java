@@ -47,7 +47,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * The current version of the ink story file format.
 	 */
-	public static final int inkVersionCurrent = 14;
+	public static final int inkVersionCurrent = 15;
 
 	/**
 	 * The minimum legacy version of ink that can be loaded by the current
@@ -204,7 +204,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @throws Exception 
 	 */
 	public List<String> globalTags() throws Exception {
-		return tagsAtStartOfFlowContainerAtPathString("");
+		return tagsAtStartOfFlowContainerWithPathString("");
 	}
 
 	/**
@@ -216,10 +216,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @throws Exception 
 	 */
 	public List<String> tagsForContentAtPath(String path) throws Exception {
-		return tagsAtStartOfFlowContainerAtPathString(path);
+		return tagsAtStartOfFlowContainerWithPathString(path);
 	}
 
-	List<String> tagsAtStartOfFlowContainerAtPathString (String pathString) throws Exception {
+	List<String> tagsAtStartOfFlowContainerWithPathString (String pathString) throws Exception {
 		Path path = new Path (pathString);
 
             // Expected to be global story, knot or stitch
