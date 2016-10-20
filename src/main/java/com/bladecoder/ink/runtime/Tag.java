@@ -10,4 +10,8 @@ public class Tag extends RTObject {
 	public Tag(String tagText) {
 		this.text = tagText;
 	}
+	
+	public String toString() {
+		 return "# " + text;
+	}
 }

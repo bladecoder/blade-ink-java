@@ -170,6 +170,25 @@ public class StoryState {
 		return getCurrentContentObject().getPath();
 	}
 
+	List<String> getCurrentTags() {
+		List<String> tags = null;
+
+		for (RTObject outputObj : outputStream) {
+			Tag tag = null;
+
+			if (outputObj instanceof Tag)
+				tag = (Tag) outputObj;
+
+			if (tag != null) {
+				if (tags == null)
+					tags = new ArrayList<String>();
+				tags.add(tag.getText());
+			}
+		}
+
+		return tags;
+	}
+
 	boolean getInExpressionEvaluation() {
 		return callStack.currentElement().inExpressionEvaluation;
 	}
