@@ -958,7 +958,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				didPop = true;
 			} else {
-				state.tryExitExternalFunctionEvaluation ();
+				state.tryExitExternalFunctionEvaluation();
 			}
 
 			// Step past the point where we last called out
@@ -1717,24 +1717,50 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Note that this is automatically called on the first call to Continue().
 	 */
 	public void validateExternalBindings() throws Exception {
-		validateExternalBindings(mainContentContainer);
+		HashSet<String> missingExternals = new HashSet<String>();
+
+		validateExternalBindings(mainContentContainer, missingExternals);
 		hasValidatedExternals = true;
+		// No problem! Validation complete
+		if (missingExternals.size() == 0) {
+			hasValidatedExternals = true;
+		}
+
+		// Error for all missing externals
+		else {
+			String message = String.format("Missing function binding for external{0}: '{1}' {2}",
+					missingExternals.size() > 1 ? "s" : "", String.join("', '", missingExternals),
+					allowExternalFunctionFallbacks ? ", and no fallback ink function found."
+							: " (ink fallbacks disabled)");
+
+			String errorPreamble = "ERROR: ";
+
+			if (mainContentContainer.getDebugMetadata() != null) {
+				errorPreamble += String.format("'{0}' line {1}: ", mainContentContainer.getDebugMetadata().fileName,
+						mainContentContainer.getDebugMetadata().startLineNumber);
+			}
+
+			error(errorPreamble + message);
+		}
 	}
 
-	void validateExternalBindings(Container c) throws Exception {
+	void validateExternalBindings(Container c, HashSet<String> missingExternals) throws Exception {
 		for (RTObject innerContent : c.getContent()) {
-			validateExternalBindings(innerContent);
+			Container container = innerContent instanceof Container ? (Container) innerContent : null;
+			if (container == null || !container.hasValidName())
+				validateExternalBindings(container, missingExternals);
 		}
 		for (INamedContent innerKeyValue : c.getNamedContent().values()) {
-			validateExternalBindings(innerKeyValue instanceof RTObject ? (RTObject) innerKeyValue : null);
+			validateExternalBindings(innerKeyValue instanceof RTObject ? (RTObject) innerKeyValue : (RTObject) null,
+					missingExternals);
 		}
 	}
 
-	void validateExternalBindings(RTObject o) throws Exception {
+	void validateExternalBindings(RTObject o, HashSet<String> missingExternals) throws Exception {
 		Container container = o instanceof Container ? (Container) o : null;
 
 		if (container != null) {
-			validateExternalBindings(container);
+			validateExternalBindings(container, missingExternals);
 			return;
 		}
 
@@ -1745,29 +1771,18 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 			if (!externals.containsKey(name)) {
 
-				INamedContent fallbackFunction = mainContentContainer().getNamedContent().get(name);
-
-				String message = null;
-
-				if (!allowExternalFunctionFallbacks)
-					message = "Missing function binding for external '" + name + "' (ink fallbacks disabled)";
-				else if (fallbackFunction == null) {
-					message = "Missing function binding for external '" + name
-							+ "', and no fallback ink function found.";
-				}
-
-				if (message != null) {
-					String errorPreamble = "ERROR: ";
-					if (divert.getDebugMetadata() != null) {
-						errorPreamble += String.format("'%s' line %d: ", divert.getDebugMetadata().fileName,
-								divert.getDebugMetadata().startLineNumber);
+				if (allowExternalFunctionFallbacks) {
+					boolean fallbackFound = mainContentContainer.getNamedContent().containsKey(name);
+					if (!fallbackFound) {
+						missingExternals.add(name);
 					}
-
-					throw new StoryException(errorPreamble + message);
+				} else {
+					missingExternals.add(name);
 				}
 			}
 		}
 	}
+
 
 	void visitChangedContainersDueToDivert() {
 		RTObject previousContentObject = state.getPreviousContentObject();
@@ -1923,8 +1938,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				throw e;
 		}
 
-		 // State will temporarily replace the callstack in order to evaluate
-		 state.startExternalFunctionEvaluation (funcContainer, arguments);
+		// State will temporarily replace the callstack in order to evaluate
+		state.startExternalFunctionEvaluation(funcContainer, arguments);
 
 		// Evaluate the function, and collect the string output
 		while (canContinue()) {
@@ -1935,7 +1950,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 
 		// Finish evaluation, and see whether anything was produced
-		Object result = state.completeExternalFunctionEvaluation ();
+		Object result = state.completeExternalFunctionEvaluation();
 		return result;
 	}
 }
