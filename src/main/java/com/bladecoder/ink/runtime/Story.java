@@ -953,12 +953,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				didPop = true;
-			}
-
-			else if (state.getCallStack().canPopThread()) {
+			} else if (state.getCallStack().canPopThread()) {
 				state.getCallStack().popThread();
 
 				didPop = true;
+			} else {
+				state.tryExitExternalFunctionEvaluation ();
 			}
 
 			// Step past the point where we last called out
@@ -1171,7 +1171,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					}
 				}
 
-				if (state.getCallStack().currentElement().type != popType || !state.getCallStack().canPop()) {
+				if (state.tryExitExternalFunctionEvaluation()) {
+					break;
+				} else if (state.getCallStack().currentElement().type != popType || !state.getCallStack().canPop()) {
 
 					HashMap<PushPopType, String> names = new HashMap<PushPopType, String>();
 					names.put(PushPopType.Function, "function return statement (~ return)");
@@ -1901,6 +1903,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @throws Exception
 	 */
 	public Object evaluateFunction(String functionName, StringBuffer textOutput, Object[] arguments) throws Exception {
+		// Get the content that we need to run
 		Container funcContainer = null;
 
 		if (functionName == null) {
@@ -1920,36 +1923,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				throw e;
 		}
 
-		// We'll start a new callstack, so keep hold of the original,
-		// as well as the evaluation stack so we know if the function
-		// returned something
-		CallStack originalCallstack = state.getCallStack();
-		int originalEvaluationStackHeight = state.getEvaluationStack().size();
-
-		// Create a new base call stack element.
-		// By making it point at element 0 of the base, when NextContent is
-		// called, it'll actually step past the entire content of the game (!)
-		// and straight onto the Done. Bit of a hack :-/ We don't really have
-		// a better way of creating a temporary context that ends correctly.
-		state.setCallStack(new CallStack(mainContentContainer));
-		state.getCallStack().currentElement().currentContainer = mainContentContainer;
-		state.getCallStack().currentElement().currentContentIndex = 0;
-
-		if (arguments != null) {
-			for (int i = 0; i < arguments.length; i++) {
-				if (!(arguments[i] instanceof Integer || arguments[i] instanceof Float
-						|| arguments[i] instanceof String)) {
-					throw new IllegalArgumentException(
-							"ink arguments when calling EvaluateFunction must be int, float or string");
-				}
-
-				state.getEvaluationStack().add(Value.create(arguments[i]));
-			}
-		}
-
-		// Jump into the function!
-		state.getCallStack().push(PushPopType.Function);
-		state.setCurrentContentObject(funcContainer);
+		 // State will temporarily replace the callstack in order to evaluate
+		 state.startExternalFunctionEvaluation (funcContainer, arguments);
 
 		// Evaluate the function, and collect the string output
 		while (canContinue()) {
@@ -1959,40 +1934,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				textOutput.append(text);
 		}
 
-		// Restore original stack
-		state.setCallStack(originalCallstack);
-
-		// Do we have a returned value?
-		// Potentially pop multiple values off the stack, in case we need
-		// to clean up after ourselves (e.g. caller of EvaluateFunction may
-		// have passed too many arguments, and we currently have no way to check
-		// for that)
-		RTObject returnedObj = null;
-		while (state.getEvaluationStack().size() > originalEvaluationStackHeight) {
-			RTObject poppedObj = state.popEvaluationStack();
-			if (returnedObj == null)
-				returnedObj = poppedObj;
-		}
-
-		if (returnedObj != null) {
-			if (returnedObj instanceof Void)
-				return null;
-
-			// Some kind of value, if not void
-			Value<?> returnVal = (Value<?>) returnedObj;
-
-			// DivertTargets get returned as the string of components
-			// (rather than a Path, which isn't public)
-			if (returnVal.getValueType() == ValueType.DivertTarget) {
-				return returnVal.getValueObject().toString();
-			}
-
-			// Other types can just have their exact object type:
-			// int, float, string. VariablePointers get returned as strings.
-			return returnVal.getValueObject();
-
-		}
-
-		return null;
+		// Finish evaluation, and see whether anything was produced
+		Object result = state.completeExternalFunctionEvaluation ();
+		return result;
 	}
 }

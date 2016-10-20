@@ -38,6 +38,11 @@ public class StoryState {
 	private HashMap<String, Integer> turnIndices;
 	private VariablesState variablesState;
 	private HashMap<String, Integer> visitCounts;
+	
+	// Temporary state only, during externally called function evaluation
+	boolean isExternalFunctionEvaluation;
+	CallStack originalCallstack;
+	int originalEvaluationStackHeight;
 
 	StoryState(Story story) {
 		this.story = story;
@@ -500,6 +505,91 @@ public class StoryState {
 
 		currentTurnIndex++;
 	}
+	
+    void startExternalFunctionEvaluation (Container funcContainer, Object[] arguments) throws Exception
+    {
+        // We'll start a new callstack, so keep hold of the original,
+        // as well as the evaluation stack so we know if the function 
+        // returned something
+        originalCallstack = callStack;
+        originalEvaluationStackHeight = evaluationStack.size();
+
+        // Create a new base call stack element.
+        callStack = new CallStack (funcContainer);
+        callStack.currentElement().type = PushPopType.Function;
+
+        // By setting ourselves in external function evaluation mode,
+        // we're saying it's okay to end the flow without a Done or End,
+        // but with a ~ return instead.
+        isExternalFunctionEvaluation = true;
+
+        // Pass arguments onto the evaluation stack
+        if (arguments != null) {
+            for (int i = 0; i < arguments.length; i++) {
+                if (!(arguments [i] instanceof Integer || arguments [i] instanceof Float || arguments [i] instanceof String)) {
+                    throw new Exception ("ink arguments when calling EvaluateFunction must be int, float or string");
+                }
+
+                evaluationStack.add (Value.create(arguments [i]));
+            }
+        }
+    }
+        
+    boolean tryExitExternalFunctionEvaluation ()
+    {
+        if (isExternalFunctionEvaluation && callStack.getElements().size() == 1 && callStack.currentElement().type == PushPopType.Function) {
+            setCurrentContentObject(null);
+            didSafeExit = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    Object completeExternalFunctionEvaluation ()
+    {
+        
+        // Do we have a returned value?
+        // Potentially pop multiple values off the stack, in case we need
+        // to clean up after ourselves (e.g. caller of EvaluateFunction may 
+        // have passed too many arguments, and we currently have no way to check for that)
+        RTObject returnedObj = null;
+        while (evaluationStack.size() > originalEvaluationStackHeight) {
+            RTObject poppedObj = popEvaluationStack ();
+            if (returnedObj == null)
+                returnedObj = poppedObj;
+        }
+
+        // Restore our own state
+        callStack = originalCallstack;
+        originalCallstack = null;
+        originalEvaluationStackHeight = 0;
+
+        // What did we get back?
+        if (returnedObj != null) {
+            if (returnedObj instanceof Void)
+                return null;
+
+            // Some kind of value, if not void
+            Value<?> returnVal = null;
+            
+            if(returnedObj instanceof Value)
+            	returnVal = (Value<?>)returnedObj;
+
+            // DivertTargets get returned as the string of components
+            // (rather than a Path, which isn't public)
+            if (returnVal.getValueType() == ValueType.DivertTarget) {
+                return returnVal.getValueObject().toString ();
+            }
+
+            // Other types can just have their exact object type:
+            // int, float, string. VariablePointers get returned as strings.
+            return returnVal.getValueObject();
+        }
+
+        return null;
+    }
+	
 
 	void setCurrentContentObject(RTObject value) {
 		callStack.currentElement().setcurrentRTObject(value);
