@@ -1730,19 +1730,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		// Error for all missing externals
 		else {
-			String message = String.format("Missing function binding for external%s: '%s' %s",
+			String message = String.format("ERROR: Missing function binding for external%s: '%s' %s",
 					missingExternals.size() > 1 ? "s" : "", String.join("', '", missingExternals),
 					allowExternalFunctionFallbacks ? ", and no fallback ink function found."
 							: " (ink fallbacks disabled)");
 
-			String errorPreamble = "ERROR: ";
-
-			if (mainContentContainer.getDebugMetadata() != null) {
-				errorPreamble += String.format("'%s' line %d: ", mainContentContainer.getDebugMetadata().fileName,
-						mainContentContainer.getDebugMetadata().startLineNumber);
-			}
-
-			error(errorPreamble + message);
+			error(message);
 		}
 	}
 
