@@ -53,7 +53,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * The minimum legacy version of ink that can be loaded by the current
 	 * version of the code.
 	 */
-	public static final int inkVersionMinimumCompatible = 12;
+	public static final int inkVersionMinimumCompatible = 15;
 
 	private Container mainContentContainer;
 
@@ -1156,6 +1156,21 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				PushPopType popType = evalCommand.getcommandType() == ControlCommand.CommandType.PopFunction
 						? PushPopType.Function : PushPopType.Tunnel;
 
+				// Tunnel onwards is allowed to specify an optional override
+				// divert to go to immediately after returning: ->-> target
+				DivertTargetValue overrideTunnelReturnTarget = null;
+				if (popType == PushPopType.Tunnel) {
+					RTObject popped = state.popEvaluationStack();
+
+					if (popped instanceof DivertTargetValue) {
+						overrideTunnelReturnTarget = (DivertTargetValue) popped;
+					}
+
+					if (overrideTunnelReturnTarget == null) {
+						Assert(popped instanceof Void, "Expected void if ->-> doesn't override target");
+					}
+				}
+
 				if (state.getCallStack().currentElement().type != popType || !state.getCallStack().canPop()) {
 
 					HashMap<PushPopType, String> names = new HashMap<PushPopType, String>();
@@ -1174,6 +1189,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				else {
 					state.getCallStack().pop();
+
+					// Does tunnel onwards override by diverting to a new ->->
+					// target?
+					if (overrideTunnelReturnTarget != null)
+						state.setDivertedTargetObject(contentAtPath(overrideTunnelReturnTarget.getTargetPath()));
 				}
 				break;
 
