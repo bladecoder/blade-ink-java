@@ -231,16 +231,18 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (c instanceof Container)
 			flowContainer = (Container) c;
 
-		// First element of the above constructs is a compiled weave
-		Container innerWeaveContainer = null;
-
-		if (flowContainer.getContent().get(0) instanceof Container)
-			innerWeaveContainer = (Container) flowContainer.getContent().get(0);
+		while (true) {
+			RTObject firstContent = flowContainer.getContent().get(0);
+			if (firstContent instanceof Container)
+				flowContainer = (Container) firstContent;
+			else
+				break;
+		}
 
 		// Any initial tag objects count as the "main tags" associated with that
 		// story/knot/stitch
 		List<String> tags = null;
-		for (RTObject c2 : innerWeaveContainer.getContent()) {
+		for (RTObject c2 : flowContainer.getContent()) {
 			Tag tag = null;
 
 			if (c2 instanceof Tag)
@@ -1782,7 +1784,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			}
 		}
 	}
-
 
 	void visitChangedContainersDueToDivert() {
 		RTObject previousContentObject = state.getPreviousContentObject();
