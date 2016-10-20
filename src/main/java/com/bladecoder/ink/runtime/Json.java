@@ -37,7 +37,7 @@ public class Json {
 
 	@SuppressWarnings("unchecked")
 	public static <T extends RTObject> List<T> jArrayToRuntimeObjList(List<Object> jArray) throws Exception {
-		return (List<T>)jArrayToRuntimeObjList(jArray, false);
+		return (List<T>) jArrayToRuntimeObjList(jArray, false);
 	}
 
 	public static HashMap<String, Object> hashMapRuntimeObjsToJObject(HashMap<String, RTObject> hashMap)
@@ -130,6 +130,8 @@ public class Json {
 	//
 	// Choice: Nothing too clever, it's only used in the save state,
 	// there's not likely to be many of them.
+	//
+	// Tag: {"#": "the tag text"}
 	@SuppressWarnings("unchecked")
 	public static RTObject jTokenToRuntimeObject(Object token) throws Exception {
 		if (token instanceof Integer || token instanceof Float) {
@@ -270,7 +272,7 @@ public class Json {
 				ChoicePoint choice = new ChoicePoint();
 				choice.setPathStringOnChoice(propValue.toString());
 				propValue = obj.get("flg");
-				
+
 				if (propValue != null) {
 					choice.setFlags((Integer) propValue);
 				}
@@ -317,6 +319,13 @@ public class Json {
 				return varAss;
 			}
 
+			// Tag
+			propValue = obj.get("#");
+			if (propValue != null) {
+				return new Tag((String) propValue);
+			}
+
+			// Used when serialising save state only
 			if (obj.get("originalChoicePath") != null)
 				return jObjectToChoice(obj);
 
@@ -461,9 +470,19 @@ public class Json {
 			return jObj;
 		}
 
+		// Void
 		Void voidObj = obj instanceof Void ? (Void) obj : (Void) null;
 		if (voidObj != null)
 			return "void";
+
+		// Tag
+		Tag tag = obj instanceof Tag ? (Tag) obj : (Tag) null;
+
+		if (tag != null) {
+			HashMap<String, Object> jObj = new HashMap<String, Object>();
+			jObj.put("#", tag.getText());
+			return jObj;
+		}
 
 		// Used when serialising save state only
 		Choice choice = obj instanceof Choice ? (Choice) obj : (Choice) null;
@@ -480,7 +499,7 @@ public class Json {
 		// Container is always an array [...]
 		// But the final element is always either:
 		// - a HashMap containing the named content, as well as possibly
-		// the key "#" with the count flags
+		// the key "#f" with the count flags
 		// - null, if neither of the above
 		HashMap<String, RTObject> namedOnlyContent = container.getNamedOnlyContent();
 		int countFlags = container.getCountFlags();
