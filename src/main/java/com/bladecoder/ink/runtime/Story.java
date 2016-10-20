@@ -203,7 +203,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * tags defined at the very top of the story.
 	 * @throws Exception 
 	 */
-	public List<String> globalTags() throws Exception {
+	public List<String> getGlobalTags() throws Exception {
 		return tagsAtStartOfFlowContainerWithPathString("");
 	}
 

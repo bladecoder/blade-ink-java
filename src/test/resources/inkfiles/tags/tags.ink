@@ -6,6 +6,7 @@ This is the content
 == knot ==
 # knot tag
 Knot content
+# end of knot tag
 -> END
 
 = stitch

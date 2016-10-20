@@ -18,9 +18,10 @@ public class TagSpecTest {
 		
 		String[] globalTags = {"author: Joe", "title: My Great Story"};
 		String[] knotTags = {"knot tag"};
+		String[] knotTagsWhenRun = {"knot tag" , "end of knot tag"};
 		String[] stitchTags = {"stitch tag"};
 		
-		Assert.assertArrayEquals(globalTags, story.globalTags().toArray());
+		Assert.assertArrayEquals(globalTags, story.getGlobalTags().toArray());
 		
 		Assert.assertEquals("This is the content\n", story.Continue ());
 		
@@ -28,6 +29,10 @@ public class TagSpecTest {
 				
 		Assert.assertArrayEquals(knotTags, story.tagsForContentAtPath("knot").toArray());
 		Assert.assertArrayEquals(stitchTags, story.tagsForContentAtPath ("knot.stitch").toArray());
+		
+		story.choosePathString("knot");
+		Assert.assertEquals("Knot content\n", story.Continue());
+		Assert.assertArrayEquals(knotTagsWhenRun, story.getCurrentTags().toArray());
 	}
 	
 }
