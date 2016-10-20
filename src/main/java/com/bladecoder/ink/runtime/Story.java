@@ -199,6 +199,60 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
+	 * Get any global tags associated with the story. These are defined as hash
+	 * tags defined at the very top of the story.
+	 * @throws Exception 
+	 */
+	public List<String> globalTags() throws Exception {
+		return tagsAtStartOfFlowContainerAtPathString("");
+	}
+
+	/**
+	 * Gets any tags associated with a particular knot or knot.stitch.
+	 * These are defined as hash tags defined at the very top of a
+	 * knot or stitch. 
+	 * @param path The path of the knot or stitch, in the form "knot" or 
+	 * "knot.stitch".
+	 * @throws Exception 
+	 */
+	public List<String> tagsForContentAtPath(String path) throws Exception {
+		return tagsAtStartOfFlowContainerAtPathString(path);
+	}
+
+	List<String> tagsAtStartOfFlowContainerAtPathString (String pathString) throws Exception {
+		Path path = new Path (pathString);
+
+            // Expected to be global story, knot or stitch
+            Container flowContainer = null;
+            RTObject c = contentAtPath(path);
+
+            if (c instanceof Container)
+            	flowContainer = (Container)c;
+
+            // First element of the above constructs is a compiled weave
+            Container innerWeaveContainer = null;
+            
+            if(flowContainer.getContent().get(0) instanceof Container)
+            	innerWeaveContainer = (Container)flowContainer.getContent().get(0);
+
+            // Any initial tag objects count as the "main tags" associated with that story/knot/stitch
+            List<String> tags = null;
+            for ( RTObject c2 :innerWeaveContainer.getContent()) {
+                Tag tag = null;
+                
+                if(c2 instanceof Tag)
+                	tag = (Tag)c2;
+                
+                if (tag != null) {
+                    if (tags == null) tags = new ArrayList<String> ();
+                    tags.add (tag.getText());
+                } else break;
+            }
+
+            return tags;
+        }
+
+	/**
 	 * Useful when debugging a (very short) story, to visualise the state of the
 	 * story. Add this call as a watch and open the extended text. A left-arrow
 	 * mark will denote the current point of the story. It's only recommended
