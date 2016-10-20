@@ -171,7 +171,7 @@ public class StoryState {
 	}
 
 	List<String> getCurrentTags() {
-		List<String> tags = null;
+		List<String> tags = new ArrayList<String>();
 
 		for (RTObject outputObj : outputStream) {
 			Tag tag = null;
@@ -180,8 +180,6 @@ public class StoryState {
 				tag = (Tag) outputObj;
 
 			if (tag != null) {
-				if (tags == null)
-					tags = new ArrayList<String>();
 				tags.add(tag.getText());
 			}
 		}
