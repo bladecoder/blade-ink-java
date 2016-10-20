@@ -42,6 +42,14 @@ public class Choice extends RTObject {
 	}
 
 	/**
+	 * Get the path to the original choice point - where was this choice defined
+	 * in the story? A dot separated path into the story data.
+	 */
+	public String getSourcePath() {
+		return choicePoint.getPath().getComponentsString();
+	}
+
+	/**
 	 * The target path that the Story should be diverted to if this Choice is
 	 * chosen.
 	 */
