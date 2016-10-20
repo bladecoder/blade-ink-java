@@ -72,12 +72,18 @@ public class ChoicePoint extends RTObject {
 		return onceOnly;
 	}
 
-	public Path getPathOnChoice() {
-
+	public Path getPathOnChoice() throws Exception {
+		// Resolve any relative paths to global ones as we come across them
+		if (pathOnChoice != null && pathOnChoice.isRelative()) {
+			Container choiceTargetObj = getChoiceTarget();
+			if (choiceTargetObj != null) {
+				pathOnChoice = choiceTargetObj.getPath();
+			}
+		}
 		return pathOnChoice;
 	}
 
-	public String getPathStringOnChoice() {
+	public String getPathStringOnChoice() throws Exception {
 		return compactPathString(getPathOnChoice());
 	}
 

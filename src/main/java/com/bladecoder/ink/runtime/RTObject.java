@@ -57,7 +57,16 @@ public class RTObject {
 		Container root = this.getRootContentContainer();
 
 		if (root != null) {
-			RTObject targetContent = root.contentAtPath(path);
+			RTObject targetContent = null;
+
+			// Sometimes paths can be "invalid" if they're externally defined
+			// in the game. TODO: Change ContentAtPath to return null, and
+			// only throw an exception in places that actually care!
+			try {
+				targetContent = root.contentAtPath(path);
+			} catch (Exception e) {
+			}
+
 			if (targetContent != null) {
 				DebugMetadata dm = targetContent.debugMetadata;
 				if (dm != null) {
