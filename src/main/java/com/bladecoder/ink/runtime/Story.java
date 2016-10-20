@@ -1726,10 +1726,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// No problem! Validation complete
 		if (missingExternals.size() == 0) {
 			hasValidatedExternals = true;
-		}
-
-		// Error for all missing externals
-		else {
+		} else { // Error for all missing externals
 			String message = String.format("ERROR: Missing function binding for external%s: '%s' %s",
 					missingExternals.size() > 1 ? "s" : "", String.join("', '", missingExternals),
 					allowExternalFunctionFallbacks ? ", and no fallback ink function found."
@@ -1743,8 +1740,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		for (RTObject innerContent : c.getContent()) {
 			Container container = innerContent instanceof Container ? (Container) innerContent : null;
 			if (container == null || !container.hasValidName())
-				validateExternalBindings(container, missingExternals);
+				validateExternalBindings(innerContent, missingExternals);
 		}
+		
 		for (INamedContent innerKeyValue : c.getNamedContent().values()) {
 			validateExternalBindings(innerKeyValue instanceof RTObject ? (RTObject) innerKeyValue : (RTObject) null,
 					missingExternals);
