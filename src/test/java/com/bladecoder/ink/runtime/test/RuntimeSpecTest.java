@@ -9,6 +9,7 @@ import org.junit.Test;
 import com.bladecoder.ink.runtime.Story;
 import com.bladecoder.ink.runtime.Story.ExternalFunction;
 import com.bladecoder.ink.runtime.Story.VariableObserver;
+import com.bladecoder.ink.runtime.StoryException;
 
 public class RuntimeSpecTest {
 
@@ -100,6 +101,38 @@ public class RuntimeSpecTest {
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
+
+		Assert.assertEquals(10, (int) story.getVariablesState().get("x"));
+
+		story.getVariablesState().set("x", 15);
+
+		Assert.assertEquals(15, (int) story.getVariablesState().get("x"));
+
+		story.chooseChoiceIndex(0);
+
+		text.clear();
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals("OK", text.get(0));
+	}
+	
+	/**
+	 * Test non existant variable.
+	 */
+	@Test
+	public void testSetNonExistantVariable() throws Exception {
+		List<String> text = new ArrayList<String>();
+
+		String json = TestUtils.getJsonString("inkfiles/runtime/set-get-variables.ink.json").replace('\uFEFF', ' ');
+		Story story = new Story(json);
+
+		TestUtils.nextAll(story, text);
+		
+		try { 
+			story.getVariablesState().set("y", "earth");
+			Assert.fail("Setting non existant variable.");
+		} catch(StoryException e) {
+			
+		}
 
 		Assert.assertEquals(10, (int) story.getVariablesState().get("x"));
 

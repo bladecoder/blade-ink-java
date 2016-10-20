@@ -190,6 +190,12 @@ public class VariablesState implements Iterable<String> {
 	}
 
 	public void set(String variableName, Object value) throws Exception {
+
+		// This is the main
+		if (!globalVariables.containsKey(variableName)) {
+			throw new StoryException("Variable '" + variableName + "' doesn't exist, so can't be set.");
+		}
+		
 		AbstractValue val = AbstractValue.create(value);
 		if (val == null) {
 			if (value == null) {
