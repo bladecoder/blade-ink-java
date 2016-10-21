@@ -1,4 +1,4 @@
-=== hurry_home ===
+
 We hurried home <>
 -> to_savile_row
 

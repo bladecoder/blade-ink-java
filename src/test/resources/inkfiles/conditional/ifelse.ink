@@ -1,4 +1,4 @@
-=== test
+
         VAR x = 0
         VAR y = 3
         { x > 0:

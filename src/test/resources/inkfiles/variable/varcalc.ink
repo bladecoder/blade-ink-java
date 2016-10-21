@@ -1,4 +1,4 @@
-=== set_some_variables ===
+
          VAR knows = false
          VAR x = 2
          VAR y = 3

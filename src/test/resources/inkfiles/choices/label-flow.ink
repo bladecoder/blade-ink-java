@@ -1,3 +1,5 @@
+-> meet_guard
+
 === meet_guard ===
         The guard frowns at you.
         *   (greet) [Greet him]

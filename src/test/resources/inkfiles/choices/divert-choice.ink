@@ -1,3 +1,4 @@
+-> knot
 === knot
         You see a soldier.
         *   [Pull a face]

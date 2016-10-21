@@ -1,3 +1,5 @@
+-> homers_couch
+
 === homers_couch ===
             +   [Eat another donut]
                 You eat another donut. -> homers_couch

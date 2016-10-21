@@ -1,3 +1,5 @@
+-> test
+
 === test
         { stopping:
             -   I entered the casino.

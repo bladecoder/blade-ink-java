@@ -1,3 +1,5 @@
+-> find_help
+
 === find_help ===
         
             You search desperately for a friendly face in the crowd.

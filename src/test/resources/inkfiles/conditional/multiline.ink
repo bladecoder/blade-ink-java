@@ -1,3 +1,5 @@
+-> test
+
 === test
         { stopping:
             -   At the table, I drew a card. Ace of Hearts.
