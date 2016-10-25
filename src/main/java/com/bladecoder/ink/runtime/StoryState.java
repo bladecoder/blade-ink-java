@@ -148,7 +148,6 @@ public class StoryState {
 	}
 
 	void forceEnd() throws Exception {
-		setCurrentContentObject(null);
 
 		while (callStack.canPopThread())
 			callStack.popThread();
@@ -157,7 +156,8 @@ public class StoryState {
 			callStack.pop();
 
 		currentChoices.clear();
-
+		
+		setCurrentContentObject(null);
 		setPreviousContentObject(null);
 
 		setDidSafeExit(true);
