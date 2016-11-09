@@ -13,7 +13,7 @@ public class TagSpecTest {
 	@Test
 	public void testTags() throws Exception {
 
-		String json = TestUtils.getJsonString("inkfiles/tags/tags.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/tags/tags.ink.json");
 		Story story = new Story(json);
 
 		String[] globalTags = { "author: Joe", "title: My Great Story" };

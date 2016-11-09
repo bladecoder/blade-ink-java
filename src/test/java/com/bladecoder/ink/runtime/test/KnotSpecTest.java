@@ -17,7 +17,7 @@ public class KnotSpecTest {
 	public void testSingleLine() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/knot/single-line.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/knot/single-line.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -32,7 +32,7 @@ public class KnotSpecTest {
 	public void testMultiLine() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/knot/multi-line.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/knot/multi-line.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -49,7 +49,7 @@ public class KnotSpecTest {
 	public void stripEmptyLines() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/knot/strip-empty-lines.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/knot/strip-empty-lines.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -66,7 +66,7 @@ public class KnotSpecTest {
 	public void paramStrings() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/knot/param-strings.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/knot/param-strings.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -85,7 +85,7 @@ public class KnotSpecTest {
 	public void paramInts() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/knot/param-ints.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/knot/param-ints.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -106,7 +106,7 @@ public class KnotSpecTest {
 	public void paramFloats() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/knot/param-floats.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/knot/param-floats.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -125,7 +125,7 @@ public class KnotSpecTest {
 	public void paramVars() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/knot/param-vars.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/knot/param-vars.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -144,7 +144,7 @@ public class KnotSpecTest {
 	public void paramMulti() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/knot/param-multi.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/knot/param-multi.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -163,7 +163,7 @@ public class KnotSpecTest {
 	public void paramRecurse() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/knot/param-recurse.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/knot/param-recurse.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);

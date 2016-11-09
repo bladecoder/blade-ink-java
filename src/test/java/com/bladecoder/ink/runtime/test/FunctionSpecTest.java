@@ -17,7 +17,7 @@ public class FunctionSpecTest {
 	public void funcBasic() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/function/func-basic.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/function/func-basic.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -33,7 +33,7 @@ public class FunctionSpecTest {
 	public void funcNone() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/function/func-none.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/function/func-none.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -48,7 +48,7 @@ public class FunctionSpecTest {
 	public void funcInline() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/function/func-inline.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/function/func-inline.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -64,7 +64,7 @@ public class FunctionSpecTest {
 	public void setVarFunc() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/function/setvar-func.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/function/setvar-func.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -80,7 +80,7 @@ public class FunctionSpecTest {
 	public void complexFunc1() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/function/complex-func1.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/function/complex-func1.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -96,7 +96,7 @@ public class FunctionSpecTest {
 	public void complexFunc2() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/function/complex-func2.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/function/complex-func2.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -112,7 +112,7 @@ public class FunctionSpecTest {
 	public void complexFunc3() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/function/complex-func3.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/function/complex-func3.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -128,7 +128,7 @@ public class FunctionSpecTest {
 	public void rnd() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/function/rnd-func.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/function/rnd-func.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);

@@ -17,7 +17,7 @@ public class VariableSpecTest {
 	public void variableDeclaration() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/variable/variable-declaration.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/variable/variable-declaration.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -32,7 +32,7 @@ public class VariableSpecTest {
 	public void varCalc() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/variable/varcalc.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/variable/varcalc.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -47,7 +47,7 @@ public class VariableSpecTest {
 	public void varDivert() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/variable/var-divert.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/variable/var-divert.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);

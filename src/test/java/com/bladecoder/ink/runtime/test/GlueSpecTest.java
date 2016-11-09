@@ -17,7 +17,7 @@ public class GlueSpecTest {
 	public void simpleGlue() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/glue/simple-glue.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/glue/simple-glue.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -32,7 +32,7 @@ public class GlueSpecTest {
 	public void glueWithDivert() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/glue/glue-with-divert.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/glue/glue-with-divert.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -47,7 +47,7 @@ public class GlueSpecTest {
 	public void TestLeftRightGlueMatching() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/glue/left-right-glue-matching.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/glue/left-right-glue-matching.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);

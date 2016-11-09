@@ -17,7 +17,7 @@ public class ConditionalSpecTest {
 	public void ifTrue() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/iftrue.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/iftrue.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);		
@@ -33,7 +33,7 @@ public class ConditionalSpecTest {
 	public void ifFalse() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/iffalse.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/iffalse.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);		
@@ -49,7 +49,7 @@ public class ConditionalSpecTest {
 	public void ifElse() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/ifelse.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/ifelse.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);		
@@ -65,7 +65,7 @@ public class ConditionalSpecTest {
 	public void ifElseExt() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/ifelse-ext.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/ifelse-ext.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);		
@@ -81,7 +81,7 @@ public class ConditionalSpecTest {
 	public void ifElseExtText1() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/ifelse-ext-text1.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/ifelse-ext-text1.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -103,7 +103,7 @@ public class ConditionalSpecTest {
 	public void ifElseExtText2() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/ifelse-ext-text2.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/ifelse-ext-text2.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -125,7 +125,7 @@ public class ConditionalSpecTest {
 	public void ifElseExtText3() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/ifelse-ext-text3.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/ifelse-ext-text3.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -147,7 +147,7 @@ public class ConditionalSpecTest {
 	public void condText1() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/condtext.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/condtext.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -166,7 +166,7 @@ public class ConditionalSpecTest {
 	public void condText2() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/condtext.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/condtext.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -185,7 +185,7 @@ public class ConditionalSpecTest {
 	public void condOpt1() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/condopt.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/condopt.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -203,7 +203,7 @@ public class ConditionalSpecTest {
 	public void condOpt2() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/condopt.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/condopt.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -221,7 +221,7 @@ public class ConditionalSpecTest {
 	public void stopping() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/stopping.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/stopping.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -255,7 +255,7 @@ public class ConditionalSpecTest {
 	public void cycle() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/cycle.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/cycle.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -289,7 +289,7 @@ public class ConditionalSpecTest {
 	public void once() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/once.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/once.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -325,7 +325,7 @@ public class ConditionalSpecTest {
 	public void shuffle() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/shuffle.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/shuffle.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -356,7 +356,7 @@ public class ConditionalSpecTest {
 	public void multiline() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/multiline.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/multiline.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -385,7 +385,7 @@ public class ConditionalSpecTest {
 	public void multilineDivert() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/multiline-divert.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/multiline-divert.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -414,7 +414,7 @@ public class ConditionalSpecTest {
 	public void multilineChoice() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/conditional/multiline-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/conditional/multiline-choice.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);

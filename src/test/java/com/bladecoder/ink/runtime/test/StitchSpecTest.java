@@ -17,7 +17,7 @@ public class StitchSpecTest {
 	public void autoStitch() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/stitch/auto-stitch.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/stitch/auto-stitch.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -32,7 +32,7 @@ public class StitchSpecTest {
 	public void autoStitch2() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/stitch/auto-stitch.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/stitch/auto-stitch.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -51,7 +51,7 @@ public class StitchSpecTest {
 	public void manualStitch() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/stitch/manual-stitch.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/stitch/manual-stitch.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -72,7 +72,7 @@ public class StitchSpecTest {
 	public void manualStitch2() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/stitch/manual-stitch.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/stitch/manual-stitch.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);

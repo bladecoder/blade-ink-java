@@ -17,7 +17,7 @@ public class GatherSpecTest {
 	public void gatherBasic() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/gather/gather-basic.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/gather/gather-basic.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -38,7 +38,7 @@ public class GatherSpecTest {
 	public void gatherChain() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/gather/gather-chain.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/gather/gather-chain.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -66,7 +66,7 @@ public class GatherSpecTest {
 	public void nestedFlow() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/gather/nested-flow.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/gather/nested-flow.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -90,7 +90,7 @@ public class GatherSpecTest {
 	public void deepNesting() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/gather/deep-nesting.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/gather/deep-nesting.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -126,7 +126,7 @@ public class GatherSpecTest {
 	public void complexFlow1() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/gather/complex-flow.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/gather/complex-flow.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -144,7 +144,7 @@ public class GatherSpecTest {
 	public void complexFlow2() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/gather/complex-flow.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/gather/complex-flow.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);

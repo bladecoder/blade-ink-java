@@ -20,7 +20,7 @@ public class RuntimeSpecTest {
 	public void externalFunction() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json");
 		final Story story = new Story(json);
 
 		story.bindExternalFunction("externalFunction", new ExternalFunction() {
@@ -46,7 +46,7 @@ public class RuntimeSpecTest {
 	public void externalFunctionFallback() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json");
 		Story story = new Story(json);
 
 		story.setAllowExternalFunctionFallbacks(true);
@@ -65,7 +65,7 @@ public class RuntimeSpecTest {
 	public void variableObservers() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/variable-observers.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/runtime/variable-observers.ink.json");
 		Story story = new Story(json);
 
 		story.observeVariable("x", new VariableObserver() {
@@ -97,7 +97,7 @@ public class RuntimeSpecTest {
 	public void setAndGetVariable() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/set-get-variables.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/runtime/set-get-variables.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -122,7 +122,7 @@ public class RuntimeSpecTest {
 	public void testSetNonExistantVariable() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/set-get-variables.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/runtime/set-get-variables.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -154,7 +154,7 @@ public class RuntimeSpecTest {
 	public void jumpKnot() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/jump-knot.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/runtime/jump-knot.ink.json");
 		Story story = new Story(json);
 
 		story.choosePathString("two");
@@ -184,7 +184,7 @@ public class RuntimeSpecTest {
 	public void jumpStitch() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/jump-stitch.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/runtime/jump-stitch.ink.json");
 		Story story = new Story(json);
 
 		story.choosePathString("two.sthree");
@@ -215,7 +215,7 @@ public class RuntimeSpecTest {
 	public void readVisitCounts() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/read-visit-counts.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/runtime/read-visit-counts.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -225,7 +225,7 @@ public class RuntimeSpecTest {
 
 	@Test
 	public void testLoadSave() throws Exception {
-		String json = TestUtils.getJsonString("inkfiles/runtime/load-save.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/runtime/load-save.ink.json");
 		Story story = new Story(json);
 				
 		List<String> text = new ArrayList<String>();

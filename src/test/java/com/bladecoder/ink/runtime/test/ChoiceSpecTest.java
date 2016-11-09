@@ -55,7 +55,7 @@ public class ChoiceSpecTest {
 	public void singleChoice1() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/single-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/single-choice.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -71,7 +71,7 @@ public class ChoiceSpecTest {
 	public void singleChoice2() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/single-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/single-choice.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -92,7 +92,7 @@ public class ChoiceSpecTest {
 	public void suppressChoice() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/suppress-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/suppress-choice.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -113,7 +113,7 @@ public class ChoiceSpecTest {
 	public void mixedChoice() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/mixed-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/mixed-choice.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -135,7 +135,7 @@ public class ChoiceSpecTest {
 	public void varyingChoice() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/varying-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/varying-choice.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -156,7 +156,7 @@ public class ChoiceSpecTest {
 	public void stickyChoice() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/sticky-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/sticky-choice.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -176,7 +176,7 @@ public class ChoiceSpecTest {
 	public void fallbackChoice() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/fallback-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/fallback-choice.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -191,7 +191,7 @@ public class ChoiceSpecTest {
 	public void fallbackChoice2() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/fallback-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/fallback-choice.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -215,7 +215,7 @@ public class ChoiceSpecTest {
 	public void conditionalChoice() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/conditional-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/conditional-choice.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -230,7 +230,7 @@ public class ChoiceSpecTest {
 	public void labelFlow() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/label-flow.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/label-flow.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -249,7 +249,7 @@ public class ChoiceSpecTest {
 	public void labelFlow2() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/label-flow.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/label-flow.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -268,7 +268,7 @@ public class ChoiceSpecTest {
 	public void labelScope() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/label-scope.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/label-scope.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
@@ -289,7 +289,7 @@ public class ChoiceSpecTest {
 	public void labelScopeError() throws Exception {
 //		List<String> text = new ArrayList<String>();
 //
-//		String json = TestUtils.getJsonString("inkfiles/choices/label-scope-error.ink.json").replace('\uFEFF', ' ');
+//		String json = TestUtils.getJsonString("inkfiles/choices/label-scope-error.ink.json");
 //		Story story = new Story(json);
 //
 //		try {
@@ -309,7 +309,7 @@ public class ChoiceSpecTest {
 	public void divertChoice() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/choices/divert-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/choices/divert-choice.ink.json");
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);

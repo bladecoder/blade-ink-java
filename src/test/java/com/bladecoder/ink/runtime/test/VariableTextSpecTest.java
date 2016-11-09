@@ -16,7 +16,7 @@ public class VariableTextSpecTest {
 	public void sequence() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/variabletext/sequence.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/variabletext/sequence.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -55,7 +55,7 @@ public class VariableTextSpecTest {
 	public void cycle() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/variabletext/cycle.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/variabletext/cycle.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -94,7 +94,7 @@ public class VariableTextSpecTest {
 	public void once() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/variabletext/once.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/variabletext/once.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -134,7 +134,7 @@ public class VariableTextSpecTest {
 	public void emptyElements() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/variabletext/empty-elements.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/variabletext/empty-elements.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -161,7 +161,7 @@ public class VariableTextSpecTest {
 	public void listInChoice() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/variabletext/list-in-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/variabletext/list-in-choice.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -187,7 +187,7 @@ public class VariableTextSpecTest {
 	public void one() throws Exception {
 //		List<String> text = new ArrayList<String>();
 //		
-//		String json = TestUtils.getJsonString("inkfiles/variabletext/one.ink.json").replace('\uFEFF', ' ');
+//		String json = TestUtils.getJsonString("inkfiles/variabletext/one.ink.json");
 //		Story story = new Story(json);
 //		
 //		TestUtils.nextAll(story, text);
@@ -203,7 +203,7 @@ public class VariableTextSpecTest {
 	public void minusOne() throws Exception {
 //		List<String> text = new ArrayList<String>();
 //		
-//		String json = TestUtils.getJsonString("inkfiles/variabletext/minus-one.ink.json").replace('\uFEFF', ' ');
+//		String json = TestUtils.getJsonString("inkfiles/variabletext/minus-one.ink.json");
 //		Story story = new Story(json);
 //		
 //		TestUtils.nextAll(story, text);
@@ -219,7 +219,7 @@ public class VariableTextSpecTest {
 	public void ten() throws Exception {
 //		List<String> text = new ArrayList<String>();
 //		
-//		String json = TestUtils.getJsonString("inkfiles/variabletext/ten.ink.json").replace('\uFEFF', ' ');
+//		String json = TestUtils.getJsonString("inkfiles/variabletext/ten.ink.json");
 //		Story story = new Story(json);
 //		
 //		TestUtils.nextAll(story, text);

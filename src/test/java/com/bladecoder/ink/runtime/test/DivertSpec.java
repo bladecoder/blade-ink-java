@@ -17,7 +17,7 @@ public class DivertSpec {
 	public void simpleDivert() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/divert/simple-divert.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/divert/simple-divert.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);		
@@ -34,7 +34,7 @@ public class DivertSpec {
 	public void invisibleDivert() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/divert/invisible-divert.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/divert/invisible-divert.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);		
@@ -50,7 +50,7 @@ public class DivertSpec {
 	public void divertOnChoice() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/divert/divert-on-choice.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/divert/divert-on-choice.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -70,7 +70,7 @@ public class DivertSpec {
 	public void complexBranching1() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/divert/complex-branching.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/divert/complex-branching.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);
@@ -91,7 +91,7 @@ public class DivertSpec {
 	public void complexBranching2() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
-		String json = TestUtils.getJsonString("inkfiles/divert/complex-branching.ink.json").replace('\uFEFF', ' ');
+		String json = TestUtils.getJsonString("inkfiles/divert/complex-branching.ink.json");
 		Story story = new Story(json);
 		
 		TestUtils.nextAll(story, text);

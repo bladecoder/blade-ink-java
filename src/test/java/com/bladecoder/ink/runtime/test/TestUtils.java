@@ -24,6 +24,10 @@ public class TestUtils {
 		try {
 			StringBuilder sb = new StringBuilder();
 			String line = br.readLine();
+			
+			// Replace the BOM mark
+			if(line != null)
+				line = line.replace('\uFEFF', ' ');
 
 			while (line != null) {
 				sb.append(line);
@@ -39,7 +43,7 @@ public class TestUtils {
 	
 	public static final List<String> runStory(String filename, List<Integer> choiceList, List<String> errors) throws Exception {
 		// 1) Load story
-		String json = TestUtils.getJsonString(filename).replace('\uFEFF', ' ');
+		String json = getJsonString(filename);
 
 //		System.out.println(json);
 
