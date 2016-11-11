@@ -38,7 +38,7 @@ public class StoryState {
 	private HashMap<String, Integer> turnIndices;
 	private VariablesState variablesState;
 	private HashMap<String, Integer> visitCounts;
-	
+
 	// Temporary state only, during externally called function evaluation
 	boolean isExternalFunctionEvaluation;
 	CallStack originalCallstack;
@@ -156,7 +156,7 @@ public class StoryState {
 			callStack.pop();
 
 		currentChoices.clear();
-		
+
 		setCurrentContentObject(null);
 		setPreviousContentObject(null);
 
@@ -343,16 +343,20 @@ public class StoryState {
 		return false;
 	}
 
-	Glue getCurrentRightGlue() {
+	Glue matchRightGlueForLeftGlue(Glue leftGlue) {
+		if (!leftGlue.isLeft())
+			return null;
+
 		for (int i = outputStream.size() - 1; i >= 0; i--) {
 			RTObject c = outputStream.get(i);
+			Glue g = null;
 
-			Glue glue = null;
 			if (c instanceof Glue)
-				glue = (Glue) c;
-			if (glue != null && glue.isRight())
-				return glue;
-			else if (c instanceof ControlCommand) // e.g. BeginString
+				g = (Glue) c;
+
+			if (g != null && g.isRight() && g.getParent() == leftGlue.getParent()) {
+				return g;
+			} else if (c instanceof ControlCommand) // e.g. BeginString
 				break;
 		}
 		return null;
@@ -434,15 +438,15 @@ public class StoryState {
 
 			// Found matching left-glue for right-glue? Close it.
 
-			Glue existingRightGlue = getCurrentRightGlue();
-			boolean foundMatchingLeftGlue = glue.isLeft() && existingRightGlue != null
-					&& glue.getParent() == existingRightGlue.getParent();
+			Glue matchingRightGlue = null;
+			if (glue.isLeft())
+				matchingRightGlue = matchRightGlueForLeftGlue(glue);
 
 			// Left/Right glue is auto-generated for inline expressions
 			// where we want to absorb newlines but only in a certain direction.
 			// "Bi" glue is written by the user in their ink with <>
 			if (glue.isLeft() || glue.isBi()) {
-				trimNewlinesFromOutputStream(foundMatchingLeftGlue);
+				trimNewlinesFromOutputStream(matchingRightGlue);
 			}
 
 			// New right-glue
@@ -505,91 +509,90 @@ public class StoryState {
 
 		currentTurnIndex++;
 	}
-	
-    void startExternalFunctionEvaluation (Container funcContainer, Object[] arguments) throws Exception
-    {
-        // We'll start a new callstack, so keep hold of the original,
-        // as well as the evaluation stack so we know if the function 
-        // returned something
-        originalCallstack = callStack;
-        originalEvaluationStackHeight = evaluationStack.size();
 
-        // Create a new base call stack element.
-        callStack = new CallStack (funcContainer);
-        callStack.currentElement().type = PushPopType.Function;
+	void startExternalFunctionEvaluation(Container funcContainer, Object[] arguments) throws Exception {
+		// We'll start a new callstack, so keep hold of the original,
+		// as well as the evaluation stack so we know if the function
+		// returned something
+		originalCallstack = callStack;
+		originalEvaluationStackHeight = evaluationStack.size();
 
-        // By setting ourselves in external function evaluation mode,
-        // we're saying it's okay to end the flow without a Done or End,
-        // but with a ~ return instead.
-        isExternalFunctionEvaluation = true;
+		// Create a new base call stack element.
+		callStack = new CallStack(funcContainer);
+		callStack.currentElement().type = PushPopType.Function;
 
-        // Pass arguments onto the evaluation stack
-        if (arguments != null) {
-            for (int i = 0; i < arguments.length; i++) {
-                if (!(arguments [i] instanceof Integer || arguments [i] instanceof Float || arguments [i] instanceof String)) {
-                    throw new Exception ("ink arguments when calling EvaluateFunction must be int, float or string");
-                }
+		// By setting ourselves in external function evaluation mode,
+		// we're saying it's okay to end the flow without a Done or End,
+		// but with a ~ return instead.
+		isExternalFunctionEvaluation = true;
 
-                evaluationStack.add (Value.create(arguments [i]));
-            }
-        }
-    }
-        
-    boolean tryExitExternalFunctionEvaluation ()
-    {
-        if (isExternalFunctionEvaluation && callStack.getElements().size() == 1 && callStack.currentElement().type == PushPopType.Function) {
-            setCurrentContentObject(null);
-            didSafeExit = true;
-            return true;
-        }
+		// Pass arguments onto the evaluation stack
+		if (arguments != null) {
+			for (int i = 0; i < arguments.length; i++) {
+				if (!(arguments[i] instanceof Integer || arguments[i] instanceof Float
+						|| arguments[i] instanceof String)) {
+					throw new Exception("ink arguments when calling EvaluateFunction must be int, float or string");
+				}
 
-        return false;
-    }
+				evaluationStack.add(Value.create(arguments[i]));
+			}
+		}
+	}
 
-    Object completeExternalFunctionEvaluation ()
-    {
-        
-        // Do we have a returned value?
-        // Potentially pop multiple values off the stack, in case we need
-        // to clean up after ourselves (e.g. caller of EvaluateFunction may 
-        // have passed too many arguments, and we currently have no way to check for that)
-        RTObject returnedObj = null;
-        while (evaluationStack.size() > originalEvaluationStackHeight) {
-            RTObject poppedObj = popEvaluationStack ();
-            if (returnedObj == null)
-                returnedObj = poppedObj;
-        }
+	boolean tryExitExternalFunctionEvaluation() {
+		if (isExternalFunctionEvaluation && callStack.getElements().size() == 1
+				&& callStack.currentElement().type == PushPopType.Function) {
+			setCurrentContentObject(null);
+			didSafeExit = true;
+			return true;
+		}
 
-        // Restore our own state
-        callStack = originalCallstack;
-        originalCallstack = null;
-        originalEvaluationStackHeight = 0;
+		return false;
+	}
 
-        // What did we get back?
-        if (returnedObj != null) {
-            if (returnedObj instanceof Void)
-                return null;
+	Object completeExternalFunctionEvaluation() {
 
-            // Some kind of value, if not void
-            Value<?> returnVal = null;
-            
-            if(returnedObj instanceof Value)
-            	returnVal = (Value<?>)returnedObj;
+		// Do we have a returned value?
+		// Potentially pop multiple values off the stack, in case we need
+		// to clean up after ourselves (e.g. caller of EvaluateFunction may
+		// have passed too many arguments, and we currently have no way to check
+		// for that)
+		RTObject returnedObj = null;
+		while (evaluationStack.size() > originalEvaluationStackHeight) {
+			RTObject poppedObj = popEvaluationStack();
+			if (returnedObj == null)
+				returnedObj = poppedObj;
+		}
 
-            // DivertTargets get returned as the string of components
-            // (rather than a Path, which isn't public)
-            if (returnVal.getValueType() == ValueType.DivertTarget) {
-                return returnVal.getValueObject().toString ();
-            }
+		// Restore our own state
+		callStack = originalCallstack;
+		originalCallstack = null;
+		originalEvaluationStackHeight = 0;
 
-            // Other types can just have their exact object type:
-            // int, float, string. VariablePointers get returned as strings.
-            return returnVal.getValueObject();
-        }
+		// What did we get back?
+		if (returnedObj != null) {
+			if (returnedObj instanceof Void)
+				return null;
 
-        return null;
-    }
-	
+			// Some kind of value, if not void
+			Value<?> returnVal = null;
+
+			if (returnedObj instanceof Value)
+				returnVal = (Value<?>) returnedObj;
+
+			// DivertTargets get returned as the string of components
+			// (rather than a Path, which isn't public)
+			if (returnVal.getValueType() == ValueType.DivertTarget) {
+				return returnVal.getValueObject().toString();
+			}
+
+			// Other types can just have their exact object type:
+			// int, float, string. VariablePointers get returned as strings.
+			return returnVal.getValueObject();
+		}
+
+		return null;
+	}
 
 	void setCurrentContentObject(RTObject value) {
 		callStack.currentElement().setcurrentRTObject(value);
@@ -684,7 +687,7 @@ public class StoryState {
 		}
 	}
 
-	void trimNewlinesFromOutputStream(boolean stopAndRemoveRightGlue) {
+	void trimNewlinesFromOutputStream(Glue rightGlueToStopAt) {
 		int removeWhitespaceFrom = -1;
 		int rightGluePos = -1;
 		boolean foundNonWhitespace = false;
@@ -705,9 +708,9 @@ public class StoryState {
 			if (cmd != null || (txt != null && txt.isNonWhitespace())) {
 				foundNonWhitespace = true;
 
-				if (!stopAndRemoveRightGlue)
+				if (rightGlueToStopAt == null)
 					break;
-			} else if (stopAndRemoveRightGlue && glue != null && glue.isRight()) {
+			} else if (rightGlueToStopAt != null && glue == rightGlueToStopAt) {
 				rightGluePos = i;
 				break;
 			} else if (txt != null && txt.isNewline() && !foundNonWhitespace) {
@@ -732,8 +735,18 @@ public class StoryState {
 
 		// Remove the glue (it will come before the whitespace,
 		// so index is still valid)
-		if (stopAndRemoveRightGlue && rightGluePos > -1)
-			outputStream.remove(rightGluePos);
+		// Also remove any other non-matching right glues that come after,
+		// since they'll have lost their matching glues already
+		if (rightGlueToStopAt != null && rightGluePos > -1) {
+			i = rightGluePos;
+			while (i < outputStream.size()) {
+				if (outputStream.get(i) instanceof Glue && ((Glue) outputStream.get(i)).isRight()) {
+					outputStream.remove(i);
+				} else {
+					i++;
+				}
+			}
+		}
 	}
 
 	// At both the start and the end of the String, split out the new lines like
