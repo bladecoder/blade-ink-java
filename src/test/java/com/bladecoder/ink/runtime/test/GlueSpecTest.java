@@ -44,7 +44,7 @@ public class GlueSpecTest {
 	 *      "- bind text together across multiple lines of text"
 	 */
 	@Test
-	public void TestLeftRightGlueMatching() throws Exception {
+	public void testLeftRightGlueMatching() throws Exception {
 		List<String> text = new ArrayList<String>();
 		
 		String json = TestUtils.getJsonString("inkfiles/glue/left-right-glue-matching.ink.json");
@@ -54,5 +54,37 @@ public class GlueSpecTest {
 		Assert.assertEquals(2, text.size());
 		Assert.assertEquals("A line.", text.get(0));
 		Assert.assertEquals("Another line.", text.get(1));
+	}
+	
+	/**
+	 *      "- bind text together across multiple lines of text"
+	 */
+	@Test
+	public void testBugfix1() throws Exception {
+		List<String> text = new ArrayList<String>();
+		
+		String json = TestUtils.getJsonString("inkfiles/glue/testbugfix1.ink.json");
+		Story story = new Story(json);
+		
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(2, text.size());
+		Assert.assertEquals("A", text.get(0));
+		Assert.assertEquals("C", text.get(1));
+	}
+	
+	/**
+	 *      "- bind text together across multiple lines of text"
+	 */
+	@Test
+	public void testBugfix2() throws Exception {
+		List<String> text = new ArrayList<String>();
+		
+		String json = TestUtils.getJsonString("inkfiles/glue/testbugfix2.ink.json");
+		Story story = new Story(json);
+		
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(2, text.size());
+		// Assert.assertEquals("A ", text.get(0)); // TODO nextAll is trimming!
+		Assert.assertEquals("X", text.get(1));
 	}
 }

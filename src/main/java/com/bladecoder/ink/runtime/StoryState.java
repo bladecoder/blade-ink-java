@@ -288,7 +288,17 @@ public class StoryState {
 	}
 
 	List<Choice> getCurrentChoices() {
+		if(canContinue()) return new ArrayList<Choice>();
+		 
 		return currentChoices;
+	}
+	
+	List<Choice> getGeneratedChoices() {	 
+		return currentChoices;
+	}
+	
+	boolean canContinue() {
+		return getCurrentContentObject() != null && !hasError();
 	}
 
 	List<String> getCurrentErrors() {

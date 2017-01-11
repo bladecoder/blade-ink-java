@@ -336,7 +336,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @return true if it's possible to call Continue()
 	 */
 	public boolean canContinue() {
-		return state.getCurrentContentObject() != null && !state.hasError();
+		return state.canContinue();
 	}
 
 	/**
@@ -530,7 +530,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					error("Thread available to pop, threads should always be flat by the end of evaluation?");
 				}
 
-				if (getCurrentChoices().size() == 0 && !getState().isDidSafeExit()
+				if (getState().getGeneratedChoices().size() == 0 && !getState().isDidSafeExit()
 						&& temporaryEvaluationContainer == null) {
 					if (getState().getCallStack().canPop(PushPopType.Tunnel)) {
 						error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
@@ -666,7 +666,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * The list of Choice Objects available at the current point in the Story.
 	 * This list will be populated as the Story is stepped through with the
 	 * Continue() method. Once canContinue becomes false, this list will be
-	 * fully populated, and is usually (but not always) on the final Continue()
+	 * populated, and is usually (but not always) on the final Continue()
 	 * step.
 	 */
 	public List<Choice> getCurrentChoices() {
@@ -1250,7 +1250,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				break;
 
 			case ChoiceCount:
-				choiceCount = getCurrentChoices().size();
+				choiceCount = state.getGeneratedChoices().size();
 				state.pushEvaluationStack(new IntValue(choiceCount));
 				break;
 
@@ -1599,7 +1599,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (choicePoint != null) {
 			Choice choice = processChoice(choicePoint);
 			if (choice != null) {
-				state.getCurrentChoices().add(choice);
+				state.getGeneratedChoices().add(choice);
 			}
 
 			currentContentObj = null;
