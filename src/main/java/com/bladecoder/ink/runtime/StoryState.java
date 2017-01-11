@@ -38,16 +38,22 @@ public class StoryState {
 	private HashMap<String, Integer> turnIndices;
 	private VariablesState variablesState;
 	private HashMap<String, Integer> visitCounts;
+	private String currentText;
 
 	// Temporary state only, during externally called function evaluation
-	boolean isExternalFunctionEvaluation;
-	CallStack originalCallstack;
-	int originalEvaluationStackHeight;
+	private boolean isExternalFunctionEvaluation;
+	private CallStack originalCallstack;
+	private int originalEvaluationStackHeight;
+
+	private boolean outputStreamTextDirty = true;
+	private boolean outputStreamTagsDirty = true;
+	private List<String> currentTags;
 
 	StoryState(Story story) {
 		this.story = story;
 
 		outputStream = new ArrayList<RTObject>();
+		outputStreamDirty();
 
 		evaluationStack = new ArrayList<RTObject>();
 
@@ -87,6 +93,7 @@ public class StoryState {
 		StoryState copy = new StoryState(story);
 
 		copy.getOutputStream().addAll(outputStream);
+		outputStreamDirty();
 		copy.currentChoices.addAll(currentChoices);
 
 		if (hasError()) {
@@ -133,18 +140,26 @@ public class StoryState {
 		return -1;
 	}
 
-	String currentText() {
-		StringBuilder sb = new StringBuilder();
+	String getCurrentText() {
+		if (outputStreamTextDirty) {
+			StringBuilder sb = new StringBuilder();
 
-		for (RTObject outputObj : outputStream) {
-			StringValue textContent = outputObj instanceof StringValue ? (StringValue) outputObj : null;
+			for (RTObject outputObj : outputStream) {
+				StringValue textContent = null;
+				if (outputObj instanceof StringValue)
+					textContent = (StringValue) outputObj;
 
-			if (textContent != null) {
-				sb.append(textContent.value);
+				if (textContent != null) {
+					sb.append(textContent.value);
+				}
 			}
+
+			currentText = sb.toString();
+
+			outputStreamTextDirty = false;
 		}
 
-		return sb.toString();
+		return currentText;
 	}
 
 	void forceEnd() throws Exception {
@@ -176,20 +191,22 @@ public class StoryState {
 	}
 
 	List<String> getCurrentTags() {
-		List<String> tags = new ArrayList<String>();
+		if (outputStreamTagsDirty) {
+			currentTags = new ArrayList<String>();
 
-		for (RTObject outputObj : outputStream) {
-			Tag tag = null;
+			for (RTObject outputObj : outputStream) {
+				Tag tag = null;
+				if (outputObj instanceof Tag)
+					tag = (Tag) outputObj;
 
-			if (outputObj instanceof Tag)
-				tag = (Tag) outputObj;
-
-			if (tag != null) {
-				tags.add(tag.getText());
+				if (tag != null) {
+					currentTags.add(tag.getText());
+				}
 			}
+			outputStreamTagsDirty = false;
 		}
 
-		return tags;
+		return currentTags;
 	}
 
 	boolean getInExpressionEvaluation() {
@@ -288,15 +305,16 @@ public class StoryState {
 	}
 
 	List<Choice> getCurrentChoices() {
-		if(canContinue()) return new ArrayList<Choice>();
-		 
+		if (canContinue())
+			return new ArrayList<Choice>();
+
 		return currentChoices;
 	}
-	
-	List<Choice> getGeneratedChoices() {	 
+
+	List<Choice> getGeneratedChoices() {
 		return currentChoices;
 	}
-	
+
 	boolean canContinue() {
 		return getCurrentContentObject() != null && !hasError();
 	}
@@ -486,6 +504,8 @@ public class StoryState {
 		if (includeInOutput) {
 			outputStream.add(obj);
 		}
+
+		outputStreamDirty();
 	}
 
 	// Only called when non-whitespace is appended
@@ -499,6 +519,13 @@ public class StoryState {
 				break;
 			}
 		}
+
+		outputStreamDirty();
+	}
+
+	void outputStreamDirty() {
+		outputStreamTextDirty = true;
+		outputStreamTagsDirty = true;
 	}
 
 	void resetErrors() {
@@ -507,6 +534,7 @@ public class StoryState {
 
 	void resetOutput() {
 		outputStream.clear();
+		outputStreamDirty();
 	}
 
 	// Don't make public since the method need to be wrapped in Story for visit
@@ -639,6 +667,7 @@ public class StoryState {
 		evaluationStack = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("evalStack"));
 
 		outputStream = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("outputStream"));
+		outputStreamDirty();
 
 		currentChoices = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("currentChoices"));
 
@@ -695,6 +724,8 @@ public class StoryState {
 			else
 				i++;
 		}
+
+		outputStreamDirty();
 	}
 
 	void trimNewlinesFromOutputStream(Glue rightGlueToStopAt) {

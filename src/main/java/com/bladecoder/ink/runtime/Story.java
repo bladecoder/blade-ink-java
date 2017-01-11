@@ -75,6 +75,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	private Container temporaryEvaluationContainer;
 
 	private HashMap<String, List<VariableObserver>> variableObservers;
+	
+	private HashSet<Container> prevContainerSet;
 
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
@@ -462,7 +464,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 						// Cover cases that non-text generated content was
 						// evaluated last step
 						String currText = getCurrentText();
-						int prevTextLength = stateAtLastNewline.currentText().length();
+						int prevTextLength = stateAtLastNewline.getCurrentText().length();
 
 						// Take tags into account too, so that a tag following a
 						// content line:
@@ -473,7 +475,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 						int prevTagCount = stateAtLastNewline.getCurrentTags().size();
 
 						// Output has been extended?
-						if (!currText.equals(stateAtLastNewline.currentText())
+						if (!currText.equals(stateAtLastNewline.getCurrentText())
 								|| prevTagCount != getCurrentTags().size()) {
 
 							// Original newline still exists?
@@ -503,7 +505,14 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 						// or some
 						// non-text content such as choices.
 						if (canContinue()) {
-							stateAtLastNewline = stateSnapshot();
+							// Don't bother to record the state beyond the current newline.
+							// e.g.:
+							// Hello world\n
+							// record state at the end of here
+							// ~ complexCalculation()   
+							// don't actually need this unless it generates text
+							if( stateAtLastNewline == null )
+								stateAtLastNewline = stateSnapshot();
 						}
 
 						// Can't continue, so we're about to exit - make sure we
@@ -702,7 +711,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * The latest line of text to be generated from a Continue() call.
 	 */
 	public String getCurrentText() {
-		return state.currentText();
+		return state.getCurrentText();
 	}
 
 	/**
@@ -1795,7 +1804,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			return;
 
 		// First, find the previously open set of containers
-		HashSet<Container> prevContainerSet = new HashSet<Container>();
+		if (prevContainerSet == null) prevContainerSet = new HashSet<Container> ();
+		
+		prevContainerSet.clear();
+		
 		if (previousContentObject != null) {
 
 			Container prevAncestor = null;
