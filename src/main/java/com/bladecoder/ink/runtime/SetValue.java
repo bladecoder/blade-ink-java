@@ -1,13 +1,26 @@
 package com.bladecoder.ink.runtime;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 public class SetValue extends Value<HashMap<String, Integer>> {
 
 	public SetValue(HashMap<String, Integer> val) {
 		super(val);
+	}
+	
+
+	public SetValue() {
+		super(new HashMap<String, Integer>());
+	}
+
+	public SetValue(String singleItemName, int singleValue) {
+		super(new HashMap<String, Integer>());
+		value.put(singleItemName, singleValue);
 	}
 
 	@Override
@@ -48,7 +61,7 @@ public class SetValue extends Value<HashMap<String, Integer>> {
 		}
 
 		else if (newType == ValueType.Float) {
-			Entry<String, Integer>  max = maxItem();
+			Entry<String, Integer> max = maxItem();
 			if (max.getKey() == null)
 				return new FloatValue(0.0f);
 			else
@@ -56,7 +69,7 @@ public class SetValue extends Value<HashMap<String, Integer>> {
 		}
 
 		else if (newType == ValueType.String) {
-			Entry<String, Integer>  max = maxItem();
+			Entry<String, Integer> max = maxItem();
 			if (max.getKey() == null)
 				return new StringValue("");
 			else
@@ -69,13 +82,32 @@ public class SetValue extends Value<HashMap<String, Integer>> {
 		throw new Exception("Unexpected type cast of Value to new ValueType");
 	}
 
-	public void setValue() {
-		value = new HashMap<String, Integer>();
-	}
-
 	@Override
-	public void setValue(HashMap<String, Integer> dict) {
-		value = new HashMap<String, Integer>(dict);
-	}
+	 public String toString () {
+		List<String> ordered = new ArrayList<String>(value.keySet());
+		
+		ordered.sort(new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return value.get(o1) - value.get(o2);
+			}
+		});
+		
+	 
+		StringBuilder sb = new StringBuilder ();
+	     sb.append ("(");
+	     for (int i = 0; i < ordered.size(); i++) {
+	         if (i > 0)
+	             sb.append (", ");
+	         
+	         sb.append (ordered.get(i));
+	         sb.append (": ");
+	         sb.append (value.get(ordered.get(i)));
+	     }
+	     
+	     sb.append (")");
+	 
+	     return sb.toString ();
+	 }
 
 }

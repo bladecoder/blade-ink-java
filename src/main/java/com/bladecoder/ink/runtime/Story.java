@@ -56,7 +56,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public static final int inkVersionMinimumCompatible = 15;
 
 	private Container mainContentContainer;
-	 List<Set> sets;
+	private HashMap<String, Set> sets;
 
 	/**
 	 * An ink file can provide a fallback functions for when when an EXTERNAL
@@ -76,18 +76,25 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	private Container temporaryEvaluationContainer;
 
 	private HashMap<String, List<VariableObserver>> variableObservers;
-	
+
 	private HashSet<Container> prevContainerSet;
 
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
 	// For normal use, use the constructor that takes a json string.
-	Story(Container contentContainer, List<Set> sets) {
+	Story(Container contentContainer, HashMap<String, Set> sets) {
 		mainContentContainer = contentContainer;
-		this.sets = sets;
+
+		if (sets != null) {
+			sets = new HashMap<String, Set>();
+			for (Set set : sets.values()) {
+				sets.put(set.getName(),  set);
+			}
+		}
+
 		externals = new HashMap<String, ExternalFunction>();
 	}
-	
+
 	Story(Container contentContainer) {
 		this(contentContainer, null);
 	}
@@ -511,13 +518,14 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 						// or some
 						// non-text content such as choices.
 						if (canContinue()) {
-							// Don't bother to record the state beyond the current newline.
+							// Don't bother to record the state beyond the
+							// current newline.
 							// e.g.:
 							// Hello world\n
 							// record state at the end of here
-							// ~ complexCalculation()   
+							// ~ complexCalculation()
 							// don't actually need this unless it generates text
-							if( stateAtLastNewline == null )
+							if (stateAtLastNewline == null)
 								stateAtLastNewline = stateSnapshot();
 						}
 
@@ -681,8 +689,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * The list of Choice Objects available at the current point in the Story.
 	 * This list will be populated as the Story is stepped through with the
 	 * Continue() method. Once canContinue becomes false, this list will be
-	 * populated, and is usually (but not always) on the final Continue()
-	 * step.
+	 * populated, and is usually (but not always) on the final Continue() step.
 	 */
 	public List<Choice> getCurrentChoices() {
 
@@ -739,6 +746,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	public VariablesState getVariablesState() {
 		return state.getVariablesState();
+	}
+
+	public HashMap<String, Set> getSets() {
+		return sets;
 	}
 
 	/**
@@ -1810,10 +1821,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			return;
 
 		// First, find the previously open set of containers
-		if (prevContainerSet == null) prevContainerSet = new HashSet<Container> ();
-		
+		if (prevContainerSet == null)
+			prevContainerSet = new HashSet<Container>();
+
 		prevContainerSet.clear();
-		
+
 		if (previousContentObject != null) {
 
 			Container prevAncestor = null;

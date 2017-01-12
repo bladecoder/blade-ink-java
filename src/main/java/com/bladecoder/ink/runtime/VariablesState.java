@@ -3,6 +3,7 @@ package com.bladecoder.ink.runtime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map.Entry;
 
 /**
  * Encompasses all the global variables in an ink Story, and allows binding of a
@@ -25,8 +26,10 @@ public class VariablesState implements Iterable<String> {
 	private HashMap<String, RTObject> globalVariables;
 
 	private VariableChanged variableChangedEvent;
+	
+	private HashMap<String, Set> sets;
 
-	public VariablesState(CallStack callStack) {
+	VariablesState(CallStack callStack, HashMap<String, Set> sets) {
 		globalVariables = new HashMap<String, RTObject>();
 		this.callStack = callStack;
 	}
@@ -74,16 +77,22 @@ public class VariablesState implements Iterable<String> {
 			callStack.setTemporaryVariable(name, value, varAss.isNewDeclaration(), contextIndex);
 		}
 	}
+	
+	HashMap<String, Set> getSets() {
+		return sets;
+	}
 
-	public void copyFrom(VariablesState varState) {
-		globalVariables = new HashMap<String, RTObject>(varState.globalVariables);
+	VariablesState(VariablesState toCopy) {
+		globalVariables = new HashMap<String, RTObject>(toCopy.globalVariables);
 
-		setVariableChangedEvent(varState.getVariableChangedEvent());
+		sets = toCopy.getSets();
 
-		if (varState.getbatchObservingVariableChanges() != getbatchObservingVariableChanges()) {
-			if (varState.getbatchObservingVariableChanges()) {
+		setVariableChangedEvent(toCopy.getVariableChangedEvent());
+
+		if (toCopy.getbatchObservingVariableChanges() != getbatchObservingVariableChanges()) {
+			if (toCopy.getbatchObservingVariableChanges()) {
 				batchObservingVariableChanges = true;
-				changedVariables = new HashSet<String>(varState.changedVariables);
+				changedVariables = new HashSet<String>(toCopy.changedVariables);
 			} else {
 				batchObservingVariableChanges = false;
 				changedVariables = null;
@@ -129,6 +138,9 @@ public class VariablesState implements Iterable<String> {
 				return varValue;
 			}
 
+			SetValue setItemValue = getSetItemValueWithName(name);
+			if (setItemValue != null)
+				return setItemValue;
 		}
 
 		// Temporary
@@ -139,6 +151,30 @@ public class VariablesState implements Iterable<String> {
 
 		return varValue;
 	}
+	
+	 SetValue getSetItemValueWithName (String name) {
+	      String[] nameParts = name.split(".");
+	      if (nameParts.length == 2) {
+	          String setName = nameParts [0];
+	          String itemName = nameParts [1];
+	 
+	          Set set = sets.get(setName);
+	          if (set != null) {
+	              Integer itemValue = set.getValueForItem(itemName);
+	              return new SetValue (name, itemValue);
+	          }
+	      } else {
+	          for (Entry<String, Set>namedSet : sets.entrySet()) {
+	              Set set = namedSet.getValue();
+	              Integer itemValue = set.getValueForItem(name);
+	              if (itemValue != null) {
+	                  return new SetValue (name, itemValue);
+	              }
+	          }
+	      }
+	 
+	      return null;
+	  }	
 
 	public RTObject getVariableWithName(String name) throws Exception {
 		return getVariableWithName(name, -1);
@@ -195,7 +231,7 @@ public class VariablesState implements Iterable<String> {
 		if (!globalVariables.containsKey(variableName)) {
 			throw new StoryException("Variable '" + variableName + "' doesn't exist, so can't be set.");
 		}
-		
+
 		AbstractValue val = AbstractValue.create(value);
 		if (val == null) {
 			if (value == null) {

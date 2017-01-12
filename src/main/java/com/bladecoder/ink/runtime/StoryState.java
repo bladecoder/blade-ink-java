@@ -58,7 +58,7 @@ public class StoryState {
 		evaluationStack = new ArrayList<RTObject>();
 
 		callStack = new CallStack(story.getRootContentContainer());
-		variablesState = new VariablesState(callStack);
+		variablesState = new VariablesState(callStack, story.getSets());
 
 		visitCounts = new HashMap<String, Integer>();
 		turnIndices = new HashMap<String, Integer>();
@@ -103,8 +103,7 @@ public class StoryState {
 
 		copy.callStack = new CallStack(callStack);
 
-		copy.variablesState = new VariablesState(copy.callStack);
-		copy.variablesState.copyFrom(variablesState);
+		copy.variablesState = new VariablesState (copy.getVariablesState());
 
 		copy.evaluationStack.addAll(evaluationStack);
 
