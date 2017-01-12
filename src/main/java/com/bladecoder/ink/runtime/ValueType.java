@@ -7,7 +7,7 @@ public enum ValueType {
 	// Higher value types "infect" an operation.
 	// (This may not be the most sensible thing to do, but it's worked so far!)
 	// Used in coersion
-	Int, Float, String,
+	Int, Float, Set, String,
 	// Not used for coersion described above
 	DivertTarget, VariablePointer
 }

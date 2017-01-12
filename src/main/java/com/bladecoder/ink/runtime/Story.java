@@ -56,6 +56,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public static final int inkVersionMinimumCompatible = 15;
 
 	private Container mainContentContainer;
+	 List<Set> sets;
 
 	/**
 	 * An ink file can provide a fallback functions for when when an EXTERNAL
@@ -81,9 +82,14 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
 	// For normal use, use the constructor that takes a json string.
-	Story(Container contentContainer) {
+	Story(Container contentContainer, List<Set> sets) {
 		mainContentContainer = contentContainer;
+		this.sets = sets;
 		externals = new HashMap<String, ExternalFunction>();
+	}
+	
+	Story(Container contentContainer) {
+		this(contentContainer, null);
 	}
 
 	/**
