@@ -71,6 +71,18 @@ class SetValue extends Value<SetDictionary> {
 
 	}
 
+	public SetValue getAll() {
+		if (singleOriginSet == null)
+			return null;
+
+		SetDictionary dict = new SetDictionary();
+
+		for (Entry<String, Integer> kv : singleOriginSet.getItems().entrySet())
+			dict.put(singleOriginSet.getName() + "." + kv.getKey(), kv.getValue());
+
+		return new SetValue(dict);
+	}
+
 	// Truthy if it contains any non-zero items
 	@Override
 	public boolean isTruthy() {

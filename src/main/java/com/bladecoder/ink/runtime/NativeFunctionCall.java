@@ -23,18 +23,21 @@ public class NativeFunctionCall extends RTObject {
 	public static final String LessThanOrEquals = "<=";
 	public static final String Max = "MAX";
 	public static final String Min = "MIN";
-	
-	public static final String SetMax = "SET_MAX";
-	public static final String SetMin = "SET_MIN";	
-	
+
 	public static final String Mod = "%";
 	public static final String Multiply = "*";
 	private static HashMap<String, NativeFunctionCall> nativeFunctions;
-	public static final String Negate   = "_"; // distinguish from "-" for subtraction
+	public static final String Negate = "_"; // distinguish from "-" for
+												// subtraction
 	public static final String Not = "!";
+
 	public static final String Has = "?";
-	public static final String Invert   = "~";
+	public static final String Invert = "~";
 	public static final String Intersect = "^";
+
+	public static final String SetMax = "SET_MAX";
+	public static final String SetMin = "SET_MIN";
+	public static final String All = "SET_ALL";
 
 	public static final String NotEquals = "!=";
 
@@ -45,7 +48,7 @@ public class NativeFunctionCall extends RTObject {
 	static void addSetBinaryOp(String name, BinaryOp op) {
 		addOpToNativeFunc(name, 2, ValueType.Set, op);
 	}
-	
+
 	static void addSetUnaryOp(String name, UnaryOp op) {
 		addOpToNativeFunc(name, 1, ValueType.Set, op);
 	}
@@ -350,7 +353,7 @@ public class NativeFunctionCall extends RTObject {
 					return ((SetDictionary) left).union((SetDictionary) right);
 				}
 			});
-			
+
 			addSetBinaryOp(And, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
@@ -364,18 +367,18 @@ public class NativeFunctionCall extends RTObject {
 					return ((SetDictionary) left).without((SetDictionary) right);
 				}
 			});
-			
+
 			addSetBinaryOp(Has, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).contains((SetDictionary)right) ? (Integer) 1 : (Integer) 0;
+					return ((SetDictionary) left).contains((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
-			
+
 			addSetBinaryOp(Intersect, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).intersect((SetDictionary)right);
+					return ((SetDictionary) left).intersect((SetDictionary) right);
 				}
 			});
 
@@ -389,14 +392,15 @@ public class NativeFunctionCall extends RTObject {
 			addSetBinaryOp(Greater, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).size() > 0 && ((SetDictionary) left).greaterThan((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
+					return ((SetDictionary) left).size() > 0
+							&& ((SetDictionary) left).greaterThan((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addSetBinaryOp(Less, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).lessThan((SetDictionary) right)  ? (Integer) 1 : (Integer) 0;
+					return ((SetDictionary) left).lessThan((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
@@ -422,34 +426,42 @@ public class NativeFunctionCall extends RTObject {
 					return (!((SetDictionary) left).equals(right) ? (Integer) 1 : (Integer) 0);
 				}
 			});
-			
+
 			addSetUnaryOp(Not, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((SetDictionary)val).size() == 0 ? (int)1 : (int)0;
+					return ((SetDictionary) val).size() == 0 ? (int) 1 : (int) 0;
 				}
 			});
 
 			// Placeholder to ensure that Invert gets created at all,
-            // since this function is never actually run, and is special cased in Call
+			// since this function is never actually run, and is special cased
+			// in Call
 			addSetUnaryOp(Invert, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return val;
+					return null;
+				}
+			});
+			
+			addSetUnaryOp(All, new UnaryOp() {
+				@Override
+				public Object invoke(Object val) {
+					return null;
 				}
 			});
 
 			addSetUnaryOp(SetMin, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((SetDictionary)val).minAsSet();
+					return ((SetDictionary) val).minAsSet();
 				}
 			});
-			
+
 			addSetUnaryOp(SetMax, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((SetDictionary)val).maxAsSet();
+					return ((SetDictionary) val).maxAsSet();
 				}
 			});
 
@@ -519,20 +531,26 @@ public class NativeFunctionCall extends RTObject {
 
 		}
 
-		// Special case:
-		// - Set-Int operation returns a Set (e.g. "alpha" + 1 = "beta")
-		if (parameters.size() == 2 && parameters.get(0) instanceof SetValue && parameters.get(1) instanceof IntValue)
-			return callSetIntOperation(parameters);
-
-		// Special case:
-		// - Set inverse (!set) requires knowledge of origin set, not just
-		// the raw set dictionary.
+		// Special cases, where the functions require knowledge of the origin
+		// set, not just the raw set dictionary
 		if (parameters.size() == 1 && parameters.get(0) instanceof SetValue && Invert.equals(name)) {
-			SetValue setValue = (SetValue) parameters.get(0);
-			SetValue inv = setValue.getInverse();
-			if (inv == null)
-				return new SetValue("UNKNOWN", 0);
-			return inv;
+
+			if (parameters.size() == 1 && parameters.get(0) instanceof SetValue) {
+
+				if (name.equals(Invert)) {
+					SetValue setValue = (SetValue) parameters.get(0);
+					SetValue inv = setValue.getInverse();
+					if (inv == null)
+						return new SetValue("UNKNOWN", 0);
+					return inv;
+				} else if (name.equals(All)) {
+					SetValue setValue = (SetValue) parameters.get(0);
+					SetValue all = setValue.getAll();
+					if (all == null)
+						return new SetValue("UNKNOWN", 0);
+					return all;
+				}
+			}
 		}
 
 		List<Value<?>> coercedParams = coerceValuesToSingleType(parameters);
