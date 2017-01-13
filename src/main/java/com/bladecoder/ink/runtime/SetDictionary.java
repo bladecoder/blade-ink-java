@@ -61,6 +61,14 @@ public class SetDictionary extends HashMap<String, Integer> {
 
 		return min;
 	}
+	
+	public boolean contains (SetDictionary otherSet) {
+		for (Entry<String, Integer> kv : otherSet.entrySet()) {
+	         if (!this.containsKey (kv.getKey())) return false;
+	     }
+	     
+	     return true;
+	 }
 
 	@Override
 	public boolean equals(Object other) {

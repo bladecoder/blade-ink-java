@@ -28,6 +28,7 @@ public class NativeFunctionCall extends RTObject {
 	private static HashMap<String, NativeFunctionCall> nativeFunctions;
 	public static final String Negate   = "_"; // distinguish from "-" for subtraction
 	public static final String Not = "!";
+	public static final String Has = "?";
 	public static final String Invert   = "~";
 
 	public static final String NotEquals = "!=";
@@ -341,7 +342,13 @@ public class NativeFunctionCall extends RTObject {
 			addSetBinaryOp(Add, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-
+					return ((SetDictionary) left).unionWith((SetDictionary) right);
+				}
+			});
+			
+			addSetBinaryOp(And, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
 					return ((SetDictionary) left).unionWith((SetDictionary) right);
 				}
 			});
@@ -352,11 +359,13 @@ public class NativeFunctionCall extends RTObject {
 					return ((SetDictionary) left).without((SetDictionary) right);
 				}
 			});
-			// AddSetBinaryOp (Multiply, (x, y) => x * y);
-			// AddSetBinaryOp (Divide, (x, y) => x / y);
-			// AddSetBinaryOp (Mod, (x, y) => x % y); // TODO: Is this the
-			// operation we want for floats?
-			// AddSetUnaryOp (Negate, x => x.Inverse);
+			
+			addSetBinaryOp(Has, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return ((SetDictionary) left).contains((SetDictionary)right) ? (Integer) 1 : (Integer) 0;
+				}
+			});
 
 			addSetBinaryOp(Equal, new BinaryOp() {
 				@Override
@@ -401,15 +410,6 @@ public class NativeFunctionCall extends RTObject {
 				@Override
 				public Object invoke(Object left, Object right) {
 					return (!((SetDictionary) left).equals(right) ? (Integer) 1 : (Integer) 0);
-				}
-			});
-
-
-			addSetBinaryOp(And, new BinaryOp() {
-				@Override
-				public Object invoke(Object left, Object right) {
-
-					return ((SetDictionary) left).intersectWith((SetDictionary) right);
 				}
 			});
 
