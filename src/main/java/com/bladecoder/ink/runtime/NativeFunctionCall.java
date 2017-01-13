@@ -407,16 +407,16 @@ public class NativeFunctionCall extends RTObject {
 			addSetBinaryOp(GreaterThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).size() > 0 && ((SetDictionary) left).getMaxItem()
-							.getValue() >= ((SetDictionary) right).getMaxItem().getValue() ? (Integer) 1 : (Integer) 0;
+					return ((SetDictionary) left).size() > 0
+							&& ((SetDictionary) left).greaterThanOrEquals((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addSetBinaryOp(LessThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) right).size() > 0 && ((SetDictionary) left).getMaxItem()
-							.getValue() <= ((SetDictionary) right).getMaxItem().getValue() ? (Integer) 1 : (Integer) 0;
+					return ((SetDictionary) left).size() > 0
+							&& ((SetDictionary) left).lessThanOrEquals((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 

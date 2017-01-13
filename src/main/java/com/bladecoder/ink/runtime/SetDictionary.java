@@ -84,7 +84,18 @@ public class SetDictionary extends HashMap<String, Integer> {
 		// All greater
 		return getMinItem().getValue() > otherSet.getMaxItem().getValue();
 	}
+	
+	public boolean greaterThanOrEquals(SetDictionary otherSet) {
+		if (size() == 0)
+			return false;
+		if (otherSet.size() == 0)
+			return true;
 
+		// All greater
+		return getMinItem().getValue() >= otherSet.getMinItem().getValue() &&
+				getMaxItem().getValue() >= otherSet.getMaxItem().getValue();
+	}
+	
 	public boolean lessThan(SetDictionary otherSet) {
 		if (otherSet.size() == 0)
 			return false;
@@ -92,6 +103,16 @@ public class SetDictionary extends HashMap<String, Integer> {
 			return true;
 
 		return getMaxItem().getValue() < otherSet.getMinItem().getValue();
+	}
+	
+	public boolean lessThanOrEquals(SetDictionary otherSet) {
+		if (otherSet.size() == 0)
+			return false;
+		if (size() == 0)
+			return true;
+
+		return getMaxItem().getValue() <= otherSet.getMaxItem().getValue() &&
+				getMinItem().getValue() <= otherSet.getMinItem().getValue();
 	}
 
 	public SetDictionary maxAsSet() {
