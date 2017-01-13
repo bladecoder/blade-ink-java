@@ -3,7 +3,6 @@ package com.bladecoder.ink.runtime;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map.Entry;
 
 class SetValue extends Value<SetDictionary> {
@@ -104,7 +103,7 @@ class SetValue extends Value<SetDictionary> {
 
 	@Override
 	public String toString() {
-		List<String> ordered = new ArrayList<String>(value.keySet());
+		ArrayList<String> ordered = new ArrayList<String>(value.keySet());
 
 		ordered.sort(new Comparator<String>() {
 			@Override

@@ -11,7 +11,6 @@ public abstract class AbstractValue extends RTObject {
 
 	public abstract Object getValueObject();
 
-	@SuppressWarnings("unchecked")
 	public static AbstractValue create(Object val) {
 		// Implicitly lose precision from any doubles we get passed in
 		if (val instanceof Double) {
@@ -38,7 +37,7 @@ public abstract class AbstractValue extends RTObject {
 		} else if (val instanceof Path) {
 			return new DivertTargetValue((Path) val);
 		} else if (val instanceof HashMap) {
-			return new SetValue((HashMap < String, Integer > )val);
+			return new SetValue((SetDictionary )val);
 		}
 
 		return null;
