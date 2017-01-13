@@ -1,22 +1,32 @@
 package com.bladecoder.ink.runtime;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 //Confusingly from a C# point of view, a LIST in ink is actually
 // modelled using a C# Dictionary!
 @SuppressWarnings("serial")
 public class RawList extends HashMap<String, Integer> {
+	// Story has to set this so that the value knows its origin,
+	// necessary for certain operations (e.g. interacting with ints)
+	public ListDefinition singleOriginList;
+	
 	public RawList() {
-
+		TEMP_DebugAssertNames();
 	}
 
 	public RawList(Entry<String, Integer> singleElement) {
 		put(singleElement.getKey(), singleElement.getValue());
+		TEMP_DebugAssertNames();
 	}
 
 	public RawList(HashMap<String, Integer> otherList) {
 		super(otherList);
+		TEMP_DebugAssertNames();
 	}
 
 	public RawList union(RawList otherList) {
@@ -129,6 +139,58 @@ public class RawList extends HashMap<String, Integer> {
 		else
 			return new RawList();
 	}
+	
+	// Runtime sets may reference items from different origin sets
+	public String getSingleOriginListName() {
+		String name = null;
+
+		for (Entry<String, Integer> fullNamedItem : entrySet()) {
+			String listName = fullNamedItem.getKey().split(".")[0];
+
+			// First name - take it as the assumed single origin name
+			if (name == null)
+				name = listName;
+
+			// A different one than one we've already had? No longer
+			// single origin.
+			else if (name != listName)
+				return null;
+		}
+
+		if ("UNKNOWN".equals(name))
+			return null;
+
+		return name;
+	}
+
+	public ListValue getInverse() {
+		if (singleOriginList == null)
+			return null;
+
+		RawList rawList = new RawList();
+
+		for (Entry<String, Integer> nameValue : singleOriginList.getItems().entrySet()) {
+			String fullName = singleOriginList.getName() + "." + nameValue.getKey();
+
+			if (!containsKey(fullName))
+				rawList.put(fullName, nameValue.getValue());
+		}
+
+		return new ListValue(rawList);
+
+	}
+
+	public ListValue getAll() {
+		if (singleOriginList == null)
+			return null;
+
+		RawList dict = new RawList();
+
+		for (Entry<String, Integer> kv : singleOriginList.getItems().entrySet())
+			dict.put(singleOriginList.getName() + "." + kv.getKey(), kv.getValue());
+
+		return new ListValue(dict);
+	}
 
 	@Override
 	public boolean equals(Object other) {
@@ -158,6 +220,41 @@ public class RawList extends HashMap<String, Integer> {
 			ownHash += key.hashCode();
 
 		return ownHash;
+	}
+	
+	private void TEMP_DebugAssertNames() {
+		for (Entry<String, Integer> kv : entrySet()) {
+			if (!kv.getKey().contains(".") && "UNKNOWN".equals(kv.getKey()))
+				throw new RuntimeException("Not a full item name");
+		}
+	}
+	
+
+	@Override
+	public String toString() {
+		List<String> ordered = new ArrayList<String>(keySet());
+
+		Collections.sort(ordered, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return get(o1) - get(o2);
+			}
+		});
+
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0; i < ordered.size(); i++) {
+			if (i > 0)
+				sb.append(", ");
+
+			String fullItemPath = ordered.get(i);
+			String[] nameParts = fullItemPath.split(".");
+			String itemName = nameParts[nameParts.length - 1];
+
+			sb.append(itemName);
+		}
+
+		return sb.toString();
 	}
 
 	public class CustomEntry implements Map.Entry<String, Integer> {

@@ -1,86 +1,25 @@
 package com.bladecoder.ink.runtime;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map.Entry;
 
 class ListValue extends Value<RawList> {
 
-	public ListDefinition singleOriginList;
-
-	public ListValue(RawList val) {
-		super(val);
-		TEMP_DebugAssertNames();
+	public ListValue(RawList list) {
+		super(list);
 	}
 
 	public ListValue() {
 		super(new RawList());
-		TEMP_DebugAssertNames();
 	}
 
 	public ListValue(String singleItemName, int singleValue) {
 		super(new RawList());
 		value.put(singleItemName, singleValue);
-		TEMP_DebugAssertNames();
 	}
 
 	@Override
 	public ValueType getValueType() {
 		return ValueType.List;
-	}
-
-	// Runtime sets may reference items from different origin sets
-	public String getSingleOriginListName() {
-		String name = null;
-
-		for (Entry<String, Integer> fullNamedItem : getValue().entrySet()) {
-			String listName = fullNamedItem.getKey().split(".")[0];
-
-			// First name - take it as the assumed single origin name
-			if (name == null)
-				name = listName;
-
-			// A different one than one we've already had? No longer
-			// single origin.
-			else if (name != listName)
-				return null;
-		}
-
-		if ("UNKNOWN".equals(name))
-			return null;
-
-		return name;
-	}
-
-	public ListValue getInverse() {
-		if (singleOriginList == null)
-			return null;
-
-		RawList rawList = new RawList();
-
-		for (Entry<String, Integer> nameValue : singleOriginList.getItems().entrySet()) {
-			String fullName = singleOriginList.getName() + "." + nameValue.getKey();
-
-			if (!value.containsKey(fullName))
-				rawList.put(fullName, nameValue.getValue());
-		}
-
-		return new ListValue(rawList);
-
-	}
-
-	public ListValue getAll() {
-		if (singleOriginList == null)
-			return null;
-
-		RawList dict = new RawList();
-
-		for (Entry<String, Integer> kv : singleOriginList.getItems().entrySet())
-			dict.put(singleOriginList.getName() + "." + kv.getKey(), kv.getValue());
-
-		return new ListValue(dict);
 	}
 
 	// Truthy if it contains any non-zero items
@@ -94,14 +33,10 @@ class ListValue extends Value<RawList> {
 		return false;
 	}
 
-	public Entry<String, Integer> maxItem() {
-		return value.getMaxItem();
-	}
-
 	@Override
 	public AbstractValue cast(ValueType newType) {
 		if (newType == ValueType.Int) {
-			Entry<String, Integer> max = maxItem();
+			Entry<String, Integer> max = value.getMaxItem();
 			if (max.getKey() == null)
 				return new IntValue(0);
 			else
@@ -109,7 +44,7 @@ class ListValue extends Value<RawList> {
 		}
 
 		else if (newType == ValueType.Float) {
-			Entry<String, Integer> max = maxItem();
+			Entry<String, Integer> max = value.getMaxItem();
 			if (max.getKey() == null)
 				return new FloatValue(0.0f);
 			else
@@ -117,7 +52,7 @@ class ListValue extends Value<RawList> {
 		}
 
 		else if (newType == ValueType.String) {
-			Entry<String, Integer> max = maxItem();
+			Entry<String, Integer> max = value.getMaxItem();
 			if (max.getKey() == null)
 				return new StringValue("");
 			else {
@@ -131,40 +66,6 @@ class ListValue extends Value<RawList> {
 			return this;
 
 		throw new RuntimeException("Unexpected type cast of Value to new ValueType");
-	}
-
-	void TEMP_DebugAssertNames() {
-		for (Entry<String, Integer> kv : value.entrySet()) {
-			if (!kv.getKey().contains(".") && "UNKNOWN".equals(kv.getKey()))
-				throw new RuntimeException("Not a full item name");
-		}
-	}
-
-	@Override
-	public String toString() {
-		List<String> ordered = new ArrayList<String>(value.keySet());
-
-		Collections.sort(ordered, new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				return value.get(o1) - value.get(o2);
-			}
-		});
-
-		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0; i < ordered.size(); i++) {
-			if (i > 0)
-				sb.append(", ");
-
-			String fullItemPath = ordered.get(i);
-			String[] nameParts = fullItemPath.split(".");
-			String itemName = nameParts[nameParts.length - 1];
-
-			sb.append(itemName);
-		}
-
-		return sb.toString();
 	}
 
 }

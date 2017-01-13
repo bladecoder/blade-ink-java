@@ -1454,7 +1454,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				int minVal = -1;
 
 				if (min instanceof ListValue) {
-					minVal = (int) ((ListValue) min).maxItem().getValue();
+					minVal = (int) ((ListValue) min).getValue().getMaxItem().getValue();
 				} else if (min instanceof IntValue) {
 					minVal = (int) ((IntValue) min).getValue();
 				}
@@ -1462,7 +1462,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				int maxVal = -1;
 
 				if (max instanceof ListValue) {
-					maxVal = (int) ((ListValue) min).maxItem().getValue();
+					maxVal = (int) ((ListValue) min).getValue().getMaxItem().getValue();
 				} else if (min instanceof IntValue) {
 					maxVal = (int) ((IntValue) min).getValue();
 				}
@@ -1475,7 +1475,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				// Extract the range of items from the origin set
 				ListValue result = null;
-				ListDefinition originList = targetList.singleOriginList;
+				ListDefinition originList = targetList.getValue().singleOriginList;
 				if (originList == null) {
 					result = new ListValue();
 				} else {

@@ -445,11 +445,11 @@ public class StoryState {
 			listValue = (ListValue) obj;
 
 		if (listValue != null) {
-			String singleOriginName = listValue.getSingleOriginListName();
+			String singleOriginName = listValue.getValue().getSingleOriginListName();
 			if (singleOriginName != null)
-				listValue.singleOriginList = story.getLists().get(singleOriginName);
+				listValue.getValue().singleOriginList = story.getLists().get(singleOriginName);
 			else
-				listValue.singleOriginList = null;
+				listValue.getValue().singleOriginList = null;
 		}
 
 		evaluationStack.add(obj);

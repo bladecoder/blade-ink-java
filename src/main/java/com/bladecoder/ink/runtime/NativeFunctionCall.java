@@ -563,13 +563,13 @@ public class NativeFunctionCall extends RTObject {
 
 				if (name.equals(Invert)) {
 					ListValue listValue = (ListValue) parameters.get(0);
-					ListValue inv = listValue.getInverse();
+					ListValue inv = listValue.getValue().getInverse();
 					if (inv == null)
 						return new ListValue("UNKNOWN", 0);
 					return inv;
 				} else if (name.equals(All)) {
 					ListValue listValue = (ListValue) parameters.get(0);
-					ListValue all = listValue.getAll();
+					ListValue all = listValue.getValue().getAll();
 					if (all == null)
 						return new ListValue("UNKNOWN", 0);
 					return all;
@@ -604,14 +604,14 @@ public class NativeFunctionCall extends RTObject {
 
 		List<RTObject> coercedInts = new ArrayList<RTObject>();
 
-		coercedInts.add(new IntValue(listVal.maxItem().getValue()));
+		coercedInts.add(new IntValue(listVal.getValue().getMaxItem().getValue()));
 		coercedInts.add(intVal);
 
 		IntValue intResult = (IntValue) call(coercedInts);
 
 		String newItemName = null;
 
-		ListDefinition originList = listVal.singleOriginList;
+		ListDefinition originList = listVal.getValue().singleOriginList;
 		if (originList != null) {
 			newItemName = originList.getItemWithValue(intResult.value);
 
@@ -702,7 +702,7 @@ public class NativeFunctionCall extends RTObject {
 					parametersOut.add(val);
 				} else if (val.getValueType() == ValueType.Int) {
 					int intVal = (int) val.getValueObject();
-					ListDefinition set = specialCaseList.singleOriginList;
+					ListDefinition set = specialCaseList.getValue().singleOriginList;
 					if (set == null)
 						throw new StoryException(
 								"Cannot mix List and Int values here because the existing List appears to contain items from a mixture of different List definitions. How do we know which List is the Int referring to?");
