@@ -2,7 +2,9 @@ package com.bladecoder.ink.runtime;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map.Entry;
 
 class SetValue extends Value<SetDictionary> {
@@ -103,9 +105,9 @@ class SetValue extends Value<SetDictionary> {
 
 	@Override
 	public String toString() {
-		ArrayList<String> ordered = new ArrayList<String>(value.keySet());
+		List<String> ordered = new ArrayList<String>(value.keySet());
 
-		ordered.sort(new Comparator<String>() {
+		Collections.sort(ordered, new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
 				return value.get(o1) - value.get(o2);

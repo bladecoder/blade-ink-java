@@ -15,8 +15,9 @@ public class SetDictionary extends HashMap<String, Integer> {
 	 
 	 public SetDictionary unionWith (SetDictionary otherDict) {
 		 SetDictionary union = new SetDictionary (this);
-	     for (Entry<String, Integer> kv : otherDict.entrySet())
-	         union.put(kv.getKey(), kv.getValue());
+	     for (String key : otherDict.keySet())
+	         union.put(key, otherDict.get(key));
+	     
 	     return union;
 	 }
 	 
@@ -24,6 +25,7 @@ public class SetDictionary extends HashMap<String, Integer> {
 		 SetDictionary result = new SetDictionary (this);
 	     for (String kv : setToRemove.keySet())
 	         result.remove(kv);
+	     
 	     return result;
 	 }
 }
