@@ -60,7 +60,7 @@ class SetValue extends Value<SetDictionary> {
 		return false;
 	}
 
-	Entry<String, Integer> maxItem() {
+	public Entry<String, Integer> maxItem() {
 		Entry<String, Integer> max = new AbstractMap.SimpleEntry<String, Integer>((String) null, Integer.MIN_VALUE);
 
 		for (Entry<String, Integer> kv : value.entrySet()) {

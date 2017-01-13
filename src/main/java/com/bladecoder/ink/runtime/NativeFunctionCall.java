@@ -3,6 +3,7 @@ package com.bladecoder.ink.runtime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 public class NativeFunctionCall extends RTObject {
 	static interface BinaryOp {
@@ -363,10 +364,20 @@ public class NativeFunctionCall extends RTObject {
 			// AddSetBinaryOp (NotEquals, (x, y) => x != y ? (int)1 : (int)0);
 			// AddSetUnaryOp (Not, x => (x == 0.0f) ? (int)1 : (int)0);
 
-			// AddSetBinaryOp (And, (x, y) => x != 0.0f && y != 0.0f ? (int)1 :
-			// (int)0);
-			// AddSetBinaryOp (Or, (x, y) => x != 0.0f || y != 0.0f ? (int)1 :
-			// (int)0);
+			addSetBinaryOp(And, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+
+					return ((SetDictionary) left).IntersectWith((SetDictionary) right);
+				}
+			});
+
+			addSetBinaryOp(Or, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return ((SetDictionary) left).unionWith((SetDictionary) right);
+				}
+			});
 
 			// AddSetBinaryOp (Max, (x, y) => Math.Max (x, y));
 			// AddSetBinaryOp (Min, (x, y) => Math.Min (x, y));
@@ -437,6 +448,11 @@ public class NativeFunctionCall extends RTObject {
 
 		}
 
+		// Special case: Set-Int operation returns a Set (e.g. "alpha" + 1 =
+		// "beta")
+		if (parameters.size() == 2 && parameters.get(0) instanceof SetValue && parameters.get(1) instanceof IntValue)
+			return callSetIntOperation(parameters);
+
 		List<Value<?>> coercedParams = coerceValuesToSingleType(parameters);
 		ValueType coercedType = coercedParams.get(0).getValueType();
 
@@ -456,6 +472,31 @@ public class NativeFunctionCall extends RTObject {
 
 		return null;
 
+	}
+
+	Value<?> callSetIntOperation(List<RTObject> setIntParams) throws StoryException, Exception {
+		SetValue setVal = (SetValue) setIntParams.get(0);
+		IntValue intVal = (IntValue) setIntParams.get(1);
+
+		Entry<String, Integer> maxItem = setVal.maxItem();
+
+		Set originSet = setVal.singleOriginSet;
+		if (originSet == null)
+			throw new StoryException(
+					"Cannot increment or decrement this Set because it doesn't contain items from a single origin Set");
+
+		List<RTObject> coercedInts = new ArrayList<RTObject>();
+
+		coercedInts.add(new IntValue(maxItem.getValue()));
+		coercedInts.add(intVal);
+
+		IntValue intResult = (IntValue) call(coercedInts);
+
+		String newItemName = originSet.getItemWithValue(intResult.value);
+		if (newItemName != null) {
+			return new SetValue(originSet.getName() + "." + newItemName, intResult.value);
+		} else
+			return new SetValue("UNKNOWN", intResult.value);
 	}
 
 	private RTObject callType(List<Value<?>> parametersOfSingleType) throws StoryException, Exception {

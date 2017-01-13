@@ -28,4 +28,13 @@ public class SetDictionary extends HashMap<String, Integer> {
 	     
 	     return result;
 	 }
+	 
+	 public SetDictionary IntersectWith (SetDictionary otherDict) {
+	     SetDictionary intersection = new SetDictionary ();
+	     for (Entry<String, Integer> kv : this.entrySet()) {
+	         if (otherDict.containsKey (kv.getKey()))
+	             intersection.put (kv.getKey(), kv.getValue());
+	     }
+	     return intersection;
+	 }
 }
