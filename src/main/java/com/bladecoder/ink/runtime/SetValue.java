@@ -46,6 +46,9 @@ class SetValue extends Value<SetDictionary> {
 				return null;
 		}
 
+		if ("UNKNOWN".equals(name))
+			return null;
+
 		return name;
 	}
 

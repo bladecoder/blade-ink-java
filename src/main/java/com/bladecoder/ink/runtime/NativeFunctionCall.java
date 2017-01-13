@@ -3,7 +3,6 @@ package com.bladecoder.ink.runtime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 
 public class NativeFunctionCall extends RTObject {
 	static interface BinaryOp {
@@ -478,25 +477,27 @@ public class NativeFunctionCall extends RTObject {
 		SetValue setVal = (SetValue) setIntParams.get(0);
 		IntValue intVal = (IntValue) setIntParams.get(1);
 
-		Entry<String, Integer> maxItem = setVal.maxItem();
-
-		Set originSet = setVal.singleOriginSet;
-		if (originSet == null)
-			throw new StoryException(
-					"Cannot increment or decrement this Set because it doesn't contain items from a single origin Set");
-
 		List<RTObject> coercedInts = new ArrayList<RTObject>();
 
-		coercedInts.add(new IntValue(maxItem.getValue()));
+		coercedInts.add(new IntValue(setVal.maxItem().getValue()));
 		coercedInts.add(intVal);
 
 		IntValue intResult = (IntValue) call(coercedInts);
 
-		String newItemName = originSet.getItemWithValue(intResult.value);
-		if (newItemName != null) {
-			return new SetValue(originSet.getName() + "." + newItemName, intResult.value);
-		} else
-			return new SetValue("UNKNOWN", intResult.value);
+		String newItemName = null;
+		
+		Set originSet = setVal.singleOriginSet;
+		if (originSet != null) {
+			newItemName = originSet.getItemWithValue(intResult.value);
+
+			if (newItemName != null)
+				newItemName = originSet.getName() + "." + newItemName;
+		}
+
+		if (newItemName == null)
+			newItemName = "UNKNOWN";
+
+		return new SetValue(newItemName, intResult.value);
 	}
 
 	private RTObject callType(List<Value<?>> parametersOfSingleType) throws StoryException, Exception {
