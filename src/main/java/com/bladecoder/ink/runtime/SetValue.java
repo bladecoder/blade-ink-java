@@ -8,10 +8,11 @@ import java.util.Map.Entry;
 
 class SetValue extends Value<SetDictionary> {
 
+	public Set singleOriginSet;
+
 	public SetValue(SetDictionary val) {
 		super(val);
 	}
-	
 
 	public SetValue() {
 		super(new SetDictionary());
@@ -25,6 +26,26 @@ class SetValue extends Value<SetDictionary> {
 	@Override
 	public ValueType getValueType() {
 		return ValueType.Set;
+	}
+
+	// Runtime sets may reference items from different origin sets
+	public String getSingleOriginSetName() {
+		String name = null;
+
+		for (Entry<String, Integer> fullNamedItem : getValue().entrySet()) {
+			String setName = fullNamedItem.getKey().split(".")[0];
+
+			// First name - take it as the assumed single origin name
+			if (name == null)
+				name = setName;
+
+			// A different one than one we've already had? No longer
+			// single origin.
+			else if (name != setName)
+				return null;
+		}
+
+		return name;
 	}
 
 	// Truthy if it contains any non-zero items
@@ -82,32 +103,30 @@ class SetValue extends Value<SetDictionary> {
 	}
 
 	@Override
-	 public String toString () {
+	public String toString() {
 		List<String> ordered = new ArrayList<String>(value.keySet());
-		
+
 		ordered.sort(new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
 				return value.get(o1) - value.get(o2);
 			}
 		});
-		
-	 
-		StringBuilder sb = new StringBuilder ();
 
-	     for (int i = 0; i < ordered.size(); i++) {
-	         if (i > 0)
-	             sb.append (", ");
-	         
-	         String fullItemPath = ordered.get(i);
-	         String[] nameParts = fullItemPath.split (".");
-	         String itemName = nameParts [nameParts.length - 1];
-	         
-	         sb.append (itemName);
-	     }
-	     
-	 
-	     return sb.toString ();
-	 }
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0; i < ordered.size(); i++) {
+			if (i > 0)
+				sb.append(", ");
+
+			String fullItemPath = ordered.get(i);
+			String[] nameParts = fullItemPath.split(".");
+			String itemName = nameParts[nameParts.length - 1];
+
+			sb.append(itemName);
+		}
+
+		return sb.toString();
+	}
 
 }

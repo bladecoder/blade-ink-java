@@ -500,6 +500,8 @@ public class NativeFunctionCall extends RTObject {
 	List<Value<?>> coerceValuesToSingleType(List<RTObject> parametersIn) throws Exception {
 		ValueType valType = ValueType.Int;
 
+		SetValue specialCaseSet = null;
+
 		for (RTObject obj : parametersIn) {
 			// Find out what the output type is
 			// "higher level" types infect both so that binary operations
@@ -510,14 +512,57 @@ public class NativeFunctionCall extends RTObject {
 				valType = val.getValueType();
 			}
 
+			if (val.getValueType() == ValueType.Set) {
+				specialCaseSet = (SetValue) val;
+			}
 		}
+
 		// // Coerce to this chosen type
 		ArrayList<Value<?>> parametersOut = new ArrayList<Value<?>>();
-		for (RTObject p : parametersIn) {
-			Value<?> val = (Value<?>) p;
-			Value<?> castedValue = (Value<?>) val.cast(valType);
-			parametersOut.add(castedValue);
+		// for (RTObject p : parametersIn) {
+		// Value<?> val = (Value<?>) p;
+		// Value<?> castedValue = (Value<?>) val.cast(valType);
+		// parametersOut.add(castedValue);
+
+		// Special case: Coercing to Ints to Sets
+		// We have to do it early when we have both parameters
+		// to hand - so that we can make use of the Set's origin
+		if (valType == ValueType.Set) {
+
+			for (RTObject p : parametersIn) {
+				Value<?> val = (Value<?>) p;
+				if (val.getValueType() == ValueType.Set) {
+					parametersOut.add(val);
+				} else if (val.getValueType() == ValueType.Int) {
+					int intVal = (int) val.getValueObject();
+					Set set = specialCaseSet.singleOriginSet;
+					if (set == null)
+						throw new StoryException(
+								"Cannot mix Set and Int values here because the existing Set appears to contain items from a mixture of different Set definitions. How do we know which Set is the Int referring to?");
+
+					String itemName = set.getItemWithValue(intVal);
+
+					if (itemName != null) {
+						SetValue castedValue = new SetValue(set.getName() + "." + itemName, intVal);
+						parametersOut.add(castedValue);
+					} else
+						throw new StoryException(
+								"Could not find Set item with the value " + intVal + " in " + set.getName());
+				} else
+					throw new StoryException("Cannot mix Sets and " + val.getValueType() + " values in this operation");
+			}
+
 		}
+
+		// Normal Coercing (with standard casting)
+		else {
+			for (RTObject p : parametersIn) {
+				Value<?> val = (Value<?>) p;
+				Value<?> castedValue = (Value<?>) val.cast(valType);
+				parametersOut.add(castedValue);
+			}
+		}
+
 		return parametersOut;
 	}
 

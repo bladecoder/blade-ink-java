@@ -168,7 +168,7 @@ public class VariablesState implements Iterable<String> {
 	              Set set = namedSet.getValue();
 	              Integer itemValue = set.getValueForItem(name);
 	              if (itemValue != null) {
-	                  return new SetValue (name, itemValue);
+	                  return new SetValue (set.getName() + "." + name, itemValue);
 	              }
 	          }
 	      }

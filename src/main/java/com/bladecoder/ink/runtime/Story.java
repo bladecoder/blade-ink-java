@@ -1458,6 +1458,23 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			NativeFunctionCall func = (NativeFunctionCall) contentObj;
 			List<RTObject> funcParams = state.popEvaluationStack(func.getNumberOfParameters());
 
+			// Include metadata about the origin Set for set values when
+			 // they're used in NativeFunctionCalls, so that we can mix them
+			 // with ints.
+			 for (RTObject p : funcParams) {
+				 SetValue setValue = null;
+				 if(p instanceof SetValue)
+					 setValue = (SetValue)p;
+			     
+				 if (setValue != null) {
+			         String singleOriginName = setValue.getSingleOriginSetName();
+			         if (singleOriginName != null)
+			             setValue.singleOriginSet = sets.get(singleOriginName);
+			         else
+			             setValue.singleOriginSet = null;
+			     }
+			 }
+			
 			RTObject result = func.call(funcParams);
 			state.getEvaluationStack().add(result);
 			return true;

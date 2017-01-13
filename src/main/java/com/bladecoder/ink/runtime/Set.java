@@ -1,6 +1,7 @@
 package com.bladecoder.ink.runtime;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 public class Set {
 	private String name;
@@ -21,5 +22,17 @@ public class Set {
     
     public boolean containsItem(String itemName) {
     	return namedItems.containsKey(itemName);
+    }
+    
+    public String getItemWithValue (int val) {
+        String itemName = null;
+    
+        for (Entry<String, Integer> namedItem : namedItems.entrySet()) {
+            if (namedItem.getValue() == val) {
+                return namedItem.getKey();
+            }
+        }
+    
+        return itemName;
     }
 }
