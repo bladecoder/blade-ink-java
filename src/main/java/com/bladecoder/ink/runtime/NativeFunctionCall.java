@@ -32,6 +32,7 @@ public class NativeFunctionCall extends RTObject {
 	public static final String Not = "!";
 
 	public static final String Has = "?";
+	public static final String Hasnt = "!?";
 	public static final String Invert = "~";
 	public static final String Intersect = "^";
 
@@ -374,6 +375,13 @@ public class NativeFunctionCall extends RTObject {
 				@Override
 				public Object invoke(Object left, Object right) {
 					return ((RawList) left).contains((RawList) right) ? (Integer) 1 : (Integer) 0;
+				}
+			});
+			
+			addListBinaryOp(Hasnt, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return ((RawList) left).contains((RawList) right) ? (Integer) 0 : (Integer) 1;
 				}
 			});
 
