@@ -1468,10 +1468,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				if (minVal == -1)
-					throw new StoryException("Invalid min range bound passed to SET_VALUE(): " + min);
+					throw new StoryException("Invalid min range bound passed to LIST_RANGE(): " + min);
 
 				if (maxVal == -1)
-					throw new StoryException("Invalid max range bound passed to SET_VALUE(): " + max);
+					throw new StoryException("Invalid max range bound passed to LIST_RANGE(): " + max);
 
 				// Extract the range of items from the origin set
 				ListValue result = null;

@@ -27,13 +27,13 @@ public class VariablesState implements Iterable<String> {
 
 	private VariableChanged variableChangedEvent;
 	
-	private HashMap<String, ListDefinition> sets;
+	private HashMap<String, ListDefinition> lists;
 
-	VariablesState(CallStack callStack, HashMap<String, ListDefinition> sets) {
+	VariablesState(CallStack callStack, HashMap<String, ListDefinition> lists) {
 		globalVariables = new HashMap<String, RTObject>();
 		this.callStack = callStack;
 		
-		this.sets = sets;
+		this.lists = lists;
 	}
 
 	public void assign(VariableAssignment varAss, RTObject value) throws Exception {
@@ -81,8 +81,8 @@ public class VariablesState implements Iterable<String> {
 		}
 	}
 	
-	HashMap<String, ListDefinition> getSets() {
-		return sets;
+	HashMap<String, ListDefinition> getLists() {
+		return lists;
 	}
 
 	void copyFrom(VariablesState toCopy) {
@@ -139,9 +139,9 @@ public class VariablesState implements Iterable<String> {
 				return varValue;
 			}
 
-			ListValue setItemValue = getSetItemValueWithName(name);
-			if (setItemValue != null)
-				return setItemValue;
+			ListValue listItemValue = getListItemValueWithName(name);
+			if (listItemValue != null)
+				return listItemValue;
 		}
 
 		// Temporary
@@ -153,20 +153,20 @@ public class VariablesState implements Iterable<String> {
 		return varValue;
 	}
 	
-	 ListValue getSetItemValueWithName (String name) {
+	 ListValue getListItemValueWithName (String name) {
 	      String[] nameParts = name.split(".");
 	      if (nameParts.length == 2) {
-	          String setName = nameParts [0];
+	          String listName = nameParts [0];
 	          String itemName = nameParts [1];
 	 
-	          ListDefinition set = sets.get(setName);
+	          ListDefinition set = lists.get(listName);
 	          if (set != null) {
 	              Integer itemValue = set.getValueForItem(itemName);
 	              return new ListValue (name, itemValue);
 	          }
 	      } else {
-	          for (Entry<String, ListDefinition>namedSet : sets.entrySet()) {
-	              ListDefinition set = namedSet.getValue();
+	          for (Entry<String, ListDefinition>namedList : lists.entrySet()) {
+	              ListDefinition set = namedList.getValue();
 	              Integer itemValue = set.getValueForItem(name);
 	              if (itemValue != null) {
 	                  return new ListValue (set.getName() + "." + name, itemValue);
