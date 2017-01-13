@@ -7,7 +7,7 @@ public class ControlCommand extends RTObject {
 	public enum CommandType {
 		NotSet, EvalStart, EvalOutput, EvalEnd, Duplicate, PopEvaluatedValue, PopFunction, PopTunnel, 
 		BeginString, EndString, NoOp, ChoiceCount, TurnsSince, Random, SeedRandom, VisitIndex, SequenceShuffleIndex, 
-		StartThread, Done, End, SetFromInt
+		StartThread, Done, End, SetFromInt, SetValue
 	}
 
 	private CommandType commandType = CommandType.NotSet;
@@ -122,6 +122,10 @@ public class ControlCommand extends RTObject {
 	
 	public static ControlCommand setFromInt() {
 		return new ControlCommand(CommandType.SetFromInt);
+	}
+	
+	public static ControlCommand setValue() {
+		return new ControlCommand(CommandType.SetValue);
 	}
 
 	@Override

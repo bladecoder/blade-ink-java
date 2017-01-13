@@ -1341,8 +1341,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				break;
 			}
 
-			case SeedRandom:
-			{
+			case SeedRandom: {
 				IntValue seed = null;
 
 				RTObject o = state.popEvaluationStack();
@@ -1400,10 +1399,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			case End:
 				state.forceEnd();
 				break;
-				
-			case SetFromInt:
-			{
-				
+
+			case SetFromInt: {
 				IntValue intVal = null;
 
 				RTObject o = state.popEvaluationStack();
@@ -1417,29 +1414,45 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				if (o instanceof StringValue)
 					setNameVal = (StringValue) o;
-				 
-				 SetValue generatedSetValue = null;
-				 
-				 Set foundSet = sets.get(setNameVal.value);
-				 
-				 if (foundSet != null) {
-				     String foundItemName = null;
-				     
-				     foundItemName = foundSet.getItemWithValue(intVal.value);
-				     
-				     if (foundItemName != null) {
-				         generatedSetValue = new SetValue (setNameVal.value + "." + foundItemName, intVal.value);
-				     }
-				 } else {
-				     throw new StoryException ("Failed to find Set called " + setNameVal.value);
-				 }
-				 
-				 if (generatedSetValue == null)
-				     generatedSetValue = new SetValue ("UNKNOWN", 0);
-				 
-				 state.pushEvaluationStack (generatedSetValue);
-				 break;
+
+				SetValue generatedSetValue = null;
+
+				Set foundSet = sets.get(setNameVal.value);
+
+				if (foundSet != null) {
+					String foundItemName = null;
+
+					foundItemName = foundSet.getItemWithValue(intVal.value);
+
+					if (foundItemName != null) {
+						generatedSetValue = new SetValue(setNameVal.value + "." + foundItemName, intVal.value);
+					}
+				} else {
+					throw new StoryException("Failed to find Set called " + setNameVal.value);
+				}
+
+				if (generatedSetValue == null)
+					generatedSetValue = new SetValue("UNKNOWN", 0);
+
+				state.pushEvaluationStack(generatedSetValue);
+				break;
 			}
+
+			case SetValue: {
+				RTObject popped = state.popEvaluationStack();
+				SetValue setValue = (SetValue) popped;
+
+				if (popped instanceof SetValue)
+					setValue = (SetValue) popped;
+
+				if (setValue == null)
+					throw new StoryException("Expected Set for SET_VALUE() but got " + popped.getClass().getSimpleName());
+				
+				Integer setItemIntVal = setValue.value.getMaxItem().getValue();
+				state.pushEvaluationStack(new IntValue(setItemIntVal));
+				break;
+			}
+
 			default:
 				error("unhandled ControlCommand: " + evalCommand);
 				break;
@@ -1499,22 +1512,22 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			List<RTObject> funcParams = state.popEvaluationStack(func.getNumberOfParameters());
 
 			// Include metadata about the origin Set for set values when
-			 // they're used in NativeFunctionCalls, so that we can mix them
-			 // with ints.
-			 for (RTObject p : funcParams) {
-				 SetValue setValue = null;
-				 if(p instanceof SetValue)
-					 setValue = (SetValue)p;
-			     
-				 if (setValue != null) {
-			         String singleOriginName = setValue.getSingleOriginSetName();
-			         if (singleOriginName != null)
-			             setValue.singleOriginSet = sets.get(singleOriginName);
-			         else
-			             setValue.singleOriginSet = null;
-			     }
-			 }
-			
+			// they're used in NativeFunctionCalls, so that we can mix them
+			// with ints.
+			for (RTObject p : funcParams) {
+				SetValue setValue = null;
+				if (p instanceof SetValue)
+					setValue = (SetValue) p;
+
+				if (setValue != null) {
+					String singleOriginName = setValue.getSingleOriginSetName();
+					if (singleOriginName != null)
+						setValue.singleOriginSet = sets.get(singleOriginName);
+					else
+						setValue.singleOriginSet = null;
+				}
+			}
+
 			RTObject result = func.call(funcParams);
 			state.getEvaluationStack().add(result);
 			return true;
