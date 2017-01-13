@@ -56,7 +56,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public static final int inkVersionMinimumCompatible = 15;
 
 	private Container mainContentContainer;
-	private HashMap<String, Set> sets;
+	private HashMap<String, ListDefinition> lists;
 
 	/**
 	 * An ink file can provide a fallback functions for when when an EXTERNAL
@@ -82,13 +82,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
 	// For normal use, use the constructor that takes a json string.
-	Story(Container contentContainer, HashMap<String, Set> sets) {
+	Story(Container contentContainer, HashMap<String, ListDefinition> lists) {
 		mainContentContainer = contentContainer;
 
-		if (sets != null) {
-			sets = new HashMap<String, Set>();
-			for (Set set : sets.values()) {
-				sets.put(set.getName(), set);
+		if (lists != null) {
+			lists = new HashMap<String, ListDefinition>();
+			for (ListDefinition set : lists.values()) {
+				lists.put(set.getName(), set);
 			}
 		}
 
@@ -748,8 +748,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		return state.getVariablesState();
 	}
 
-	public HashMap<String, Set> getSets() {
-		return sets;
+	public HashMap<String, ListDefinition> getLists() {
+		return lists;
 	}
 
 	/**
@@ -1400,7 +1400,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				state.forceEnd();
 				break;
 
-			case SetFromInt: {
+			case ListFromInt: {
 				IntValue intVal = null;
 
 				RTObject o = state.popEvaluationStack();
@@ -1408,27 +1408,27 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				if (o instanceof IntValue)
 					intVal = (IntValue) o;
 
-				StringValue setNameVal = null;
+				StringValue listNameVal = null;
 
 				o = state.popEvaluationStack();
 
 				if (o instanceof StringValue)
-					setNameVal = (StringValue) o;
+					listNameVal = (StringValue) o;
 
 				ListValue generatedListValue = null;
 
-				Set foundSet = sets.get(setNameVal.value);
+				ListDefinition foundList = lists.get(listNameVal.value);
 
-				if (foundSet != null) {
+				if (foundList != null) {
 					String foundItemName = null;
 
-					foundItemName = foundSet.getItemWithValue(intVal.value);
+					foundItemName = foundList.getItemWithValue(intVal.value);
 
 					if (foundItemName != null) {
-						generatedListValue = new ListValue(setNameVal.value + "." + foundItemName, intVal.value);
+						generatedListValue = new ListValue(listNameVal.value + "." + foundItemName, intVal.value);
 					}
 				} else {
-					throw new StoryException("Failed to find Set called " + setNameVal.value);
+					throw new StoryException("Failed to find List called " + listNameVal.value);
 				}
 
 				if (generatedListValue == null)
@@ -1438,18 +1438,18 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				break;
 			}
 
-			case SetRange: {
+			case ListRange: {
 				RTObject max = state.popEvaluationStack();
 				RTObject min = state.popEvaluationStack();
 				RTObject targetRT = state.popEvaluationStack();
 
-				ListValue targetSet = null;
+				ListValue targetList = null;
 
 				if (targetRT instanceof ListValue)
-					targetSet = (ListValue) targetRT;
+					targetList = (ListValue) targetRT;
 
-				if (targetSet == null || min == null || max == null)
-					throw new StoryException("Expected Set, minimum and maximum for SET_RANGE");
+				if (targetList == null || min == null || max == null)
+					throw new StoryException("Expected List, minimum and maximum for LIST_RANGE");
 
 				int minVal = -1;
 
@@ -1475,11 +1475,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				// Extract the range of items from the origin set
 				ListValue result = null;
-				Set originSet = targetSet.singleOriginSet;
-				if (originSet == null) {
+				ListDefinition originList = targetList.singleOriginList;
+				if (originList == null) {
 					result = new ListValue();
 				} else {
-					result = originSet.setRange(minVal, maxVal);
+					result = originList.listRange(minVal, maxVal);
 				}
 
 				state.pushEvaluationStack(result);

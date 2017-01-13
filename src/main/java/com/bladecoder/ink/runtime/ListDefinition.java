@@ -3,16 +3,16 @@ package com.bladecoder.ink.runtime;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-public class Set {
+public class ListDefinition {
 	private String name;
 	private HashMap<String, Integer> items;
 
-	public Set(String name, HashMap<String, Integer> items) {
+	public ListDefinition(String name, HashMap<String, Integer> items) {
 		this.name = name;
 		this.items = items;
 	}
 
-	public ListValue setRange(int min, int max) {
+	public ListValue listRange(int min, int max) {
 		RawList rawList = new RawList();
 		for (Entry<String, Integer> namedItem : items.entrySet()) {
 			if (namedItem.getValue() >= min && namedItem.getValue() <= max) {

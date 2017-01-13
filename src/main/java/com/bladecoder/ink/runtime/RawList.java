@@ -27,9 +27,9 @@ public class RawList extends HashMap<String, Integer> {
 		return union;
 	}
 
-	public RawList without(RawList setToRemove) {
+	public RawList without(RawList listToRemove) {
 		RawList result = new RawList(this);
-		for (String kv : setToRemove.keySet())
+		for (String kv : listToRemove.keySet())
 			result.remove(kv);
 
 		return result;
@@ -67,8 +67,8 @@ public class RawList extends HashMap<String, Integer> {
 		return min;
 	}
 
-	public boolean contains(RawList otherSet) {
-		for (Entry<String, Integer> kv : otherSet.entrySet()) {
+	public boolean contains(RawList otherList) {
+		for (Entry<String, Integer> kv : otherList.entrySet()) {
 			if (!this.containsKey(kv.getKey()))
 				return false;
 		}
@@ -76,54 +76,54 @@ public class RawList extends HashMap<String, Integer> {
 		return true;
 	}
 
-	public boolean greaterThan(RawList otherSet) {
+	public boolean greaterThan(RawList otherList) {
 		if (size() == 0)
 			return false;
-		if (otherSet.size() == 0)
+		if (otherList.size() == 0)
 			return true;
 
 		// All greater
-		return getMinItem().getValue() > otherSet.getMaxItem().getValue();
+		return getMinItem().getValue() > otherList.getMaxItem().getValue();
 	}
 	
-	public boolean greaterThanOrEquals(RawList otherSet) {
+	public boolean greaterThanOrEquals(RawList otherList) {
 		if (size() == 0)
 			return false;
-		if (otherSet.size() == 0)
+		if (otherList.size() == 0)
 			return true;
 
 		// All greater
-		return getMinItem().getValue() >= otherSet.getMinItem().getValue() &&
-				getMaxItem().getValue() >= otherSet.getMaxItem().getValue();
+		return getMinItem().getValue() >= otherList.getMinItem().getValue() &&
+				getMaxItem().getValue() >= otherList.getMaxItem().getValue();
 	}
 	
-	public boolean lessThan(RawList otherSet) {
-		if (otherSet.size() == 0)
+	public boolean lessThan(RawList otherList) {
+		if (otherList.size() == 0)
 			return false;
 		if (size() == 0)
 			return true;
 
-		return getMaxItem().getValue() < otherSet.getMinItem().getValue();
+		return getMaxItem().getValue() < otherList.getMinItem().getValue();
 	}
 	
-	public boolean lessThanOrEquals(RawList otherSet) {
-		if (otherSet.size() == 0)
+	public boolean lessThanOrEquals(RawList otherList) {
+		if (otherList.size() == 0)
 			return false;
 		if (size() == 0)
 			return true;
 
-		return getMaxItem().getValue() <= otherSet.getMaxItem().getValue() &&
-				getMinItem().getValue() <= otherSet.getMinItem().getValue();
+		return getMaxItem().getValue() <= otherList.getMaxItem().getValue() &&
+				getMinItem().getValue() <= otherList.getMinItem().getValue();
 	}
 
-	public RawList maxAsSet() {
+	public RawList maxAsList() {
 		if (size() > 0)
 			return new RawList(getMaxItem());
 		else
 			return new RawList();
 	}
 
-	public RawList minAsSet() {
+	public RawList minAsList() {
 		if (size() > 0)
 			return new RawList(getMinItem());
 		else
@@ -132,18 +132,18 @@ public class RawList extends HashMap<String, Integer> {
 
 	@Override
 	public boolean equals(Object other) {
-		RawList otherSetRawList = null;
+		RawList otherRawList = null;
 
 		if (other instanceof RawList)
-			otherSetRawList = (RawList) other;
+			otherRawList = (RawList) other;
 
-		if (otherSetRawList == null)
+		if (otherRawList == null)
 			return false;
-		if (otherSetRawList.size() != size())
+		if (otherRawList.size() != size())
 			return false;
 
 		for (String key : keySet()) {
-			if (!otherSetRawList.containsKey(key))
+			if (!otherRawList.containsKey(key))
 				return false;
 		}
 

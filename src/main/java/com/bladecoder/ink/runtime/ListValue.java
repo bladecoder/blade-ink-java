@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 
 class ListValue extends Value<RawList> {
 
-	public Set singleOriginSet;
+	public ListDefinition singleOriginList;
 
 	public ListValue(RawList val) {
 		super(val);
@@ -28,23 +28,23 @@ class ListValue extends Value<RawList> {
 
 	@Override
 	public ValueType getValueType() {
-		return ValueType.Set;
+		return ValueType.List;
 	}
 
 	// Runtime sets may reference items from different origin sets
-	public String getSingleOriginSetName() {
+	public String getSingleOriginListName() {
 		String name = null;
 
 		for (Entry<String, Integer> fullNamedItem : getValue().entrySet()) {
-			String setName = fullNamedItem.getKey().split(".")[0];
+			String listName = fullNamedItem.getKey().split(".")[0];
 
 			// First name - take it as the assumed single origin name
 			if (name == null)
-				name = setName;
+				name = listName;
 
 			// A different one than one we've already had? No longer
 			// single origin.
-			else if (name != setName)
+			else if (name != listName)
 				return null;
 		}
 
@@ -55,13 +55,13 @@ class ListValue extends Value<RawList> {
 	}
 
 	public ListValue getInverse() {
-		if (singleOriginSet == null)
+		if (singleOriginList == null)
 			return null;
 
 		RawList rawList = new RawList();
 
-		for (Entry<String, Integer> nameValue : singleOriginSet.getItems().entrySet()) {
-			String fullName = singleOriginSet.getName() + "." + nameValue.getKey();
+		for (Entry<String, Integer> nameValue : singleOriginList.getItems().entrySet()) {
+			String fullName = singleOriginList.getName() + "." + nameValue.getKey();
 
 			if (!value.containsKey(fullName))
 				rawList.put(fullName, nameValue.getValue());
@@ -72,13 +72,13 @@ class ListValue extends Value<RawList> {
 	}
 
 	public ListValue getAll() {
-		if (singleOriginSet == null)
+		if (singleOriginList == null)
 			return null;
 
 		RawList dict = new RawList();
 
-		for (Entry<String, Integer> kv : singleOriginSet.getItems().entrySet())
-			dict.put(singleOriginSet.getName() + "." + kv.getKey(), kv.getValue());
+		for (Entry<String, Integer> kv : singleOriginList.getItems().entrySet())
+			dict.put(singleOriginList.getName() + "." + kv.getKey(), kv.getValue());
 
 		return new ListValue(dict);
 	}

@@ -27,9 +27,9 @@ public class VariablesState implements Iterable<String> {
 
 	private VariableChanged variableChangedEvent;
 	
-	private HashMap<String, Set> sets;
+	private HashMap<String, ListDefinition> sets;
 
-	VariablesState(CallStack callStack, HashMap<String, Set> sets) {
+	VariablesState(CallStack callStack, HashMap<String, ListDefinition> sets) {
 		globalVariables = new HashMap<String, RTObject>();
 		this.callStack = callStack;
 		
@@ -81,7 +81,7 @@ public class VariablesState implements Iterable<String> {
 		}
 	}
 	
-	HashMap<String, Set> getSets() {
+	HashMap<String, ListDefinition> getSets() {
 		return sets;
 	}
 
@@ -159,14 +159,14 @@ public class VariablesState implements Iterable<String> {
 	          String setName = nameParts [0];
 	          String itemName = nameParts [1];
 	 
-	          Set set = sets.get(setName);
+	          ListDefinition set = sets.get(setName);
 	          if (set != null) {
 	              Integer itemValue = set.getValueForItem(itemName);
 	              return new ListValue (name, itemValue);
 	          }
 	      } else {
-	          for (Entry<String, Set>namedSet : sets.entrySet()) {
-	              Set set = namedSet.getValue();
+	          for (Entry<String, ListDefinition>namedSet : sets.entrySet()) {
+	              ListDefinition set = namedSet.getValue();
 	              Integer itemValue = set.getValueForItem(name);
 	              if (itemValue != null) {
 	                  return new ListValue (set.getName() + "." + name, itemValue);

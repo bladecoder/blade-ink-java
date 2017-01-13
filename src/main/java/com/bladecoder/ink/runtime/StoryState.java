@@ -58,7 +58,7 @@ public class StoryState {
 		evaluationStack = new ArrayList<RTObject>();
 
 		callStack = new CallStack(story.getRootContentContainer());
-		variablesState = new VariablesState(callStack, story.getSets());
+		variablesState = new VariablesState(callStack, story.getLists());
 
 		visitCounts = new HashMap<String, Integer>();
 		turnIndices = new HashMap<String, Integer>();
@@ -103,7 +103,7 @@ public class StoryState {
 
 		copy.callStack = new CallStack(callStack);
 
-		copy.variablesState = new VariablesState(copy.callStack, story.getSets());
+		copy.variablesState = new VariablesState(copy.callStack, story.getLists());
 		copy.variablesState.copyFrom(variablesState);
 
 		copy.evaluationStack.addAll(evaluationStack);
@@ -436,20 +436,20 @@ public class StoryState {
 
 	void pushEvaluationStack(RTObject obj) {
 
-		// Include metadata about the origin Set for set values when
+		// Include metadata about the origin List for set values when
 		// they're used, so that lower level functions can make use
-		// of the origin set to get related items, or make comparisons
+		// of the origin list to get related items, or make comparisons
 		// with the integer values etc.
 		ListValue listValue = null;
 		if (obj instanceof ListValue)
 			listValue = (ListValue) obj;
 
 		if (listValue != null) {
-			String singleOriginName = listValue.getSingleOriginSetName();
+			String singleOriginName = listValue.getSingleOriginListName();
 			if (singleOriginName != null)
-				listValue.singleOriginSet = story.getSets().get(singleOriginName);
+				listValue.singleOriginList = story.getLists().get(singleOriginName);
 			else
-				listValue.singleOriginSet = null;
+				listValue.singleOriginList = null;
 		}
 
 		evaluationStack.add(obj);
