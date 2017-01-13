@@ -3,7 +3,8 @@ package com.bladecoder.ink.runtime;
 import java.util.HashMap;
 import java.util.Map;
 
-//Helper class purely to make it less unweildly to type Dictionary<string, int> all the time.
+//Confusingly from a C# point of view, a LIST in ink is actually
+// modelled using a C# Dictionary!
 @SuppressWarnings("serial")
 public class RawList extends HashMap<String, Integer> {
 	public RawList() {
@@ -14,14 +15,14 @@ public class RawList extends HashMap<String, Integer> {
 		put(singleElement.getKey(), singleElement.getValue());
 	}
 
-	public RawList(HashMap<String, Integer> otherDict) {
-		super(otherDict);
+	public RawList(HashMap<String, Integer> otherList) {
+		super(otherList);
 	}
 
-	public RawList union(RawList otherDict) {
+	public RawList union(RawList otherList) {
 		RawList union = new RawList(this);
-		for (String key : otherDict.keySet())
-			union.put(key, otherDict.get(key));
+		for (String key : otherList.keySet())
+			union.put(key, otherList.get(key));
 
 		return union;
 	}
@@ -34,10 +35,10 @@ public class RawList extends HashMap<String, Integer> {
 		return result;
 	}
 
-	public RawList intersect(RawList otherDict) {
+	public RawList intersect(RawList otherList) {
 		RawList intersection = new RawList();
 		for (Entry<String, Integer> kv : this.entrySet()) {
-			if (otherDict.containsKey(kv.getKey()))
+			if (otherList.containsKey(kv.getKey()))
 				intersection.put(kv.getKey(), kv.getValue());
 		}
 		return intersection;
