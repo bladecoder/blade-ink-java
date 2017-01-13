@@ -39,6 +39,7 @@ public class NativeFunctionCall extends RTObject {
 	public static final String SetMin = "SET_MIN";
 	public static final String All = "SET_ALL";
 	public static final String Count = "SET_COUNT";
+	public static final String ValueOfSet = "SET_VALUE";
 
 	public static final String NotEquals = "!=";
 
@@ -470,6 +471,13 @@ public class NativeFunctionCall extends RTObject {
 				@Override
 				public Object invoke(Object val) {
 					return ((SetDictionary) val).size();
+				}
+			});
+			
+			addSetUnaryOp(ValueOfSet, new UnaryOp() {
+				@Override
+				public Object invoke(Object val) {
+					return ((SetDictionary) val).getMaxItem().getValue();
 				}
 			});
 

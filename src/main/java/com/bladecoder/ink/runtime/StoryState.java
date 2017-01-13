@@ -103,8 +103,8 @@ public class StoryState {
 
 		copy.callStack = new CallStack(callStack);
 
-		copy.variablesState = new VariablesState (copy.callStack, story.getSets());
-		copy.variablesState.copyFrom (variablesState);
+		copy.variablesState = new VariablesState(copy.callStack, story.getSets());
+		copy.variablesState.copyFrom(variablesState);
 
 		copy.evaluationStack.addAll(evaluationStack);
 
@@ -435,6 +435,23 @@ public class StoryState {
 	}
 
 	void pushEvaluationStack(RTObject obj) {
+
+		// Include metadata about the origin Set for set values when
+		// they're used, so that lower level functions can make use
+		// of the origin set to get related items, or make comparisons
+		// with the integer values etc.
+		SetValue setValue = null;
+		if (obj instanceof SetValue)
+			setValue = (SetValue) obj;
+
+		if (setValue != null) {
+			String singleOriginName = setValue.getSingleOriginSetName();
+			if (singleOriginName != null)
+				setValue.singleOriginSet = story.getSets().get(singleOriginName);
+			else
+				setValue.singleOriginSet = null;
+		}
+
 		evaluationStack.add(obj);
 	}
 
@@ -572,7 +589,7 @@ public class StoryState {
 					throw new Exception("ink arguments when calling EvaluateFunction must be int, float or string");
 				}
 
-				evaluationStack.add(Value.create(arguments[i]));
+				pushEvaluationStack(Value.create(arguments[i]));
 			}
 		}
 	}

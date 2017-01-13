@@ -1438,18 +1438,51 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				break;
 			}
 
-			case SetValue: {
-				RTObject popped = state.popEvaluationStack();
-				SetValue setValue = (SetValue) popped;
+			case SetRange: {
+				RTObject max = state.popEvaluationStack();
+				RTObject min = state.popEvaluationStack();
+				RTObject targetRT = state.popEvaluationStack();
 
-				if (popped instanceof SetValue)
-					setValue = (SetValue) popped;
+				SetValue targetSet = null;
 
-				if (setValue == null)
-					throw new StoryException("Expected Set for SET_VALUE() but got " + popped.getClass().getSimpleName());
-				
-				Integer setItemIntVal = setValue.value.getMaxItem().getValue();
-				state.pushEvaluationStack(new IntValue(setItemIntVal));
+				if (targetRT instanceof SetValue)
+					targetSet = (SetValue) targetRT;
+
+				if (targetSet == null || min == null || max == null)
+					throw new StoryException("Expected Set, minimum and maximum for SET_RANGE");
+
+				int minVal = -1;
+
+				if (min instanceof SetValue) {
+					minVal = (int) ((SetValue) min).maxItem().getValue();
+				} else if (min instanceof IntValue) {
+					minVal = (int) ((IntValue) min).getValue();
+				}
+
+				int maxVal = -1;
+
+				if (max instanceof SetValue) {
+					maxVal = (int) ((SetValue) min).maxItem().getValue();
+				} else if (min instanceof IntValue) {
+					maxVal = (int) ((IntValue) min).getValue();
+				}
+
+				if (minVal == -1)
+					throw new StoryException("Invalid min range bound passed to SET_VALUE(): " + min);
+
+				if (maxVal == -1)
+					throw new StoryException("Invalid max range bound passed to SET_VALUE(): " + max);
+
+				// Extract the range of items from the origin set
+				SetValue result = null;
+				Set originSet = targetSet.singleOriginSet;
+				if (originSet == null) {
+					result = new SetValue();
+				} else {
+					result = originSet.setRange(minVal, maxVal);
+				}
+
+				state.pushEvaluationStack(result);
 				break;
 			}
 
@@ -1501,7 +1534,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 			}
 
-			state.getEvaluationStack().add(foundValue);
+			state.pushEvaluationStack(foundValue);
 
 			return true;
 		}
@@ -1511,25 +1544,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			NativeFunctionCall func = (NativeFunctionCall) contentObj;
 			List<RTObject> funcParams = state.popEvaluationStack(func.getNumberOfParameters());
 
-			// Include metadata about the origin Set for set values when
-			// they're used in NativeFunctionCalls, so that we can mix them
-			// with ints.
-			for (RTObject p : funcParams) {
-				SetValue setValue = null;
-				if (p instanceof SetValue)
-					setValue = (SetValue) p;
-
-				if (setValue != null) {
-					String singleOriginName = setValue.getSingleOriginSetName();
-					if (singleOriginName != null)
-						setValue.singleOriginSet = sets.get(singleOriginName);
-					else
-						setValue.singleOriginSet = null;
-				}
-			}
-
 			RTObject result = func.call(funcParams);
-			state.getEvaluationStack().add(result);
+			state.pushEvaluationStack(result);
 			return true;
 		}
 
