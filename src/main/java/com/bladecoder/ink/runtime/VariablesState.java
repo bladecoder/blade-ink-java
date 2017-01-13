@@ -32,6 +32,8 @@ public class VariablesState implements Iterable<String> {
 	VariablesState(CallStack callStack, HashMap<String, Set> sets) {
 		globalVariables = new HashMap<String, RTObject>();
 		this.callStack = callStack;
+		
+		this.sets = sets;
 	}
 
 	public void assign(VariableAssignment varAss, RTObject value) throws Exception {
@@ -44,6 +46,7 @@ public class VariablesState implements Iterable<String> {
 		} else {
 			setGlobal = globalVariables.containsKey(name);
 		}
+		
 		// Constructing new variable pointer reference
 		if (varAss.isNewDeclaration()) {
 			VariablePointerValue varPointer = value instanceof VariablePointerValue ? (VariablePointerValue) value
@@ -84,8 +87,6 @@ public class VariablesState implements Iterable<String> {
 
 	void copyFrom(VariablesState toCopy) {
 		globalVariables = new HashMap<String, RTObject>(toCopy.globalVariables);
-
-		sets = toCopy.getSets();
 
 		setVariableChangedEvent(toCopy.getVariableChangedEvent());
 
