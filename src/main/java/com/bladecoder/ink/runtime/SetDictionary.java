@@ -14,7 +14,7 @@ public class SetDictionary extends HashMap<String, Integer> {
 		super(otherDict);
 	}
 
-	public SetDictionary unionWith(SetDictionary otherDict) {
+	public SetDictionary union(SetDictionary otherDict) {
 		SetDictionary union = new SetDictionary(this);
 		for (String key : otherDict.keySet())
 			union.put(key, otherDict.get(key));
@@ -30,7 +30,7 @@ public class SetDictionary extends HashMap<String, Integer> {
 		return result;
 	}
 
-	public SetDictionary intersectWith(SetDictionary otherDict) {
+	public SetDictionary intersect(SetDictionary otherDict) {
 		SetDictionary intersection = new SetDictionary();
 		for (Entry<String, Integer> kv : this.entrySet()) {
 			if (otherDict.containsKey(kv.getKey()))

@@ -30,6 +30,7 @@ public class NativeFunctionCall extends RTObject {
 	public static final String Not = "!";
 	public static final String Has = "?";
 	public static final String Invert   = "~";
+	public static final String Intersect = "^";
 
 	public static final String NotEquals = "!=";
 
@@ -342,14 +343,14 @@ public class NativeFunctionCall extends RTObject {
 			addSetBinaryOp(Add, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).unionWith((SetDictionary) right);
+					return ((SetDictionary) left).union((SetDictionary) right);
 				}
 			});
 			
 			addSetBinaryOp(And, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).unionWith((SetDictionary) right);
+					return ((SetDictionary) left).union((SetDictionary) right);
 				}
 			});
 
@@ -364,6 +365,13 @@ public class NativeFunctionCall extends RTObject {
 				@Override
 				public Object invoke(Object left, Object right) {
 					return ((SetDictionary) left).contains((SetDictionary)right) ? (Integer) 1 : (Integer) 0;
+				}
+			});
+			
+			addSetBinaryOp(Has, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return ((SetDictionary) left).intersect((SetDictionary)right);
 				}
 			});
 
