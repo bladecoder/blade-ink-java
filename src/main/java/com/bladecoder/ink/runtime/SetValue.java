@@ -1,6 +1,5 @@
 package com.bladecoder.ink.runtime;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -52,6 +51,23 @@ class SetValue extends Value<SetDictionary> {
 		return name;
 	}
 
+	public SetValue getInverse() {
+		if (singleOriginSet == null)
+			return null;
+
+		SetDictionary setDict = new SetDictionary();
+
+		for (Entry<String, Integer> nameValue : singleOriginSet.getItems().entrySet()) {
+			String fullName = singleOriginSet.getName() + "." + nameValue.getKey();
+
+			if (!value.containsKey(fullName))
+				setDict.put(fullName, nameValue.getValue());
+		}
+
+		return new SetValue(setDict);
+
+	}
+
 	// Truthy if it contains any non-zero items
 	@Override
 	public boolean isTruthy() {
@@ -64,14 +80,7 @@ class SetValue extends Value<SetDictionary> {
 	}
 
 	public Entry<String, Integer> maxItem() {
-		Entry<String, Integer> max = new AbstractMap.SimpleEntry<String, Integer>((String) null, Integer.MIN_VALUE);
-
-		for (Entry<String, Integer> kv : value.entrySet()) {
-			if (kv.getValue() > max.getValue())
-				max = kv;
-		}
-
-		return max;
+		return value.getMaxItem();
 	}
 
 	@Override
