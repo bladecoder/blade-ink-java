@@ -26,8 +26,9 @@ public class NativeFunctionCall extends RTObject {
 	public static final String Mod = "%";
 	public static final String Multiply = "*";
 	private static HashMap<String, NativeFunctionCall> nativeFunctions;
-	public static final String Negate = "~";
+	public static final String Negate   = "_"; // distinguish from "-" for subtraction
 	public static final String Not = "!";
+	public static final String Invert   = "~";
 
 	public static final String NotEquals = "!=";
 
@@ -37,6 +38,10 @@ public class NativeFunctionCall extends RTObject {
 
 	static void addSetBinaryOp(String name, BinaryOp op) {
 		addOpToNativeFunc(name, 2, ValueType.Set, op);
+	}
+	
+	static void addSetUnaryOp(String name, UnaryOp op) {
+		addOpToNativeFunc(name, 1, ValueType.Set, op);
 	}
 
 	static void addFloatBinaryOp(String name, BinaryOp op) {
@@ -351,7 +356,7 @@ public class NativeFunctionCall extends RTObject {
 			// AddSetBinaryOp (Divide, (x, y) => x / y);
 			// AddSetBinaryOp (Mod, (x, y) => x % y); // TODO: Is this the
 			// operation we want for floats?
-			// AddSetUnaryOp (Negate, x => -x);
+			// AddSetUnaryOp (Negate, x => x.Inverse);
 
 			addSetBinaryOp(Equal, new BinaryOp() {
 				@Override
@@ -399,7 +404,6 @@ public class NativeFunctionCall extends RTObject {
 				}
 			});
 
-			// AddSetUnaryOp (Not, x => !x);
 
 			addSetBinaryOp(And, new BinaryOp() {
 				@Override
@@ -409,10 +413,10 @@ public class NativeFunctionCall extends RTObject {
 				}
 			});
 
-			addSetBinaryOp(Or, new BinaryOp() {
+			addSetUnaryOp(Invert, new UnaryOp() {
 				@Override
-				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).unionWith((SetDictionary) right);
+				public Object invoke(Object val) {
+					return val;
 				}
 			});
 
@@ -493,7 +497,7 @@ public class NativeFunctionCall extends RTObject {
 		// Special case:
 		// - Set inverse (!set) requires knowledge of origin set, not just
 		// the raw set dictionary.
-		if (parameters.size() == 1 && parameters.get(0) instanceof SetValue && "!".equals(name)) {
+		if (parameters.size() == 1 && parameters.get(0) instanceof SetValue && Invert.equals(name)) {
 			SetValue setValue = (SetValue) parameters.get(0);
 			SetValue inv = setValue.getInverse();
 			if (inv == null)
