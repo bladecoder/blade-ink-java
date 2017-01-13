@@ -368,7 +368,7 @@ public class NativeFunctionCall extends RTObject {
 				}
 			});
 			
-			addSetBinaryOp(Has, new BinaryOp() {
+			addSetBinaryOp(Intersect, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
 					return ((SetDictionary) left).intersect((SetDictionary)right);
@@ -420,7 +420,16 @@ public class NativeFunctionCall extends RTObject {
 					return (!((SetDictionary) left).equals(right) ? (Integer) 1 : (Integer) 0);
 				}
 			});
+			
+			addSetUnaryOp(Not, new UnaryOp() {
+				@Override
+				public Object invoke(Object val) {
+					return ((SetDictionary)val).size() == 0 ? (int)1 : (int)0;
+				}
+			});
 
+			// Placeholder to ensure that Invert gets created at all,
+            // since this function is never actually run, and is special cased in Call
 			addSetUnaryOp(Invert, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
