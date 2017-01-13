@@ -82,7 +82,7 @@ public class VariablesState implements Iterable<String> {
 		return sets;
 	}
 
-	VariablesState(VariablesState toCopy) {
+	void copyFrom(VariablesState toCopy) {
 		globalVariables = new HashMap<String, RTObject>(toCopy.globalVariables);
 
 		sets = toCopy.getSets();

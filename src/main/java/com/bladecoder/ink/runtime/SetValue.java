@@ -3,23 +3,22 @@ package com.bladecoder.ink.runtime;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-public class SetValue extends Value<HashMap<String, Integer>> {
+class SetValue extends Value<SetDictionary> {
 
-	public SetValue(HashMap<String, Integer> val) {
+	public SetValue(SetDictionary val) {
 		super(val);
 	}
 	
 
 	public SetValue() {
-		super(new HashMap<String, Integer>());
+		super(new SetDictionary());
 	}
 
 	public SetValue(String singleItemName, int singleValue) {
-		super(new HashMap<String, Integer>());
+		super(new SetDictionary());
 		value.put(singleItemName, singleValue);
 	}
 

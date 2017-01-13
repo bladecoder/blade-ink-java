@@ -103,7 +103,8 @@ public class StoryState {
 
 		copy.callStack = new CallStack(callStack);
 
-		copy.variablesState = new VariablesState (copy.getVariablesState());
+		copy.variablesState = new VariablesState (copy.callStack, story.getSets());
+		copy.variablesState.copyFrom (variablesState);
 
 		copy.evaluationStack.addAll(evaluationStack);
 

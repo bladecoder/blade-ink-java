@@ -1,6 +1,6 @@
 package com.bladecoder.ink.runtime;
 
-public class IntValue extends Value<Integer> {
+class IntValue extends Value<Integer> {
 	public IntValue() {
 		this(0);
 	}

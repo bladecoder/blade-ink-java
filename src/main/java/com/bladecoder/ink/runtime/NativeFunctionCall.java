@@ -35,6 +35,10 @@ public class NativeFunctionCall extends RTObject {
 
 	public static final String Subtract = "-";
 
+	static void addSetBinaryOp(String name, BinaryOp op) {
+		addOpToNativeFunc(name, 2, ValueType.Set, op);
+	}
+
 	static void addFloatBinaryOp(String name, BinaryOp op) {
 		addOpToNativeFunc(name, 2, ValueType.Float, op);
 	}
@@ -328,6 +332,45 @@ public class NativeFunctionCall extends RTObject {
 				}
 			});
 
+			// Set operations
+			addSetBinaryOp(Add, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+
+					return ((SetDictionary) left).unionWith((SetDictionary) right);
+				}
+			});
+
+			addSetBinaryOp(Subtract, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return ((SetDictionary) left).without((SetDictionary) right);
+				}
+			});
+			// AddSetBinaryOp (Multiply, (x, y) => x * y);
+			// AddSetBinaryOp (Divide, (x, y) => x / y);
+			// AddSetBinaryOp (Mod, (x, y) => x % y); // TODO: Is this the
+			// operation we want for floats?
+			// AddSetUnaryOp (Negate, x => -x);
+
+			// AddSetBinaryOp (Equal, (x, y) => x == y ? (int)1 : (int)0);
+			// AddSetBinaryOp (Greater, (x, y) => x > y ? (int)1 : (int)0);
+			// AddSetBinaryOp (Less, (x, y) => x < y ? (int)1 : (int)0);
+			// AddSetBinaryOp (GreaterThanOrEquals, (x, y) => x >= y ? (int)1 :
+			// (int)0);
+			// AddSetBinaryOp (LessThanOrEquals, (x, y) => x <= y ? (int)1 :
+			// (int)0);
+			// AddSetBinaryOp (NotEquals, (x, y) => x != y ? (int)1 : (int)0);
+			// AddSetUnaryOp (Not, x => (x == 0.0f) ? (int)1 : (int)0);
+
+			// AddSetBinaryOp (And, (x, y) => x != 0.0f && y != 0.0f ? (int)1 :
+			// (int)0);
+			// AddSetBinaryOp (Or, (x, y) => x != 0.0f || y != 0.0f ? (int)1 :
+			// (int)0);
+
+			// AddSetBinaryOp (Max, (x, y) => Math.Max (x, y));
+			// AddSetBinaryOp (Min, (x, y) => Math.Min (x, y));
+
 			BinaryOp divertTargetsEqual = new BinaryOp() {
 
 				@Override
@@ -406,6 +449,8 @@ public class NativeFunctionCall extends RTObject {
 		} else if (coercedType == ValueType.String) {
 			return callType(coercedParams);
 		} else if (coercedType == ValueType.DivertTarget) {
+			return callType(coercedParams);
+		} else if (coercedType == ValueType.Set) {
 			return callType(coercedParams);
 		}
 
