@@ -88,7 +88,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (sets != null) {
 			sets = new HashMap<String, Set>();
 			for (Set set : sets.values()) {
-				sets.put(set.getName(),  set);
+				sets.put(set.getName(), set);
 			}
 		}
 
@@ -1342,6 +1342,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			}
 
 			case SeedRandom:
+			{
 				IntValue seed = null;
 
 				RTObject o = state.popEvaluationStack();
@@ -1359,7 +1360,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				// SEED_RANDOM returns nothing.
 				state.pushEvaluationStack(new Void());
 				break;
-
+			}
 			case VisitIndex:
 				int count = visitCountForContainer(state.currentContainer()) - 1; // index
 																					// not
@@ -1399,7 +1400,46 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			case End:
 				state.forceEnd();
 				break;
+				
+			case SetFromInt:
+			{
+				
+				IntValue intVal = null;
 
+				RTObject o = state.popEvaluationStack();
+
+				if (o instanceof IntValue)
+					intVal = (IntValue) o;
+
+				StringValue setNameVal = null;
+
+				o = state.popEvaluationStack();
+
+				if (o instanceof StringValue)
+					setNameVal = (StringValue) o;
+				 
+				 SetValue generatedSetValue = null;
+				 
+				 Set foundSet = sets.get(setNameVal.value);
+				 
+				 if (foundSet != null) {
+				     String foundItemName = null;
+				     
+				     foundItemName = foundSet.getItemWithValue(intVal.value);
+				     
+				     if (foundItemName != null) {
+				         generatedSetValue = new SetValue (setNameVal.value + "." + foundItemName, intVal.value);
+				     }
+				 } else {
+				     throw new StoryException ("Failed to find Set called " + setNameVal.value);
+				 }
+				 
+				 if (generatedSetValue == null)
+				     generatedSetValue = new SetValue ("UNKNOWN", 0);
+				 
+				 state.pushEvaluationStack (generatedSetValue);
+				 break;
+			}
 			default:
 				error("unhandled ControlCommand: " + evalCommand);
 				break;

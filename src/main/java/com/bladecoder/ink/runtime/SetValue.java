@@ -12,15 +12,18 @@ class SetValue extends Value<SetDictionary> {
 
 	public SetValue(SetDictionary val) {
 		super(val);
+		TEMP_DebugAssertNames();
 	}
 
 	public SetValue() {
 		super(new SetDictionary());
+		TEMP_DebugAssertNames();
 	}
 
 	public SetValue(String singleItemName, int singleValue) {
 		super(new SetDictionary());
 		value.put(singleItemName, singleValue);
+		TEMP_DebugAssertNames();
 	}
 
 	@Override
@@ -84,7 +87,7 @@ class SetValue extends Value<SetDictionary> {
 	}
 
 	@Override
-	public AbstractValue cast(ValueType newType) throws Exception {
+	public AbstractValue cast(ValueType newType) {
 		if (newType == ValueType.Int) {
 			Entry<String, Integer> max = maxItem();
 			if (max.getKey() == null)
@@ -112,7 +115,14 @@ class SetValue extends Value<SetDictionary> {
 		if (newType == getValueType())
 			return this;
 
-		throw new Exception("Unexpected type cast of Value to new ValueType");
+		throw new RuntimeException("Unexpected type cast of Value to new ValueType");
+	}
+
+	void TEMP_DebugAssertNames() {
+		for (Entry<String, Integer> kv : value.entrySet()) {
+			if (!kv.getKey().contains(".") && "UNKNOWN".equals(kv.getKey()))
+				throw new RuntimeException("Not a full item name");
+		}
 	}
 
 	@Override
