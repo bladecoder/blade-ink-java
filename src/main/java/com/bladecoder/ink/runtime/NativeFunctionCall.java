@@ -565,7 +565,7 @@ public class NativeFunctionCall extends RTObject {
 			Object opForTypeObj = operationFuncs.get(valType);
 
 			if (opForTypeObj == null) {
-				throw new StoryException("Can not perform operation '" + this.getName() + "' on " + valType);
+				throw new StoryException("Cannot perform operation '" + this.getName() + "' on " + valType);
 			}
 
 			// Binary

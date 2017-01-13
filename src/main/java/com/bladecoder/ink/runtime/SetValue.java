@@ -108,8 +108,11 @@ class SetValue extends Value<SetDictionary> {
 			Entry<String, Integer> max = maxItem();
 			if (max.getKey() == null)
 				return new StringValue("");
-			else
-				return new StringValue(max.getKey());
+			else {
+				String[] nameParts = max.getKey().split(".");
+				String name = nameParts[nameParts.length - 1];
+				return new StringValue(name);
+			}
 		}
 
 		if (newType == getValueType())
