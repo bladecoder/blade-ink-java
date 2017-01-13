@@ -37,7 +37,7 @@ public abstract class AbstractValue extends RTObject {
 		} else if (val instanceof Path) {
 			return new DivertTargetValue((Path) val);
 		} else if (val instanceof HashMap) {
-			return new SetValue((SetDictionary )val);
+			return new ListValue((RawList )val);
 		}
 
 		return null;

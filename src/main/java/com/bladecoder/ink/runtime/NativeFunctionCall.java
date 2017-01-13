@@ -352,87 +352,87 @@ public class NativeFunctionCall extends RTObject {
 			addSetBinaryOp(Add, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).union((SetDictionary) right);
+					return ((RawList) left).union((RawList) right);
 				}
 			});
 
 			addSetBinaryOp(And, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).union((SetDictionary) right);
+					return ((RawList) left).union((RawList) right);
 				}
 			});
 
 			addSetBinaryOp(Subtract, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).without((SetDictionary) right);
+					return ((RawList) left).without((RawList) right);
 				}
 			});
 
 			addSetBinaryOp(Has, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).contains((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
+					return ((RawList) left).contains((RawList) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addSetBinaryOp(Intersect, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).intersect((SetDictionary) right);
+					return ((RawList) left).intersect((RawList) right);
 				}
 			});
 
 			addSetBinaryOp(Equal, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).equals(right) ? (Integer) 1 : (Integer) 0;
+					return ((RawList) left).equals(right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addSetBinaryOp(Greater, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).size() > 0
-							&& ((SetDictionary) left).greaterThan((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
+					return ((RawList) left).size() > 0
+							&& ((RawList) left).greaterThan((RawList) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addSetBinaryOp(Less, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).lessThan((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
+					return ((RawList) left).lessThan((RawList) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addSetBinaryOp(GreaterThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).size() > 0
-							&& ((SetDictionary) left).greaterThanOrEquals((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
+					return ((RawList) left).size() > 0
+							&& ((RawList) left).greaterThanOrEquals((RawList) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addSetBinaryOp(LessThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).size() > 0
-							&& ((SetDictionary) left).lessThanOrEquals((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
+					return ((RawList) left).size() > 0
+							&& ((RawList) left).lessThanOrEquals((RawList) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addSetBinaryOp(NotEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (!((SetDictionary) left).equals(right) ? (Integer) 1 : (Integer) 0);
+					return (!((RawList) left).equals(right) ? (Integer) 1 : (Integer) 0);
 				}
 			});
 
 			addSetUnaryOp(Not, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((SetDictionary) val).size() == 0 ? (int) 1 : (int) 0;
+					return ((RawList) val).size() == 0 ? (int) 1 : (int) 0;
 				}
 			});
 
@@ -456,28 +456,28 @@ public class NativeFunctionCall extends RTObject {
 			addSetUnaryOp(SetMin, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((SetDictionary) val).minAsSet();
+					return ((RawList) val).minAsSet();
 				}
 			});
 
 			addSetUnaryOp(SetMax, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((SetDictionary) val).maxAsSet();
+					return ((RawList) val).maxAsSet();
 				}
 			});
 			
 			addSetUnaryOp(Count, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((SetDictionary) val).size();
+					return ((RawList) val).size();
 				}
 			});
 			
 			addSetUnaryOp(ValueOfSet, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((SetDictionary) val).getMaxItem().getValue();
+					return ((RawList) val).getMaxItem().getValue();
 				}
 			});
 
@@ -549,21 +549,21 @@ public class NativeFunctionCall extends RTObject {
 
 		// Special cases, where the functions require knowledge of the origin
 		// set, not just the raw set dictionary
-		if (parameters.size() == 1 && parameters.get(0) instanceof SetValue && Invert.equals(name)) {
+		if (parameters.size() == 1 && parameters.get(0) instanceof ListValue && Invert.equals(name)) {
 
-			if (parameters.size() == 1 && parameters.get(0) instanceof SetValue) {
+			if (parameters.size() == 1 && parameters.get(0) instanceof ListValue) {
 
 				if (name.equals(Invert)) {
-					SetValue setValue = (SetValue) parameters.get(0);
-					SetValue inv = setValue.getInverse();
+					ListValue listValue = (ListValue) parameters.get(0);
+					ListValue inv = listValue.getInverse();
 					if (inv == null)
-						return new SetValue("UNKNOWN", 0);
+						return new ListValue("UNKNOWN", 0);
 					return inv;
 				} else if (name.equals(All)) {
-					SetValue setValue = (SetValue) parameters.get(0);
-					SetValue all = setValue.getAll();
+					ListValue listValue = (ListValue) parameters.get(0);
+					ListValue all = listValue.getAll();
 					if (all == null)
-						return new SetValue("UNKNOWN", 0);
+						return new ListValue("UNKNOWN", 0);
 					return all;
 				}
 			}
@@ -591,19 +591,19 @@ public class NativeFunctionCall extends RTObject {
 	}
 
 	Value<?> callSetIntOperation(List<RTObject> setIntParams) throws StoryException, Exception {
-		SetValue setVal = (SetValue) setIntParams.get(0);
+		ListValue listVal = (ListValue) setIntParams.get(0);
 		IntValue intVal = (IntValue) setIntParams.get(1);
 
 		List<RTObject> coercedInts = new ArrayList<RTObject>();
 
-		coercedInts.add(new IntValue(setVal.maxItem().getValue()));
+		coercedInts.add(new IntValue(listVal.maxItem().getValue()));
 		coercedInts.add(intVal);
 
 		IntValue intResult = (IntValue) call(coercedInts);
 
 		String newItemName = null;
 
-		Set originSet = setVal.singleOriginSet;
+		Set originSet = listVal.singleOriginSet;
 		if (originSet != null) {
 			newItemName = originSet.getItemWithValue(intResult.value);
 
@@ -614,7 +614,7 @@ public class NativeFunctionCall extends RTObject {
 		if (newItemName == null)
 			newItemName = "UNKNOWN";
 
-		return new SetValue(newItemName, intResult.value);
+		return new ListValue(newItemName, intResult.value);
 	}
 
 	private RTObject callType(List<Value<?>> parametersOfSingleType) throws StoryException, Exception {
@@ -659,7 +659,7 @@ public class NativeFunctionCall extends RTObject {
 	List<Value<?>> coerceValuesToSingleType(List<RTObject> parametersIn) throws Exception {
 		ValueType valType = ValueType.Int;
 
-		SetValue specialCaseSet = null;
+		ListValue specialCaseSet = null;
 
 		for (RTObject obj : parametersIn) {
 			// Find out what the output type is
@@ -672,7 +672,7 @@ public class NativeFunctionCall extends RTObject {
 			}
 
 			if (val.getValueType() == ValueType.Set) {
-				specialCaseSet = (SetValue) val;
+				specialCaseSet = (ListValue) val;
 			}
 		}
 
@@ -702,7 +702,7 @@ public class NativeFunctionCall extends RTObject {
 					String itemName = set.getItemWithValue(intVal);
 
 					if (itemName != null) {
-						SetValue castedValue = new SetValue(set.getName() + "." + itemName, intVal);
+						ListValue castedValue = new ListValue(set.getName() + "." + itemName, intVal);
 						parametersOut.add(castedValue);
 					} else
 						throw new StoryException(

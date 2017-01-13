@@ -1415,7 +1415,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				if (o instanceof StringValue)
 					setNameVal = (StringValue) o;
 
-				SetValue generatedSetValue = null;
+				ListValue generatedListValue = null;
 
 				Set foundSet = sets.get(setNameVal.value);
 
@@ -1425,16 +1425,16 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					foundItemName = foundSet.getItemWithValue(intVal.value);
 
 					if (foundItemName != null) {
-						generatedSetValue = new SetValue(setNameVal.value + "." + foundItemName, intVal.value);
+						generatedListValue = new ListValue(setNameVal.value + "." + foundItemName, intVal.value);
 					}
 				} else {
 					throw new StoryException("Failed to find Set called " + setNameVal.value);
 				}
 
-				if (generatedSetValue == null)
-					generatedSetValue = new SetValue("UNKNOWN", 0);
+				if (generatedListValue == null)
+					generatedListValue = new ListValue("UNKNOWN", 0);
 
-				state.pushEvaluationStack(generatedSetValue);
+				state.pushEvaluationStack(generatedListValue);
 				break;
 			}
 
@@ -1443,26 +1443,26 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				RTObject min = state.popEvaluationStack();
 				RTObject targetRT = state.popEvaluationStack();
 
-				SetValue targetSet = null;
+				ListValue targetSet = null;
 
-				if (targetRT instanceof SetValue)
-					targetSet = (SetValue) targetRT;
+				if (targetRT instanceof ListValue)
+					targetSet = (ListValue) targetRT;
 
 				if (targetSet == null || min == null || max == null)
 					throw new StoryException("Expected Set, minimum and maximum for SET_RANGE");
 
 				int minVal = -1;
 
-				if (min instanceof SetValue) {
-					minVal = (int) ((SetValue) min).maxItem().getValue();
+				if (min instanceof ListValue) {
+					minVal = (int) ((ListValue) min).maxItem().getValue();
 				} else if (min instanceof IntValue) {
 					minVal = (int) ((IntValue) min).getValue();
 				}
 
 				int maxVal = -1;
 
-				if (max instanceof SetValue) {
-					maxVal = (int) ((SetValue) min).maxItem().getValue();
+				if (max instanceof ListValue) {
+					maxVal = (int) ((ListValue) min).maxItem().getValue();
 				} else if (min instanceof IntValue) {
 					maxVal = (int) ((IntValue) min).getValue();
 				}
@@ -1474,10 +1474,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					throw new StoryException("Invalid max range bound passed to SET_VALUE(): " + max);
 
 				// Extract the range of items from the origin set
-				SetValue result = null;
+				ListValue result = null;
 				Set originSet = targetSet.singleOriginSet;
 				if (originSet == null) {
-					result = new SetValue();
+					result = new ListValue();
 				} else {
 					result = originSet.setRange(minVal, maxVal);
 				}

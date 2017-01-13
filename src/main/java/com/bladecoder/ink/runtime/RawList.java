@@ -5,37 +5,37 @@ import java.util.Map;
 
 //Helper class purely to make it less unweildly to type Dictionary<string, int> all the time.
 @SuppressWarnings("serial")
-public class SetDictionary extends HashMap<String, Integer> {
-	public SetDictionary() {
+public class RawList extends HashMap<String, Integer> {
+	public RawList() {
 
 	}
 
-	public SetDictionary(Entry<String, Integer> singleElement) {
+	public RawList(Entry<String, Integer> singleElement) {
 		put(singleElement.getKey(), singleElement.getValue());
 	}
 
-	public SetDictionary(HashMap<String, Integer> otherDict) {
+	public RawList(HashMap<String, Integer> otherDict) {
 		super(otherDict);
 	}
 
-	public SetDictionary union(SetDictionary otherDict) {
-		SetDictionary union = new SetDictionary(this);
+	public RawList union(RawList otherDict) {
+		RawList union = new RawList(this);
 		for (String key : otherDict.keySet())
 			union.put(key, otherDict.get(key));
 
 		return union;
 	}
 
-	public SetDictionary without(SetDictionary setToRemove) {
-		SetDictionary result = new SetDictionary(this);
+	public RawList without(RawList setToRemove) {
+		RawList result = new RawList(this);
 		for (String kv : setToRemove.keySet())
 			result.remove(kv);
 
 		return result;
 	}
 
-	public SetDictionary intersect(SetDictionary otherDict) {
-		SetDictionary intersection = new SetDictionary();
+	public RawList intersect(RawList otherDict) {
+		RawList intersection = new RawList();
 		for (Entry<String, Integer> kv : this.entrySet()) {
 			if (otherDict.containsKey(kv.getKey()))
 				intersection.put(kv.getKey(), kv.getValue());
@@ -66,7 +66,7 @@ public class SetDictionary extends HashMap<String, Integer> {
 		return min;
 	}
 
-	public boolean contains(SetDictionary otherSet) {
+	public boolean contains(RawList otherSet) {
 		for (Entry<String, Integer> kv : otherSet.entrySet()) {
 			if (!this.containsKey(kv.getKey()))
 				return false;
@@ -75,7 +75,7 @@ public class SetDictionary extends HashMap<String, Integer> {
 		return true;
 	}
 
-	public boolean greaterThan(SetDictionary otherSet) {
+	public boolean greaterThan(RawList otherSet) {
 		if (size() == 0)
 			return false;
 		if (otherSet.size() == 0)
@@ -85,7 +85,7 @@ public class SetDictionary extends HashMap<String, Integer> {
 		return getMinItem().getValue() > otherSet.getMaxItem().getValue();
 	}
 	
-	public boolean greaterThanOrEquals(SetDictionary otherSet) {
+	public boolean greaterThanOrEquals(RawList otherSet) {
 		if (size() == 0)
 			return false;
 		if (otherSet.size() == 0)
@@ -96,7 +96,7 @@ public class SetDictionary extends HashMap<String, Integer> {
 				getMaxItem().getValue() >= otherSet.getMaxItem().getValue();
 	}
 	
-	public boolean lessThan(SetDictionary otherSet) {
+	public boolean lessThan(RawList otherSet) {
 		if (otherSet.size() == 0)
 			return false;
 		if (size() == 0)
@@ -105,7 +105,7 @@ public class SetDictionary extends HashMap<String, Integer> {
 		return getMaxItem().getValue() < otherSet.getMinItem().getValue();
 	}
 	
-	public boolean lessThanOrEquals(SetDictionary otherSet) {
+	public boolean lessThanOrEquals(RawList otherSet) {
 		if (otherSet.size() == 0)
 			return false;
 		if (size() == 0)
@@ -115,34 +115,34 @@ public class SetDictionary extends HashMap<String, Integer> {
 				getMinItem().getValue() <= otherSet.getMinItem().getValue();
 	}
 
-	public SetDictionary maxAsSet() {
+	public RawList maxAsSet() {
 		if (size() > 0)
-			return new SetDictionary(getMaxItem());
+			return new RawList(getMaxItem());
 		else
-			return new SetDictionary();
+			return new RawList();
 	}
 
-	public SetDictionary minAsSet() {
+	public RawList minAsSet() {
 		if (size() > 0)
-			return new SetDictionary(getMinItem());
+			return new RawList(getMinItem());
 		else
-			return new SetDictionary();
+			return new RawList();
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		SetDictionary otherSetValue = null;
+		RawList otherSetRawList = null;
 
-		if (other instanceof SetDictionary)
-			otherSetValue = (SetDictionary) other;
+		if (other instanceof RawList)
+			otherSetRawList = (RawList) other;
 
-		if (otherSetValue == null)
+		if (otherSetRawList == null)
 			return false;
-		if (otherSetValue.size() != size())
+		if (otherSetRawList.size() != size())
 			return false;
 
 		for (String key : keySet()) {
-			if (!otherSetValue.containsKey(key))
+			if (!otherSetRawList.containsKey(key))
 				return false;
 		}
 

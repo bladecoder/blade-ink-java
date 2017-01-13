@@ -440,16 +440,16 @@ public class StoryState {
 		// they're used, so that lower level functions can make use
 		// of the origin set to get related items, or make comparisons
 		// with the integer values etc.
-		SetValue setValue = null;
-		if (obj instanceof SetValue)
-			setValue = (SetValue) obj;
+		ListValue listValue = null;
+		if (obj instanceof ListValue)
+			listValue = (ListValue) obj;
 
-		if (setValue != null) {
-			String singleOriginName = setValue.getSingleOriginSetName();
+		if (listValue != null) {
+			String singleOriginName = listValue.getSingleOriginSetName();
 			if (singleOriginName != null)
-				setValue.singleOriginSet = story.getSets().get(singleOriginName);
+				listValue.singleOriginSet = story.getSets().get(singleOriginName);
 			else
-				setValue.singleOriginSet = null;
+				listValue.singleOriginSet = null;
 		}
 
 		evaluationStack.add(obj);

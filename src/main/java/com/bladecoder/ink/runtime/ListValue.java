@@ -6,22 +6,22 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 
-class SetValue extends Value<SetDictionary> {
+class ListValue extends Value<RawList> {
 
 	public Set singleOriginSet;
 
-	public SetValue(SetDictionary val) {
+	public ListValue(RawList val) {
 		super(val);
 		TEMP_DebugAssertNames();
 	}
 
-	public SetValue() {
-		super(new SetDictionary());
+	public ListValue() {
+		super(new RawList());
 		TEMP_DebugAssertNames();
 	}
 
-	public SetValue(String singleItemName, int singleValue) {
-		super(new SetDictionary());
+	public ListValue(String singleItemName, int singleValue) {
+		super(new RawList());
 		value.put(singleItemName, singleValue);
 		TEMP_DebugAssertNames();
 	}
@@ -54,33 +54,33 @@ class SetValue extends Value<SetDictionary> {
 		return name;
 	}
 
-	public SetValue getInverse() {
+	public ListValue getInverse() {
 		if (singleOriginSet == null)
 			return null;
 
-		SetDictionary setDict = new SetDictionary();
+		RawList rawList = new RawList();
 
 		for (Entry<String, Integer> nameValue : singleOriginSet.getItems().entrySet()) {
 			String fullName = singleOriginSet.getName() + "." + nameValue.getKey();
 
 			if (!value.containsKey(fullName))
-				setDict.put(fullName, nameValue.getValue());
+				rawList.put(fullName, nameValue.getValue());
 		}
 
-		return new SetValue(setDict);
+		return new ListValue(rawList);
 
 	}
 
-	public SetValue getAll() {
+	public ListValue getAll() {
 		if (singleOriginSet == null)
 			return null;
 
-		SetDictionary dict = new SetDictionary();
+		RawList dict = new RawList();
 
 		for (Entry<String, Integer> kv : singleOriginSet.getItems().entrySet())
 			dict.put(singleOriginSet.getName() + "." + kv.getKey(), kv.getValue());
 
-		return new SetValue(dict);
+		return new ListValue(dict);
 	}
 
 	// Truthy if it contains any non-zero items

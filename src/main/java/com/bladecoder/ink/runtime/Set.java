@@ -12,15 +12,15 @@ public class Set {
 		this.items = items;
 	}
 
-	public SetValue setRange(int min, int max) {
-		SetDictionary setDict = new SetDictionary();
+	public ListValue setRange(int min, int max) {
+		RawList rawList = new RawList();
 		for (Entry<String, Integer> namedItem : items.entrySet()) {
 			if (namedItem.getValue() >= min && namedItem.getValue() <= max) {
-				setDict.put(name + "." + namedItem.getKey(), namedItem.getValue());
+				rawList.put(name + "." + namedItem.getKey(), namedItem.getValue());
 			}
 		}
 		
-		return new SetValue(setDict);
+		return new ListValue(rawList);
 	}
 
 	public HashMap<String, Integer> getItems() {

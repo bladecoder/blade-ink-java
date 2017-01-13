@@ -139,7 +139,7 @@ public class VariablesState implements Iterable<String> {
 				return varValue;
 			}
 
-			SetValue setItemValue = getSetItemValueWithName(name);
+			ListValue setItemValue = getSetItemValueWithName(name);
 			if (setItemValue != null)
 				return setItemValue;
 		}
@@ -153,7 +153,7 @@ public class VariablesState implements Iterable<String> {
 		return varValue;
 	}
 	
-	 SetValue getSetItemValueWithName (String name) {
+	 ListValue getSetItemValueWithName (String name) {
 	      String[] nameParts = name.split(".");
 	      if (nameParts.length == 2) {
 	          String setName = nameParts [0];
@@ -162,14 +162,14 @@ public class VariablesState implements Iterable<String> {
 	          Set set = sets.get(setName);
 	          if (set != null) {
 	              Integer itemValue = set.getValueForItem(itemName);
-	              return new SetValue (name, itemValue);
+	              return new ListValue (name, itemValue);
 	          }
 	      } else {
 	          for (Entry<String, Set>namedSet : sets.entrySet()) {
 	              Set set = namedSet.getValue();
 	              Integer itemValue = set.getValueForItem(name);
 	              if (itemValue != null) {
-	                  return new SetValue (set.getName() + "." + name, itemValue);
+	                  return new ListValue (set.getName() + "." + name, itemValue);
 	              }
 	          }
 	      }
