@@ -23,6 +23,10 @@ public class NativeFunctionCall extends RTObject {
 	public static final String LessThanOrEquals = "<=";
 	public static final String Max = "MAX";
 	public static final String Min = "MIN";
+	
+	public static final String SetMax = "SET_MAX";
+	public static final String SetMin = "SET_MIN";	
+	
 	public static final String Mod = "%";
 	public static final String Multiply = "*";
 	private static HashMap<String, NativeFunctionCall> nativeFunctions;
@@ -385,16 +389,14 @@ public class NativeFunctionCall extends RTObject {
 			addSetBinaryOp(Greater, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) left).size() > 0 && ((SetDictionary) left).getMaxItem()
-							.getValue() > ((SetDictionary) right).getMaxItem().getValue() ? (Integer) 1 : (Integer) 0;
+					return ((SetDictionary) left).size() > 0 && ((SetDictionary) left).greaterThan((SetDictionary) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addSetBinaryOp(Less, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((SetDictionary) right).size() > 0 && ((SetDictionary) left).getMaxItem()
-							.getValue() < ((SetDictionary) right).getMaxItem().getValue() ? (Integer) 1 : (Integer) 0;
+					return ((SetDictionary) left).lessThan((SetDictionary) right)  ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
@@ -437,8 +439,19 @@ public class NativeFunctionCall extends RTObject {
 				}
 			});
 
-			// AddSetBinaryOp (Max, (x, y) => Math.Max (x, y));
-			// AddSetBinaryOp (Min, (x, y) => Math.Min (x, y));
+			addSetUnaryOp(SetMin, new UnaryOp() {
+				@Override
+				public Object invoke(Object val) {
+					return ((SetDictionary)val).minAsSet();
+				}
+			});
+			
+			addSetUnaryOp(SetMax, new UnaryOp() {
+				@Override
+				public Object invoke(Object val) {
+					return ((SetDictionary)val).maxAsSet();
+				}
+			});
 
 			BinaryOp divertTargetsEqual = new BinaryOp() {
 

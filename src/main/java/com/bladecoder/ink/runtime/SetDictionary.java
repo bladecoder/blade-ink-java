@@ -10,6 +10,10 @@ public class SetDictionary extends HashMap<String, Integer> {
 
 	}
 
+	public SetDictionary(Entry<String, Integer> singleElement) {
+		put(singleElement.getKey(), singleElement.getValue());
+	}
+
 	public SetDictionary(HashMap<String, Integer> otherDict) {
 		super(otherDict);
 	}
@@ -61,14 +65,48 @@ public class SetDictionary extends HashMap<String, Integer> {
 
 		return min;
 	}
-	
-	public boolean contains (SetDictionary otherSet) {
+
+	public boolean contains(SetDictionary otherSet) {
 		for (Entry<String, Integer> kv : otherSet.entrySet()) {
-	         if (!this.containsKey (kv.getKey())) return false;
-	     }
-	     
-	     return true;
-	 }
+			if (!this.containsKey(kv.getKey()))
+				return false;
+		}
+
+		return true;
+	}
+
+	public boolean greaterThan(SetDictionary otherSet) {
+		if (size() == 0)
+			return false;
+		if (otherSet.size() == 0)
+			return true;
+
+		// All greater
+		return getMinItem().getValue() > otherSet.getMaxItem().getValue();
+	}
+
+	public boolean lessThan(SetDictionary otherSet) {
+		if (otherSet.size() == 0)
+			return false;
+		if (size() == 0)
+			return true;
+
+		return getMaxItem().getValue() < otherSet.getMinItem().getValue();
+	}
+
+	public SetDictionary maxAsSet() {
+		if (size() > 0)
+			return new SetDictionary(getMaxItem());
+		else
+			return new SetDictionary();
+	}
+
+	public SetDictionary minAsSet() {
+		if (size() > 0)
+			return new SetDictionary(getMinItem());
+		else
+			return new SetDictionary();
+	}
 
 	@Override
 	public boolean equals(Object other) {
