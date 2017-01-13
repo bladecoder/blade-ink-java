@@ -14,7 +14,7 @@ public class RawList extends HashMap<String, Integer> {
 	// Story has to set this so that the value knows its origin,
 	// necessary for certain operations (e.g. interacting with ints)
 	public ListDefinition singleOriginList;
-	
+
 	public RawList() {
 		TEMP_DebugAssertNames();
 	}
@@ -95,7 +95,7 @@ public class RawList extends HashMap<String, Integer> {
 		// All greater
 		return getMinItem().getValue() > otherList.getMaxItem().getValue();
 	}
-	
+
 	public boolean greaterThanOrEquals(RawList otherList) {
 		if (size() == 0)
 			return false;
@@ -103,10 +103,10 @@ public class RawList extends HashMap<String, Integer> {
 			return true;
 
 		// All greater
-		return getMinItem().getValue() >= otherList.getMinItem().getValue() &&
-				getMaxItem().getValue() >= otherList.getMaxItem().getValue();
+		return getMinItem().getValue() >= otherList.getMinItem().getValue()
+				&& getMaxItem().getValue() >= otherList.getMaxItem().getValue();
 	}
-	
+
 	public boolean lessThan(RawList otherList) {
 		if (otherList.size() == 0)
 			return false;
@@ -115,15 +115,15 @@ public class RawList extends HashMap<String, Integer> {
 
 		return getMaxItem().getValue() < otherList.getMinItem().getValue();
 	}
-	
+
 	public boolean lessThanOrEquals(RawList otherList) {
 		if (otherList.size() == 0)
 			return false;
 		if (size() == 0)
 			return true;
 
-		return getMaxItem().getValue() <= otherList.getMaxItem().getValue() &&
-				getMinItem().getValue() <= otherList.getMinItem().getValue();
+		return getMaxItem().getValue() <= otherList.getMaxItem().getValue()
+				&& getMinItem().getValue() <= otherList.getMinItem().getValue();
 	}
 
 	public RawList maxAsList() {
@@ -139,7 +139,7 @@ public class RawList extends HashMap<String, Integer> {
 		else
 			return new RawList();
 	}
-	
+
 	// Runtime sets may reference items from different origin sets
 	public String getSingleOriginListName() {
 		String name = null;
@@ -163,33 +163,33 @@ public class RawList extends HashMap<String, Integer> {
 		return name;
 	}
 
-	public ListValue getInverse() {
-		if (singleOriginList == null)
-			return null;
+	public RawList getInverse() {
 
 		RawList rawList = new RawList();
 
-		for (Entry<String, Integer> nameValue : singleOriginList.getItems().entrySet()) {
-			String fullName = singleOriginList.getName() + "." + nameValue.getKey();
+		if (singleOriginList != null) {
+			for (Entry<String, Integer> nameValue : singleOriginList.getItems().entrySet()) {
+				String fullName = singleOriginList.getName() + "." + nameValue.getKey();
 
-			if (!containsKey(fullName))
-				rawList.put(fullName, nameValue.getValue());
+				if (!containsKey(fullName))
+					rawList.put(fullName, nameValue.getValue());
+			}
 		}
 
-		return new ListValue(rawList);
+		return rawList;
 
 	}
 
-	public ListValue getAll() {
-		if (singleOriginList == null)
-			return null;
+	public RawList getAll() {
 
-		RawList dict = new RawList();
+		RawList list = new RawList();
 
-		for (Entry<String, Integer> kv : singleOriginList.getItems().entrySet())
-			dict.put(singleOriginList.getName() + "." + kv.getKey(), kv.getValue());
+		if (singleOriginList != null) {
+			for (Entry<String, Integer> kv : singleOriginList.getItems().entrySet())
+				list.put(singleOriginList.getName() + "." + kv.getKey(), kv.getValue());
+		}
 
-		return new ListValue(dict);
+		return list;
 	}
 
 	@Override
@@ -221,14 +221,13 @@ public class RawList extends HashMap<String, Integer> {
 
 		return ownHash;
 	}
-	
+
 	private void TEMP_DebugAssertNames() {
 		for (Entry<String, Integer> kv : entrySet()) {
 			if (!kv.getKey().contains(".") && "UNKNOWN".equals(kv.getKey()))
 				throw new RuntimeException("Not a full item name");
 		}
 	}
-	
 
 	@Override
 	public String toString() {

@@ -450,14 +450,14 @@ public class NativeFunctionCall extends RTObject {
 			addListUnaryOp(Invert, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return null;
+					return ((RawList) val).getInverse();
 				}
 			});
 			
 			addListUnaryOp(All, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return null;
+					return ((RawList) val).getAll();
 				}
 			});
 
@@ -553,28 +553,6 @@ public class NativeFunctionCall extends RTObject {
 				throw new StoryException(
 						"Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?");
 
-		}
-
-		// Special cases, where the functions require knowledge of the origin
-		// set, not just the raw set dictionary
-		if (parameters.size() == 1 && parameters.get(0) instanceof ListValue && Invert.equals(name)) {
-
-			if (parameters.size() == 1 && parameters.get(0) instanceof ListValue) {
-
-				if (name.equals(Invert)) {
-					ListValue listValue = (ListValue) parameters.get(0);
-					ListValue inv = listValue.getValue().getInverse();
-					if (inv == null)
-						return new ListValue("UNKNOWN", 0);
-					return inv;
-				} else if (name.equals(All)) {
-					ListValue listValue = (ListValue) parameters.get(0);
-					ListValue all = listValue.getValue().getAll();
-					if (all == null)
-						return new ListValue("UNKNOWN", 0);
-					return all;
-				}
-			}
 		}
 
 		List<Value<?>> coercedParams = coerceValuesToSingleType(parameters);
