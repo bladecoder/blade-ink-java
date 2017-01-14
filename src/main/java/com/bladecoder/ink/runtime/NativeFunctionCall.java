@@ -3,6 +3,7 @@ package com.bladecoder.ink.runtime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 public class NativeFunctionCall extends RTObject {
 	static interface BinaryOp {
@@ -580,27 +581,40 @@ public class NativeFunctionCall extends RTObject {
 		ListValue listVal = (ListValue) listIntParams.get(0);
 		IntValue intVal = (IntValue) listIntParams.get(1);
 
-		List<RTObject> coercedInts = new ArrayList<RTObject>();
-
-		coercedInts.add(new IntValue(listVal.getValue().getMaxItem().getValue()));
-		coercedInts.add(intVal);
-
-		IntValue intResult = (IntValue) call(coercedInts);
-
-		RawListItem newItem;
-
-		// Since a list can have multiple origins, what we really want
-		 // is the origin of the last item in the list, which will be
-		 // the last origin in the set of origins.
-		 ListDefinition origin = listVal.value.getOriginOfMaxItem();
-		 if (origin != null) {
-			 newItem = origin.getItemWithValue(intResult.value);
-		     
-			 if (newItem != null)
-		         return new ListValue (newItem, intResult.value);
-		 } 
-		     
-		 return new ListValue ();
+		RawList resultRawList = new RawList ();
+		 
+		for (Entry<RawListItem, Integer> listItemWithValue : listVal.getValue().entrySet()) {
+			
+			RawListItem listItem = listItemWithValue.getKey();
+		    Integer listItemValue = listItemWithValue.getValue();
+		
+		    // Find the specific int operation to apply to all memebers
+		    // of the list. Currently this makes most sense for + and -
+		    // but in fact, other operations are possible.
+		    // e.g. list items with the values (1,2) * 2 becomes (2, 4)
+		    // i.e. (a, b) * 2 becomes (b, d). Madness!
+		    BinaryOp intOp = (BinaryOp)operationFuncs.get(ValueType.Int);
+		 
+		    // Return value unknown until it's evaluated
+		    int targetInt = (int) intOp.invoke (listItemValue, intVal.value);
+		 
+		    // Find this item's origin (linear search should be ok, should be short haha)
+		    ListDefinition itemOrigin = null;
+		    for (ListDefinition origin : listVal.getValue().origins) {
+		        if (origin.getName().equals(listItem.getOriginName())) {
+		            itemOrigin = origin;
+		            break;
+		        }
+		    }
+		    
+		    if (itemOrigin != null) {
+		        RawListItem incrementedItem = itemOrigin.getItemWithValue (targetInt);
+		        if (incrementedItem != null)
+		            resultRawList.put(incrementedItem, targetInt);
+		    }
+		}
+		
+		 return new ListValue (resultRawList);
 	}
 
 	private RTObject callType(List<Value<?>> parametersOfSingleType) throws StoryException, Exception {
