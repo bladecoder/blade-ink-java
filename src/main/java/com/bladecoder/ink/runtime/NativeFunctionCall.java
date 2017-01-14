@@ -589,15 +589,18 @@ public class NativeFunctionCall extends RTObject {
 
 		RawListItem newItem;
 
-		ListDefinition originList = listVal.getValue().originList;
-		if (originList != null) {
-			newItem = originList.getItemWithValue(intResult.value);
-
-			if (newItem != null)
-				return new ListValue(newItem, intResult.value);
-		}
-
-		return new ListValue();
+		// Since a list can have multiple origins, what we really want
+		 // is the origin of the last item in the list, which will be
+		 // the last origin in the set of origins.
+		 ListDefinition origin = listVal.value.getOriginOfMaxItem();
+		 if (origin != null) {
+			 newItem = origin.getItemWithValue(intResult.value);
+		     
+			 if (newItem != null)
+		         return new ListValue (newItem, intResult.value);
+		 } 
+		     
+		 return new ListValue ();
 	}
 
 	private RTObject callType(List<Value<?>> parametersOfSingleType) throws StoryException, Exception {
@@ -677,11 +680,7 @@ public class NativeFunctionCall extends RTObject {
 					parametersOut.add(val);
 				} else if (val.getValueType() == ValueType.Int) {
 					int intVal = (int) val.getValueObject();
-					ListDefinition list = specialCaseList.getValue().originList;
-					if (list == null)
-						throw new StoryException(
-								"Cannot mix List and Int values here because the existing List appears to contain items from a mixture of different List definitions. How do we know which List is the Int referring to?");
-
+					ListDefinition list = specialCaseList.getValue().getOriginOfMaxItem();
 					RawListItem item = list.getItemWithValue(intVal);
 
 					if (item != null) {

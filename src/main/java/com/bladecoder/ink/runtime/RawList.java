@@ -15,12 +15,12 @@ public class RawList extends HashMap<RawListItem, Integer> {
 	// necessary for certain operations (e.g. interacting with ints).
 	// Only the story has access to the full set of lists, so that
 	// the origin can be resolved from the originListName.
-	public ListDefinition originList;
+	public List<ListDefinition> origins;
 
 	// Origin name needs to be serialised when content is empty,
 	// assuming a name is availble, for list definitions with variable
 	// that is currently empty.
-	public String originListName;
+	private List<String> originNames;
 
 	public RawList() {
 	}
@@ -31,40 +31,39 @@ public class RawList extends HashMap<RawListItem, Integer> {
 
 	public RawList(RawList otherList) {
 		super(otherList);
-		this.originListName = otherList.originListName;
+		this.originNames = otherList.originNames;
 	}
 
-	// Runtime lists may reference items from different origin list definitions,
-	// so we only get a valid result here if items all come from the same
-	// source.
-	public boolean checkOriginNeedsUpdate() {
+	public ListDefinition getOriginOfMaxItem() {
+		if (origins == null)
+			return null;
 
-		// Check whether we have a new origin name
-		String foundName = null;
-
-		for (Entry<RawListItem, Integer> itemAndValue : this.entrySet()) {
-			String itemOriginName = itemAndValue.getKey().getOriginName();
-
-			// First name - take it as the assumed single origin name
-			if (foundName == null)
-				foundName = itemOriginName;
-
-			// A different one than one we've already had? No longer
-			// single origin.
-			else if (foundName != itemOriginName) {
-				foundName = null;
-				break;
-			}
+		String maxOriginName = getMaxItem().getKey().getOriginName();
+		for (ListDefinition origin : origins) {
+			if (origin.getName().equals(maxOriginName))
+				return origin;
 		}
 
-		if (foundName != null)
-			originListName = foundName;
+		return null;
+	}
 
-		// Do we have a name to update, or need to update for the first time?
-		if (originListName != null)
-			return originList == null || originListName != originList.getName();
+	public List<String> getOriginNames() {
+		if (this.size() > 0) {
+			if (originNames == null && this.size() > 0)
+				originNames = new ArrayList<String>();
+			else
+				originNames.clear();
 
-		return false;
+			for (RawListItem itemAndValue : keySet())
+				originNames.add(itemAndValue.getOriginName());
+		}
+
+		return originNames;
+	}
+
+	public void SetInitialOriginName(String initialOriginName) {
+		originNames = new ArrayList<String>();
+		originNames.add(initialOriginName);
 	}
 
 	public RawList union(RawList otherList) {
@@ -202,11 +201,13 @@ public class RawList extends HashMap<RawListItem, Integer> {
 
 		RawList rawList = new RawList();
 
-		if (originList != null) {
-			for (Entry<RawListItem, Integer> itemAndValue : originList.getItems().entrySet()) {
+		if (origins != null) {
+			for (ListDefinition origin : origins) {
+				for (Entry<RawListItem, Integer> itemAndValue : origin.getItems().entrySet()) {
 
-				if (!containsKey(itemAndValue))
-					rawList.put(itemAndValue.getKey(), itemAndValue.getValue());
+					if (!containsKey(itemAndValue))
+						rawList.put(itemAndValue.getKey(), itemAndValue.getValue());
+				}
 			}
 		}
 
@@ -218,9 +219,12 @@ public class RawList extends HashMap<RawListItem, Integer> {
 
 		RawList list = new RawList();
 
-		if (originList != null) {
-			for (java.util.Map.Entry<RawListItem, Integer> kv : originList.getItems().entrySet())
-				list.put(kv.getKey(), kv.getValue());
+		if (origins != null) {
+			for (ListDefinition origin : origins) {
+				for (Entry<RawListItem, Integer> kv : origin.getItems().entrySet()) {
+					list.put(kv.getKey(), kv.getValue());
+				}
+			}
 		}
 
 		return list;

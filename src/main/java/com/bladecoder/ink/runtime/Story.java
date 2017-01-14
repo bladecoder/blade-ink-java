@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Stack;
 
@@ -1474,12 +1475,17 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					throw new StoryException("Invalid max range bound passed to LIST_RANGE(): " + max);
 
 				// Extract the range of items from the origin set
-				ListValue result = null;
-				ListDefinition originList = targetList.getValue().originList;
-				if (originList == null) {
-					result = new ListValue();
-				} else {
-					result = originList.listRange(minVal, maxVal);
+				ListValue result = new ListValue();
+				List<ListDefinition> origins = targetList.value.origins;
+
+				if (origins != null) {
+					for (ListDefinition origin : origins) {
+						ListValue rangeFromOrigin = origin.listRange(minVal, maxVal);
+
+						for (Entry<RawListItem, Integer> kv : rangeFromOrigin.getValue().entrySet()) {
+							result.value.put(kv.getKey(), kv.getValue());
+						}
+					}
 				}
 
 				state.pushEvaluationStack(result);
@@ -1495,7 +1501,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 
 		// Variable assignment
-		else if (contentObj instanceof VariableAssignment) {
+		else if (contentObj instanceof VariableAssignment)
+
+		{
 			VariableAssignment varAss = (VariableAssignment) contentObj;
 			RTObject assignedVal = state.popEvaluationStack();
 

@@ -448,8 +448,13 @@ public class StoryState {
 			// Update origin when list is has something to indicate the list
 			// origin
 			RawList rawList = listValue.getValue();
-			if (rawList.checkOriginNeedsUpdate())
-				rawList.originList = story.getLists().get(rawList.originListName);
+			List<String> names = rawList.getOriginNames();
+			if (names != null) {
+				ArrayList<ListDefinition> origins = new ArrayList<ListDefinition>();
+				for (String n : names)
+					origins.add(story.getLists().get(n));
+				rawList.origins = origins;
+			}
 		}
 
 		evaluationStack.add(obj);
