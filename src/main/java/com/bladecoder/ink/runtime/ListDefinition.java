@@ -5,25 +5,42 @@ import java.util.Map.Entry;
 
 public class ListDefinition {
 	private String name;
-	private HashMap<String, Integer> items;
+	private HashMap<RawListItem, Integer> items;
+
+	// The main representation should be simple item names rather than a
+	// RawListItem,
+	// since we mainly want to access items based on their simple name, since
+	// that's
+	// how they'll be most commonly requested from ink.
+	private HashMap<String, Integer> itemNameToValues;
 
 	public ListDefinition(String name, HashMap<String, Integer> items) {
 		this.name = name;
-		this.items = items;
+		this.itemNameToValues = items;
 	}
 
 	public ListValue listRange(int min, int max) {
 		RawList rawList = new RawList();
-		for (Entry<String, Integer> namedItem : items.entrySet()) {
-			if (namedItem.getValue() >= min && namedItem.getValue() <= max) {
-				rawList.put(name + "." + namedItem.getKey(), namedItem.getValue());
+		for (Entry<String, Integer> nameAndValue : itemNameToValues.entrySet()) {
+			if (nameAndValue.getValue() >= min && nameAndValue.getValue() <= max) {
+				RawListItem item = new RawListItem(name, nameAndValue.getKey());
+
+				rawList.put(item, nameAndValue.getValue());
 			}
 		}
-		
+
 		return new ListValue(rawList);
 	}
 
-	public HashMap<String, Integer> getItems() {
+	public HashMap<RawListItem, Integer> getItems() {
+		if (items == null) {
+			HashMap<RawListItem, Integer> items = new HashMap<RawListItem, Integer>();
+			for (Entry<String, Integer> itemNameAndValue : itemNameToValues.entrySet()) {
+				RawListItem item = new RawListItem(name, itemNameAndValue.getKey());
+				items.put(item, itemNameAndValue.getValue());
+			}
+		}
+
 		return items;
 	}
 
@@ -31,8 +48,8 @@ public class ListDefinition {
 		return name;
 	}
 
-	public int getValueForItem(String itemName) {
-		Integer v = items.get(itemName);
+	public int getValueForItem(RawListItem item) {
+		Integer v = itemNameToValues.get(item.getItemName());
 
 		if (v != null)
 			return v;
@@ -41,22 +58,22 @@ public class ListDefinition {
 	}
 
 	public Integer tryGetValueForItem(String itemName) {
-		return items.get(itemName);
+		return itemNameToValues.get(itemName);
 	}
 
-	public boolean containsItem(String itemName) {
-		return items.containsKey(itemName);
+	public boolean containsItem(RawListItem itemName) {
+		return itemNameToValues.containsKey(itemName);
 	}
 
-	public String getItemWithValue(int val) {
-		String itemName = null;
+	public RawListItem getItemWithValue(int val) {
+		RawListItem item = null;
 
-		for (Entry<String, Integer> namedItem : items.entrySet()) {
+		for (Entry<String, Integer> namedItem : itemNameToValues.entrySet()) {
 			if (namedItem.getValue() == val) {
-				return namedItem.getKey();
+				return new RawListItem(name, namedItem.getKey());
 			}
 		}
 
-		return itemName;
+		return item;
 	}
 }

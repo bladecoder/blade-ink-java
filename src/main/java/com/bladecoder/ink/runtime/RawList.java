@@ -10,28 +10,25 @@ import java.util.Map;
 //Confusingly from a C# point of view, a LIST in ink is actually
 // modelled using a C# Dictionary!
 @SuppressWarnings("serial")
-public class RawList extends HashMap<String, Integer> {
+public class RawList extends HashMap<RawListItem, Integer> {
 	// Story has to set this so that the value knows its origin,
 	// necessary for certain operations (e.g. interacting with ints)
 	public ListDefinition singleOriginList;
 
 	public RawList() {
-		TEMP_DebugAssertNames();
 	}
 
-	public RawList(Entry<String, Integer> singleElement) {
+	public RawList(Entry<RawListItem, Integer> singleElement) {
 		put(singleElement.getKey(), singleElement.getValue());
-		TEMP_DebugAssertNames();
 	}
 
-	public RawList(HashMap<String, Integer> otherList) {
+	public RawList(HashMap<RawListItem, Integer> otherList) {
 		super(otherList);
-		TEMP_DebugAssertNames();
 	}
 
 	public RawList union(RawList otherList) {
 		RawList union = new RawList(this);
-		for (String key : otherList.keySet())
+		for (RawListItem key : otherList.keySet())
 			union.put(key, otherList.get(key));
 
 		return union;
@@ -39,7 +36,7 @@ public class RawList extends HashMap<String, Integer> {
 
 	public RawList without(RawList listToRemove) {
 		RawList result = new RawList(this);
-		for (String kv : listToRemove.keySet())
+		for (RawListItem kv : listToRemove.keySet())
 			result.remove(kv);
 
 		return result;
@@ -47,17 +44,17 @@ public class RawList extends HashMap<String, Integer> {
 
 	public RawList intersect(RawList otherList) {
 		RawList intersection = new RawList();
-		for (Entry<String, Integer> kv : this.entrySet()) {
+		for (Entry<RawListItem, Integer> kv : this.entrySet()) {
 			if (otherList.containsKey(kv.getKey()))
 				intersection.put(kv.getKey(), kv.getValue());
 		}
 		return intersection;
 	}
 
-	public Entry<String, Integer> getMaxItem() {
+	public Entry<RawListItem, Integer> getMaxItem() {
 		CustomEntry max = new CustomEntry(null, 0);
 
-		for (Entry<String, Integer> kv : this.entrySet()) {
+		for (Entry<RawListItem, Integer> kv : this.entrySet()) {
 			if (max.getKey() == null || kv.getValue() > max.getValue()) {
 				max.set(kv);
 			}
@@ -66,10 +63,10 @@ public class RawList extends HashMap<String, Integer> {
 		return max;
 	}
 
-	public Entry<String, Integer> getMinItem() {
+	public Entry<RawListItem, Integer> getMinItem() {
 		CustomEntry min = new CustomEntry(null, 0);
 
-		for (Entry<String, Integer> kv : this.entrySet()) {
+		for (Entry<RawListItem, Integer> kv : this.entrySet()) {
 			if (min.getKey() == null || kv.getValue() < min.getValue())
 				min.set(kv);
 		}
@@ -78,7 +75,7 @@ public class RawList extends HashMap<String, Integer> {
 	}
 
 	public boolean contains(RawList otherList) {
-		for (Entry<String, Integer> kv : otherList.entrySet()) {
+		for (Entry<RawListItem, Integer> kv : otherList.entrySet()) {
 			if (!this.containsKey(kv.getKey()))
 				return false;
 		}
@@ -144,21 +141,18 @@ public class RawList extends HashMap<String, Integer> {
 	public String getSingleOriginListName() {
 		String name = null;
 
-		for (Entry<String, Integer> fullNamedItem : entrySet()) {
-			String listName = fullNamedItem.getKey().split(".")[0];
+		for (Entry<RawListItem, Integer> itemAndValue : entrySet()) {
+			String originName = itemAndValue.getKey().getOriginName();
 
 			// First name - take it as the assumed single origin name
 			if (name == null)
-				name = listName;
+				name = originName;
 
 			// A different one than one we've already had? No longer
 			// single origin.
-			else if (name != listName)
+			else if (name != originName)
 				return null;
 		}
-
-		if ("UNKNOWN".equals(name))
-			return null;
 
 		return name;
 	}
@@ -168,11 +162,10 @@ public class RawList extends HashMap<String, Integer> {
 		RawList rawList = new RawList();
 
 		if (singleOriginList != null) {
-			for (Entry<String, Integer> nameValue : singleOriginList.getItems().entrySet()) {
-				String fullName = singleOriginList.getName() + "." + nameValue.getKey();
+			for (Entry<RawListItem, Integer> itemAndValue : singleOriginList.getItems().entrySet()) {
 
-				if (!containsKey(fullName))
-					rawList.put(fullName, nameValue.getValue());
+				if (!containsKey(itemAndValue))
+					rawList.put(itemAndValue.getKey(), itemAndValue.getValue());
 			}
 		}
 
@@ -185,8 +178,8 @@ public class RawList extends HashMap<String, Integer> {
 		RawList list = new RawList();
 
 		if (singleOriginList != null) {
-			for (Entry<String, Integer> kv : singleOriginList.getItems().entrySet())
-				list.put(singleOriginList.getName() + "." + kv.getKey(), kv.getValue());
+			for (java.util.Map.Entry<RawListItem, Integer> kv : singleOriginList.getItems().entrySet())
+				list.put(kv.getKey(), kv.getValue());
 		}
 
 		return list;
@@ -204,7 +197,7 @@ public class RawList extends HashMap<String, Integer> {
 		if (otherRawList.size() != size())
 			return false;
 
-		for (String key : keySet()) {
+		for (RawListItem key : keySet()) {
 			if (!otherRawList.containsKey(key))
 				return false;
 		}
@@ -216,26 +209,19 @@ public class RawList extends HashMap<String, Integer> {
 	public int hashCode() {
 		int ownHash = 0;
 
-		for (String key : keySet())
+		for (RawListItem key : keySet())
 			ownHash += key.hashCode();
 
 		return ownHash;
 	}
 
-	private void TEMP_DebugAssertNames() {
-		for (Entry<String, Integer> kv : entrySet()) {
-			if (!kv.getKey().contains(".") && "UNKNOWN".equals(kv.getKey()))
-				throw new RuntimeException("Not a full item name");
-		}
-	}
-
 	@Override
 	public String toString() {
-		List<String> ordered = new ArrayList<String>(keySet());
+		List<RawListItem> ordered = new ArrayList<RawListItem>(keySet());
 
-		Collections.sort(ordered, new Comparator<String>() {
+		Collections.sort(ordered, new Comparator<RawListItem>() {
 			@Override
-			public int compare(String o1, String o2) {
+			public int compare(RawListItem o1, RawListItem o2) {
 				return get(o1) - get(o2);
 			}
 		});
@@ -246,37 +232,35 @@ public class RawList extends HashMap<String, Integer> {
 			if (i > 0)
 				sb.append(", ");
 
-			String fullItemPath = ordered.get(i);
-			String[] nameParts = fullItemPath.split(".");
-			String itemName = nameParts[nameParts.length - 1];
+			RawListItem item = ordered.get(i);
 
-			sb.append(itemName);
+			sb.append(item.getItemName());
 		}
 
 		return sb.toString();
 	}
 
-	public class CustomEntry implements Map.Entry<String, Integer> {
+	public class CustomEntry implements Map.Entry<RawListItem, Integer> {
 
-		private String key;
+		private RawListItem key;
 		private Integer value;
 
-		CustomEntry(String key, Integer value) {
+		CustomEntry(RawListItem key, Integer value) {
 			set(key, value);
 		}
 
-		public void set(String key, Integer value) {
+		public void set(RawListItem key, Integer value) {
 			this.key = key;
 			this.value = value;
 		}
 
-		public void set(Map.Entry<String, Integer> e) {
+		public void set(Map.Entry<RawListItem, Integer> e) {
 			key = e.getKey();
 			value = e.getValue();
 		}
 
 		@Override
-		public String getKey() {
+		public RawListItem getKey() {
 			return key;
 		}
 
@@ -293,7 +277,7 @@ public class RawList extends HashMap<String, Integer> {
 			return old;
 		}
 
-		public void setKey(String key) {
+		public void setKey(RawListItem key) {
 			this.key = key;
 		}
 	}

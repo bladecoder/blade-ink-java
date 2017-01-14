@@ -377,7 +377,7 @@ public class NativeFunctionCall extends RTObject {
 					return ((RawList) left).contains((RawList) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
-			
+
 			addListBinaryOp(Hasnt, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
@@ -402,8 +402,8 @@ public class NativeFunctionCall extends RTObject {
 			addListBinaryOp(Greater, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).size() > 0
-							&& ((RawList) left).greaterThan((RawList) right) ? (Integer) 1 : (Integer) 0;
+					return ((RawList) left).size() > 0 && ((RawList) left).greaterThan((RawList) right) ? (Integer) 1
+							: (Integer) 0;
 				}
 			});
 
@@ -417,16 +417,16 @@ public class NativeFunctionCall extends RTObject {
 			addListBinaryOp(GreaterThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).size() > 0
-							&& ((RawList) left).greaterThanOrEquals((RawList) right) ? (Integer) 1 : (Integer) 0;
+					return ((RawList) left).size() > 0 && ((RawList) left).greaterThanOrEquals((RawList) right)
+							? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addListBinaryOp(LessThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).size() > 0
-							&& ((RawList) left).lessThanOrEquals((RawList) right) ? (Integer) 1 : (Integer) 0;
+					return ((RawList) left).size() > 0 && ((RawList) left).lessThanOrEquals((RawList) right)
+							? (Integer) 1 : (Integer) 0;
 				}
 			});
 
@@ -453,7 +453,7 @@ public class NativeFunctionCall extends RTObject {
 					return ((RawList) val).getInverse();
 				}
 			});
-			
+
 			addListUnaryOp(All, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
@@ -474,14 +474,14 @@ public class NativeFunctionCall extends RTObject {
 					return ((RawList) val).maxAsList();
 				}
 			});
-			
+
 			addListUnaryOp(Count, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
 					return ((RawList) val).size();
 				}
 			});
-			
+
 			addListUnaryOp(ValueOfList, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
@@ -587,20 +587,17 @@ public class NativeFunctionCall extends RTObject {
 
 		IntValue intResult = (IntValue) call(coercedInts);
 
-		String newItemName = null;
+		RawListItem newItem;
 
 		ListDefinition originList = listVal.getValue().singleOriginList;
 		if (originList != null) {
-			newItemName = originList.getItemWithValue(intResult.value);
+			newItem = originList.getItemWithValue(intResult.value);
 
-			if (newItemName != null)
-				newItemName = originList.getName() + "." + newItemName;
+			if (newItem != null)
+				return new ListValue(newItem, intResult.value);
 		}
 
-		if (newItemName == null)
-			newItemName = "UNKNOWN";
-
-		return new ListValue(newItemName, intResult.value);
+		return new ListValue();
 	}
 
 	private RTObject callType(List<Value<?>> parametersOfSingleType) throws StoryException, Exception {
@@ -680,21 +677,22 @@ public class NativeFunctionCall extends RTObject {
 					parametersOut.add(val);
 				} else if (val.getValueType() == ValueType.Int) {
 					int intVal = (int) val.getValueObject();
-					ListDefinition set = specialCaseList.getValue().singleOriginList;
-					if (set == null)
+					ListDefinition list = specialCaseList.getValue().singleOriginList;
+					if (list == null)
 						throw new StoryException(
 								"Cannot mix List and Int values here because the existing List appears to contain items from a mixture of different List definitions. How do we know which List is the Int referring to?");
 
-					String itemName = set.getItemWithValue(intVal);
+					RawListItem item = list.getItemWithValue(intVal);
 
-					if (itemName != null) {
-						ListValue castedValue = new ListValue(set.getName() + "." + itemName, intVal);
+					if (item != null) {
+						ListValue castedValue = new ListValue(item, intVal);
 						parametersOut.add(castedValue);
 					} else
 						throw new StoryException(
-								"Could not find List item with the value " + intVal + " in " + set.getName());
+								"Could not find List item with the value " + intVal + " in " + list.getName());
 				} else
-					throw new StoryException("Cannot mix Lists and " + val.getValueType() + " values in this operation");
+					throw new StoryException(
+							"Cannot mix Lists and " + val.getValueType() + " values in this operation");
 			}
 
 		}

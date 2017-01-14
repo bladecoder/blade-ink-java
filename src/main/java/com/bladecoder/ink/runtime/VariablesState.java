@@ -26,13 +26,13 @@ public class VariablesState implements Iterable<String> {
 	private HashMap<String, RTObject> globalVariables;
 
 	private VariableChanged variableChangedEvent;
-	
+
 	private HashMap<String, ListDefinition> lists;
 
 	VariablesState(CallStack callStack, HashMap<String, ListDefinition> lists) {
 		globalVariables = new HashMap<String, RTObject>();
 		this.callStack = callStack;
-		
+
 		this.lists = lists;
 	}
 
@@ -46,7 +46,7 @@ public class VariablesState implements Iterable<String> {
 		} else {
 			setGlobal = globalVariables.containsKey(name);
 		}
-		
+
 		// Constructing new variable pointer reference
 		if (varAss.isNewDeclaration()) {
 			VariablePointerValue varPointer = value instanceof VariablePointerValue ? (VariablePointerValue) value
@@ -80,7 +80,7 @@ public class VariablesState implements Iterable<String> {
 			callStack.setTemporaryVariable(name, value, varAss.isNewDeclaration(), contextIndex);
 		}
 	}
-	
+
 	HashMap<String, ListDefinition> getLists() {
 		return lists;
 	}
@@ -152,30 +152,33 @@ public class VariablesState implements Iterable<String> {
 
 		return varValue;
 	}
-	
-	 ListValue getListItemValueWithName (String name) {
-	      String[] nameParts = name.split(".");
-	      if (nameParts.length == 2) {
-	          String listName = nameParts [0];
-	          String itemName = nameParts [1];
-	 
-	          ListDefinition set = lists.get(listName);
-	          if (set != null) {
-	              Integer itemValue = set.getValueForItem(itemName);
-	              return new ListValue (name, itemValue);
-	          }
-	      } else {
-	          for (Entry<String, ListDefinition>namedList : lists.entrySet()) {
-	              ListDefinition set = namedList.getValue();
-	              Integer itemValue = set.getValueForItem(name);
-	              if (itemValue != null) {
-	                  return new ListValue (set.getName() + "." + name, itemValue);
-	              }
-	          }
-	      }
-	 
-	      return null;
-	  }	
+
+	ListValue getListItemValueWithName(String name) {
+		RawListItem item = RawListItem.getNull();
+		ListDefinition list = null;
+		String[] nameParts = name.split(".");
+		if (nameParts.length == 2) {
+			item = new RawListItem(nameParts[0], nameParts[1]);
+			list = lists.get(item.getOriginName());
+		} else {
+			for (Entry<String, ListDefinition> namedList : lists.entrySet()) {
+				ListDefinition listWithItem = namedList.getValue();
+				item = new RawListItem(namedList.getKey(), name);
+				if (listWithItem.containsItem(item)) {
+					list = listWithItem;
+					break;
+				}
+			}
+		}
+
+		// Manager to get the list that contains the given item?
+		if (list != null) {
+			int itemValue = list.getValueForItem(item);
+			return new ListValue(item, itemValue);
+		}
+
+		return null;
+	}
 
 	public RTObject getVariableWithName(String name) throws Exception {
 		return getVariableWithName(name, -1);

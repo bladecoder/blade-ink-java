@@ -1,7 +1,5 @@
 package com.bladecoder.ink.runtime;
 
-import java.util.HashMap;
-
 public abstract class AbstractValue extends RTObject {
 	public abstract ValueType getValueType();
 
@@ -36,7 +34,7 @@ public abstract class AbstractValue extends RTObject {
 			return new StringValue((String) val);
 		} else if (val instanceof Path) {
 			return new DivertTargetValue((Path) val);
-		} else if (val instanceof HashMap) {
+		} else if (val instanceof RawList) {
 			return new ListValue((RawList )val);
 		}
 

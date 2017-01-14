@@ -1420,19 +1420,19 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				ListDefinition foundList = lists.get(listNameVal.value);
 
 				if (foundList != null) {
-					String foundItemName = null;
+					RawListItem foundItem;
 
-					foundItemName = foundList.getItemWithValue(intVal.value);
+					foundItem = foundList.getItemWithValue(intVal.value);
 
-					if (foundItemName != null) {
-						generatedListValue = new ListValue(listNameVal.value + "." + foundItemName, intVal.value);
+					if (foundItem != null) {
+						generatedListValue = new ListValue(foundItem, intVal.value);
 					}
 				} else {
 					throw new StoryException("Failed to find List called " + listNameVal.value);
 				}
 
 				if (generatedListValue == null)
-					generatedListValue = new ListValue("UNKNOWN", 0);
+					generatedListValue = new ListValue();
 
 				state.pushEvaluationStack(generatedListValue);
 				break;

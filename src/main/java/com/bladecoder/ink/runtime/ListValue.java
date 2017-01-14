@@ -12,9 +12,9 @@ class ListValue extends Value<RawList> {
 		super(new RawList());
 	}
 
-	public ListValue(String singleItemName, int singleValue) {
+	public ListValue(RawListItem singleItem, int singleValue) {
 		super(new RawList());
-		value.put(singleItemName, singleValue);
+		value.put(singleItem, singleValue);
 	}
 
 	@Override
@@ -36,29 +36,27 @@ class ListValue extends Value<RawList> {
 	@Override
 	public AbstractValue cast(ValueType newType) {
 		if (newType == ValueType.Int) {
-			Entry<String, Integer> max = value.getMaxItem();
-			if (max.getKey() == null)
+			Entry<RawListItem, Integer> max = value.getMaxItem();
+			if (max.getKey().isNull())
 				return new IntValue(0);
 			else
 				return new IntValue(max.getValue());
 		}
 
 		else if (newType == ValueType.Float) {
-			Entry<String, Integer> max = value.getMaxItem();
-			if (max.getKey() == null)
+			Entry<RawListItem, Integer> max = value.getMaxItem();
+			if (max.getKey().isNull())
 				return new FloatValue(0.0f);
 			else
 				return new FloatValue((float) max.getValue());
 		}
 
 		else if (newType == ValueType.String) {
-			Entry<String, Integer> max = value.getMaxItem();
-			if (max.getKey() == null)
+			Entry<RawListItem, Integer> max = value.getMaxItem();
+			if (max.getKey().isNull())
 				return new StringValue("");
 			else {
-				String[] nameParts = max.getKey().split(".");
-				String name = nameParts[nameParts.length - 1];
-				return new StringValue(name);
+				return new StringValue(max.getKey().toString());
 			}
 		}
 
