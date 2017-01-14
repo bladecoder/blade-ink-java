@@ -1,7 +1,7 @@
 package com.bladecoder.ink.runtime;
 
 public abstract class Value<T> extends AbstractValue {
-	public T value;
+	protected T value;
 
 	public T getValue() {
 		return value;

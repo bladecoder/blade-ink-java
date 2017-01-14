@@ -1475,7 +1475,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				// Extract the range of items from the origin set
 				ListValue result = null;
-				ListDefinition originList = targetList.getValue().singleOriginList;
+				ListDefinition originList = targetList.getValue().originList;
 				if (originList == null) {
 					result = new ListValue();
 				} else {

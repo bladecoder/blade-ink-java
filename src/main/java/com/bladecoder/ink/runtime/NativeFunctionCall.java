@@ -589,7 +589,7 @@ public class NativeFunctionCall extends RTObject {
 
 		RawListItem newItem;
 
-		ListDefinition originList = listVal.getValue().singleOriginList;
+		ListDefinition originList = listVal.getValue().originList;
 		if (originList != null) {
 			newItem = originList.getItemWithValue(intResult.value);
 
@@ -677,7 +677,7 @@ public class NativeFunctionCall extends RTObject {
 					parametersOut.add(val);
 				} else if (val.getValueType() == ValueType.Int) {
 					int intVal = (int) val.getValueObject();
-					ListDefinition list = specialCaseList.getValue().singleOriginList;
+					ListDefinition list = specialCaseList.getValue().originList;
 					if (list == null)
 						throw new StoryException(
 								"Cannot mix List and Int values here because the existing List appears to contain items from a mixture of different List definitions. How do we know which List is the Int referring to?");
