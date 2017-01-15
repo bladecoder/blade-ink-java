@@ -1,5 +1,6 @@
 package com.bladecoder.ink.runtime;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -17,6 +18,15 @@ public class ListDefinitionsOrigin {
 
 	public ListDefinition getDefinition(String name) {
 		return lists.get(name);
+	}
+
+	public List<ListDefinition> getLists() {
+		List<ListDefinition> listOfLists = new ArrayList<ListDefinition>();
+		for (ListDefinition namedList : lists.values()) {
+			listOfLists.add(namedList);
+		}
+		
+		return listOfLists;
 	}
 
 	ListValue findSingleItemListWithName(String name) {

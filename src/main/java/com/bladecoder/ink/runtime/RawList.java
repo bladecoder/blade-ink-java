@@ -61,9 +61,9 @@ public class RawList extends HashMap<RawListItem, Integer> {
 		return originNames;
 	}
 
-	public void SetInitialOriginName(String initialOriginName) {
+	public void setInitialOriginNames(List<String> initialOriginName) {
 		originNames = new ArrayList<String>();
-		originNames.add(initialOriginName);
+		originNames.addAll(initialOriginName);
 	}
 
 	public RawList union(RawList otherList) {

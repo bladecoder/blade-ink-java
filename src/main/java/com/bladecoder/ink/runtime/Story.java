@@ -124,6 +124,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (rootToken == null)
 			throw new Exception("Root node for ink not found. Are you sure it's a valid .ink.json file?");
 
+		Object listDefsObj = rootObject.get("listDefs");
+		if (listDefsObj != null) {
+			listsDefinitions = Json.jTokenToListDefinitions(listDefsObj);
+		}
+
 		mainContentContainer = Json.jTokenToRuntimeObject(rootToken) instanceof Container
 				? (Container) Json.jTokenToRuntimeObject(rootToken) : null;
 

@@ -16,9 +16,19 @@ class RawListItem {
 		this.originName = originName;
 		this.itemName = itemName;
 	}
-	
+
+	public RawListItem(String fullName) {
+		String[] nameParts = fullName.split(".");
+		this.originName = nameParts[0];
+		this.itemName = nameParts[1];
+	}
+
 	public static RawListItem getNull() {
-		return new RawListItem (null, null);
+		return new RawListItem(null, null);
+	}
+
+	public String getFullName() {
+		return (originName != null ? originName : "?") + "." + itemName;
 	}
 
 	public boolean isNull() {
@@ -27,7 +37,7 @@ class RawListItem {
 
 	@Override
 	public String toString() {
-		return (originName != null ? originName : "?") + "." + itemName;
+		return getFullName();
 	}
 
 	@Override

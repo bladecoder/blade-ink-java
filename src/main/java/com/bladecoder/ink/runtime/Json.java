@@ -164,6 +164,8 @@ public class Json {
 
 			}
 			// Native functions
+			if ("L^".equals(str))
+				str = "^";
 			if (NativeFunctionCall.callExistsWithName(str))
 				return NativeFunctionCall.callWithName(str);
 
@@ -325,6 +327,30 @@ public class Json {
 				return new Tag((String) propValue);
 			}
 
+			// List value
+			propValue = obj.get("list");
+
+			if (propValue != null) {
+				HashMap<String, Object> listContent = (HashMap<String, Object>) propValue;
+				RawList rawList = new RawList();
+
+				propValue = obj.get("origins");
+
+				if (propValue != null) {
+					List<String> namesAsObjs = (List<String>) propValue;
+
+					rawList.setInitialOriginNames(namesAsObjs);
+				}
+
+				for (Entry<String, Object> nameToVal : listContent.entrySet()) {
+					RawListItem item = new RawListItem(nameToVal.getKey());
+					int val = (int) nameToVal.getValue();
+					rawList.put(item, val);
+				}
+
+				return new ListValue(rawList);
+			}
+
 			// Used when serialising save state only
 			if (obj.get("originalChoicePath") != null)
 				return jObjectToChoice(obj);
@@ -405,6 +431,15 @@ public class Json {
 				return "^" + strVal.value;
 		}
 
+		ListValue listVal = null;
+
+		if (obj instanceof ListValue)
+			listVal = (ListValue) obj;
+
+		if (listVal != null) {
+			return inkListToJObject(listVal);
+		}
+
 		DivertTargetValue divTargetVal = obj instanceof DivertTargetValue ? (DivertTargetValue) obj
 				: (DivertTargetValue) null;
 		if (divTargetVal != null) {
@@ -439,8 +474,14 @@ public class Json {
 
 		NativeFunctionCall nativeFunc = obj instanceof NativeFunctionCall ? (NativeFunctionCall) obj
 				: (NativeFunctionCall) null;
-		if (nativeFunc != null)
-			return nativeFunc.getName();
+		if (nativeFunc != null) {
+			String name = nativeFunc.getName();
+
+			// Avoid collision with ^ used to indicate a string
+			if ("^".equals(name))
+				name = "L^";
+			return name;
+		}
 
 		// Variable reference
 		VariableReference varRef = obj instanceof VariableReference ? (VariableReference) obj
@@ -595,6 +636,64 @@ public class Json {
 		return jObj;
 	}
 
+	static HashMap<String, Object> inkListToJObject(ListValue listVal) {
+		RawList rawList = listVal.value;
+
+		HashMap<String, Object> dict = new HashMap<String, Object>();
+
+		HashMap<String, Object> content = new HashMap<String, Object>();
+
+		for (Entry<RawListItem, Integer> itemAndValue : rawList.entrySet()) {
+			RawListItem item = itemAndValue.getKey();
+			int val = itemAndValue.getValue();
+			content.put(item.toString(), val);
+		}
+
+		dict.put("list", content);
+
+		if (rawList.size() == 0 && rawList.getOriginNames().size() > 0) {
+			dict.put("origins", rawList.getOriginNames());
+		}
+
+		return dict;
+	}
+
+	public static HashMap<String, Object> listDefinitionsToJToken(ListDefinitionsOrigin origin) {
+		HashMap<String, Object> result = new HashMap<String, Object>();
+		for (ListDefinition def : origin.getLists()) {
+			HashMap<String, Object> listDefJson = new HashMap<String, Object>();
+			for (Entry<RawListItem, Integer> itemToVal : def.getItems().entrySet()) {
+				RawListItem item = itemToVal.getKey();
+				int val = itemToVal.getValue();
+				listDefJson.put(item.getItemName(), (Object) val);
+			}
+			result.put(def.getName(), listDefJson);
+		}
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static ListDefinitionsOrigin jTokenToListDefinitions(Object obj) {
+		HashMap<String, Object> defsObj = (HashMap<String, Object>) obj;
+
+		List<ListDefinition> allDefs = new ArrayList<ListDefinition>();
+
+		for (Entry<String, Object> kv : defsObj.entrySet()) {
+			String name = (String) kv.getKey();
+			HashMap<String, Object> listDefJson = (HashMap<String, Object>) kv.getValue();
+
+			// Cast (string, object) to (string, int) for items
+			HashMap<String, Integer> items = new HashMap<String, Integer>();
+			for (Entry<String, Object> nameValue : listDefJson.entrySet())
+				items.put(nameValue.getKey(), (int) nameValue.getValue());
+
+			ListDefinition def = new ListDefinition(name, items);
+			allDefs.add(def);
+		}
+
+		return new ListDefinitionsOrigin(allDefs);
+	}
+
 	private final static String[] controlCommandNames;
 
 	static {
@@ -618,6 +717,8 @@ public class Json {
 		controlCommandNames[CommandType.StartThread.ordinal() - 1] = "thread";
 		controlCommandNames[CommandType.Done.ordinal() - 1] = "done";
 		controlCommandNames[CommandType.End.ordinal() - 1] = "end";
+		controlCommandNames[CommandType.ListFromInt.ordinal() - 1] = "listInt";
+		controlCommandNames[CommandType.ListRange.ordinal() - 1] = "range";
 
 		for (int i = 0; i < CommandType.values().length - 1; ++i) {
 			if (controlCommandNames[i] == null)
