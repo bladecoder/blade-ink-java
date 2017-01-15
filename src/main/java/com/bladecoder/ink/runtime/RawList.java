@@ -205,7 +205,7 @@ public class RawList extends HashMap<RawListItem, Integer> {
 			for (ListDefinition origin : origins) {
 				for (Entry<RawListItem, Integer> itemAndValue : origin.getItems().entrySet()) {
 
-					if (!containsKey(itemAndValue))
+					if (!this.containsKey(itemAndValue))
 						rawList.put(itemAndValue.getKey(), itemAndValue.getValue());
 				}
 			}

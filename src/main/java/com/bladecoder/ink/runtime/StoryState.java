@@ -453,7 +453,8 @@ public class StoryState {
 				ArrayList<ListDefinition> origins = new ArrayList<ListDefinition>();
 				for (String n : names) {
 					ListDefinition def = story.getListDefinitions().getDefinition(n);
-					origins.add(def);
+					if(!origins.contains(def))
+						origins.add(def);
 				}
 				rawList.origins = origins;
 			}
