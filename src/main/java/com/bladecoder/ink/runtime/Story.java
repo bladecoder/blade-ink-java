@@ -57,7 +57,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public static final int inkVersionMinimumCompatible = 15;
 
 	private Container mainContentContainer;
-	private HashMap<String, ListDefinition> lists;
+	private ListDefinitionsOrigin listsDefinitions;
 
 	/**
 	 * An ink file can provide a fallback functions for when when an EXTERNAL
@@ -83,14 +83,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
 	// For normal use, use the constructor that takes a json string.
-	Story(Container contentContainer, HashMap<String, ListDefinition> lists) {
+	Story(Container contentContainer, List<ListDefinition> lists) {
 		mainContentContainer = contentContainer;
 
 		if (lists != null) {
-			lists = new HashMap<String, ListDefinition>();
-			for (ListDefinition set : lists.values()) {
-				lists.put(set.getName(), set);
-			}
+			listsDefinitions = new ListDefinitionsOrigin(lists);
 		}
 
 		externals = new HashMap<String, ExternalFunction>();
@@ -749,8 +746,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		return state.getVariablesState();
 	}
 
-	public HashMap<String, ListDefinition> getLists() {
-		return lists;
+	public ListDefinitionsOrigin getListDefinitions() {
+		return listsDefinitions;
 	}
 
 	/**
@@ -1418,12 +1415,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				ListValue generatedListValue = null;
 
-				ListDefinition foundList = lists.get(listNameVal.value);
+				ListDefinition foundListDef = listsDefinitions.getDefinition(listNameVal.value);
 
-				if (foundList != null) {
+				if (foundListDef != null) {
 					RawListItem foundItem;
 
-					foundItem = foundList.getItemWithValue(intVal.value);
+					foundItem = foundListDef.getItemWithValue(intVal.value);
 
 					if (foundItem != null) {
 						generatedListValue = new ListValue(foundItem, intVal.value);

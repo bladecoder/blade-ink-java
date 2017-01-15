@@ -1,0 +1,49 @@
+package com.bladecoder.ink.runtime;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
+
+public class ListDefinitionsOrigin {
+	private HashMap<String, ListDefinition> lists;
+
+	public ListDefinitionsOrigin(List<ListDefinition> lists) {
+		this.lists = new HashMap<String, ListDefinition>();
+
+		for (ListDefinition list : lists) {
+			this.lists.put(list.getName(), list);
+		}
+	}
+
+	public ListDefinition getDefinition(String name) {
+		return lists.get(name);
+	}
+
+	ListValue findSingleItemListWithName(String name) {
+		RawListItem item = RawListItem.getNull();
+		ListDefinition list = null;
+		String[] nameParts = name.split(".");
+		if (nameParts.length == 2) {
+			item = new RawListItem(nameParts[0], nameParts[1]);
+			list = lists.get(item.getOriginName());
+		} else {
+			for (Entry<String, ListDefinition> namedList : lists.entrySet()) {
+				ListDefinition listWithItem = namedList.getValue();
+				item = new RawListItem(namedList.getKey(), name);
+				if (listWithItem.containsItem(item)) {
+					list = listWithItem;
+					break;
+				}
+			}
+		}
+
+		// Manager to get the list that contains the given item?
+		if (list != null) {
+			int itemValue = list.getValueForItem(item);
+			return new ListValue(item, itemValue);
+		}
+
+		return null;
+	}
+
+}

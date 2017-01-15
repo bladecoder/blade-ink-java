@@ -3,7 +3,6 @@ package com.bladecoder.ink.runtime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map.Entry;
 
 /**
  * Encompasses all the global variables in an ink Story, and allows binding of a
@@ -27,13 +26,13 @@ public class VariablesState implements Iterable<String> {
 
 	private VariableChanged variableChangedEvent;
 
-	private HashMap<String, ListDefinition> lists;
+	private ListDefinitionsOrigin listDefsOrigin;
 
-	VariablesState(CallStack callStack, HashMap<String, ListDefinition> lists) {
+	VariablesState(CallStack callStack, ListDefinitionsOrigin listDefsOrigin) {
 		globalVariables = new HashMap<String, RTObject>();
 		this.callStack = callStack;
 
-		this.lists = lists;
+		this.listDefsOrigin = listDefsOrigin;
 	}
 
 	public void assign(VariableAssignment varAss, RTObject value) throws Exception {
@@ -81,8 +80,8 @@ public class VariablesState implements Iterable<String> {
 		}
 	}
 
-	HashMap<String, ListDefinition> getLists() {
-		return lists;
+	ListDefinitionsOrigin getLists() {
+		return listDefsOrigin;
 	}
 
 	void copyFrom(VariablesState toCopy) {
@@ -139,7 +138,7 @@ public class VariablesState implements Iterable<String> {
 				return varValue;
 			}
 
-			ListValue listItemValue = getListItemValueWithName(name);
+			ListValue listItemValue = listDefsOrigin.findSingleItemListWithName(name);
 			if (listItemValue != null)
 				return listItemValue;
 		}
@@ -151,33 +150,6 @@ public class VariablesState implements Iterable<String> {
 					+ "'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
 
 		return varValue;
-	}
-
-	ListValue getListItemValueWithName(String name) {
-		RawListItem item = RawListItem.getNull();
-		ListDefinition list = null;
-		String[] nameParts = name.split(".");
-		if (nameParts.length == 2) {
-			item = new RawListItem(nameParts[0], nameParts[1]);
-			list = lists.get(item.getOriginName());
-		} else {
-			for (Entry<String, ListDefinition> namedList : lists.entrySet()) {
-				ListDefinition listWithItem = namedList.getValue();
-				item = new RawListItem(namedList.getKey(), name);
-				if (listWithItem.containsItem(item)) {
-					list = listWithItem;
-					break;
-				}
-			}
-		}
-
-		// Manager to get the list that contains the given item?
-		if (list != null) {
-			int itemValue = list.getValueForItem(item);
-			return new ListValue(item, itemValue);
-		}
-
-		return null;
 	}
 
 	public RTObject getVariableWithName(String name) throws Exception {

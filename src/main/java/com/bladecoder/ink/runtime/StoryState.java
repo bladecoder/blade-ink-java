@@ -58,7 +58,7 @@ public class StoryState {
 		evaluationStack = new ArrayList<RTObject>();
 
 		callStack = new CallStack(story.getRootContentContainer());
-		variablesState = new VariablesState(callStack, story.getLists());
+		variablesState = new VariablesState(callStack, story.getListDefinitions());
 
 		visitCounts = new HashMap<String, Integer>();
 		turnIndices = new HashMap<String, Integer>();
@@ -103,7 +103,7 @@ public class StoryState {
 
 		copy.callStack = new CallStack(callStack);
 
-		copy.variablesState = new VariablesState(copy.callStack, story.getLists());
+		copy.variablesState = new VariablesState(copy.callStack, story.getListDefinitions());
 		copy.variablesState.copyFrom(variablesState);
 
 		copy.evaluationStack.addAll(evaluationStack);
@@ -451,8 +451,10 @@ public class StoryState {
 			List<String> names = rawList.getOriginNames();
 			if (names != null) {
 				ArrayList<ListDefinition> origins = new ArrayList<ListDefinition>();
-				for (String n : names)
-					origins.add(story.getLists().get(n));
+				for (String n : names) {
+					ListDefinition def = story.getListDefinitions().getDefinition(n);
+					origins.add(def);
+				}
 				rawList.origins = origins;
 			}
 		}
