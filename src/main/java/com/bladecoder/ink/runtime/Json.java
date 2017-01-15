@@ -163,7 +163,11 @@ public class Json {
 				}
 
 			}
+			
 			// Native functions
+			// "^" conflicts with the way to identify strings, so now
+			// we know it's not a string, we can convert back to the proper
+			// symbol for the operator.
 			if ("L^".equals(str))
 				str = "^";
 			if (NativeFunctionCall.callExistsWithName(str))
