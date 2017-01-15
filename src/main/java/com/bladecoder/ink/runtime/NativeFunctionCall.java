@@ -549,12 +549,22 @@ public class NativeFunctionCall extends RTObject {
 			throw new Exception("Unexpected number of parameters");
 		}
 
+		boolean hasList = false;
+
 		for (RTObject p : parameters) {
 			if (p instanceof Void)
 				throw new StoryException(
 						"Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?");
 
+			if (p instanceof ListValue)
+				hasList = true;
+
 		}
+
+		// Binary operations on lists are treated outside of the standard
+		// coerscion rules
+		if (parameters.size() == 2 && hasList)
+			return callBinaryListOperation(parameters);
 
 		List<Value<?>> coercedParams = coerceValuesToSingleType(parameters);
 		ValueType coercedType = coercedParams.get(0).getValueType();
@@ -577,44 +587,69 @@ public class NativeFunctionCall extends RTObject {
 
 	}
 
-	Value<?> callListIntOperation(List<RTObject> listIntParams) throws StoryException, Exception {
+	Value<?> callBinaryListOperation (List<RTObject> parameters) throws StoryException, Exception {
+	     // List-Int addition/subtraction returns a List (e.g. "alpha" + 1 = "beta")
+	     if (("+".equals(name) || "-".equals(name)) && 
+	    		 parameters.get(0) instanceof ListValue && parameters.get(1) instanceof IntValue)
+	         return callListIncrementOperation (parameters);
+	 
+	     Value<?> v1 = (Value<?>)parameters.get(0);
+	     Value<?> v2 = (Value<?>)parameters.get(1);
+	 
+	     // And/or with any other type requires coerscion to bool (int)
+	     if ((name == "&&" || name == "||") && (v1.getValueType() != ValueType.List || v2.getValueType() != ValueType.List)) {
+	    	 BinaryOp op = (BinaryOp)operationFuncs.get(ValueType.Int);
+	         int result = (int)op.invoke(v1.isTruthy() ? 1 : 0, v2.isTruthy() ? 1 : 0);
+	         return new IntValue (result);
+	     }
+	 
+	     // Normal (list • list) operation
+	     if (v1.getValueType() == ValueType.List && v2.getValueType() == ValueType.List) {
+	    	 List<RTObject> p = new ArrayList<RTObject>();
+	    	 p.add(v1);
+	    	 p.add(v2);
+	    	  
+	         return (Value<?>)call(p);
+	     }
+	 
+	     throw new StoryException ("Can not call use '" + name + "' operation on " + v1.getValueType() + " and " + v2.getValueType());
+	 }
+
+	Value<?> callListIncrementOperation(List<RTObject> listIntParams) throws StoryException, Exception {
 		ListValue listVal = (ListValue) listIntParams.get(0);
 		IntValue intVal = (IntValue) listIntParams.get(1);
 
-		RawList resultRawList = new RawList ();
-		 
+		RawList resultRawList = new RawList();
+
 		for (Entry<RawListItem, Integer> listItemWithValue : listVal.getValue().entrySet()) {
-			
+
 			RawListItem listItem = listItemWithValue.getKey();
-		    Integer listItemValue = listItemWithValue.getValue();
-		
-		    // Find the specific int operation to apply to all memebers
-		    // of the list. Currently this makes most sense for + and -
-		    // but in fact, other operations are possible.
-		    // e.g. list items with the values (1,2) * 2 becomes (2, 4)
-		    // i.e. (a, b) * 2 becomes (b, d). Madness!
-		    BinaryOp intOp = (BinaryOp)operationFuncs.get(ValueType.Int);
-		 
-		    // Return value unknown until it's evaluated
-		    int targetInt = (int) intOp.invoke (listItemValue, intVal.value);
-		 
-		    // Find this item's origin (linear search should be ok, should be short haha)
-		    ListDefinition itemOrigin = null;
-		    for (ListDefinition origin : listVal.getValue().origins) {
-		        if (origin.getName().equals(listItem.getOriginName())) {
-		            itemOrigin = origin;
-		            break;
-		        }
-		    }
-		    
-		    if (itemOrigin != null) {
-		        RawListItem incrementedItem = itemOrigin.getItemWithValue (targetInt);
-		        if (incrementedItem != null)
-		            resultRawList.put(incrementedItem, targetInt);
-		    }
+			Integer listItemValue = listItemWithValue.getValue();
+
+			// Find + or - operation
+			BinaryOp intOp = (BinaryOp) operationFuncs.get(ValueType.Int);
+
+			// Return value unknown until it's evaluated
+			int targetInt = (int) intOp.invoke(listItemValue, intVal.value);
+
+			// Find this item's origin (linear search should be ok, should be
+			// short haha)
+			ListDefinition itemOrigin = null;
+			for (ListDefinition origin : listVal.getValue().origins) {
+				if (origin.getName().equals(listItem.getOriginName())) {
+					itemOrigin = origin;
+					break;
+				}
+			}
+
+			if (itemOrigin != null) {
+				RawListItem incrementedItem = itemOrigin.getItemWithValue(targetInt);
+				if (incrementedItem != null)
+					resultRawList.put(incrementedItem, targetInt);
+			}
 		}
-		
-		 return new ListValue (resultRawList);
+
+		return new ListValue(resultRawList);
 	}
 
 	private RTObject callType(List<Value<?>> parametersOfSingleType) throws StoryException, Exception {
