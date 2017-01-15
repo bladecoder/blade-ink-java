@@ -18,7 +18,7 @@ public class ListSpecTest {
 
 		Assert.assertEquals("b, d\na, b, c, e\nb, c\n0\n1\n1\n", story.continueMaximally());
 	}
-	
+
 	/**
 	 * "- TestListMixedItems"
 	 */
@@ -30,7 +30,7 @@ public class ListSpecTest {
 
 		Assert.assertEquals("b, d\na, b, c, e\nb, c\n0\n1\n1\n", story.continueMaximally());
 	}
-	
+
 	/**
 	 * "- TestMoreListOperations"
 	 */
@@ -42,7 +42,7 @@ public class ListSpecTest {
 
 		Assert.assertEquals("b, d\na, b, c, e\nb, c\n0\n1\n1\n", story.continueMaximally());
 	}
-	
+
 	/**
 	 * "- TestEmptyListOrigin"
 	 */
@@ -53,6 +53,29 @@ public class ListSpecTest {
 		Story story = new Story(json);
 
 		Assert.assertEquals("b, d\na, b, c, e\nb, c\n0\n1\n1\n", story.continueMaximally());
+	}
+
+	/**
+	 * "- TestListSaveLoad"
+	 */
+	@Test
+	public void testListSaveLoad() throws Exception {
+
+		String json = TestUtils.getJsonString("inkfiles/lists/list-save-load.ink.json");
+		Story story = new Story(json);
+
+		Assert.assertEquals("a, x, c\n", story.continueMaximally());
+
+		String savedState = story.getState().toJson();
+
+		// Compile new version of the story
+		story = new Story(json);
+
+		// Load saved game
+		story.getState().loadJson(savedState);
+
+		story.choosePathString("elsewhere");
+		Assert.assertEquals("a, x, c, z\n", story.continueMaximally());
 	}
 
 }
