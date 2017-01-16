@@ -34,7 +34,7 @@ public class ListDefinition {
 
 	public HashMap<RawListItem, Integer> getItems() {
 		if (items == null) {
-			HashMap<RawListItem, Integer> items = new HashMap<RawListItem, Integer>();
+			items = new HashMap<RawListItem, Integer>();
 			for (Entry<String, Integer> itemNameAndValue : itemNameToValues.entrySet()) {
 				RawListItem item = new RawListItem(name, itemNameAndValue.getKey());
 				items.put(item, itemNameAndValue.getValue());
@@ -61,7 +61,14 @@ public class ListDefinition {
 		return itemNameToValues.get(itemName);
 	}
 
-	public boolean containsItem(RawListItem itemName) {
+	public boolean containsItem(RawListItem item) {
+		if (!item.getOriginName().equals(name))
+			return false;
+
+		return itemNameToValues.containsKey(item.getItemName());
+	}
+
+	public boolean containsItemWithName(String itemName) {
 		return itemNameToValues.containsKey(itemName);
 	}
 

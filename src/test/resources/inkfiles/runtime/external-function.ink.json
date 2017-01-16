@@ -1,1 +1,1 @@
-﻿{"inkVersion":15,"root":["^The value is ","G>","ev",3,4.0,{"x()":"externalFunction","exArgs":2},"out","/ev","G<","^.","\n","end","done",{"externalFunction":[{"temp=":"y"},{"temp=":"x"},"ev",{"VAR?":"x"},{"VAR?":"y"},"+","/ev","~ret",{"#f":3}],"#f":3}]}
+﻿{"inkVersion":16,"root":["^The value is ",["G>","ev",3,4.0,{"x()":"externalFunction","exArgs":2},"out","/ev","G<",null],"^.","\n","end","done",{"externalFunction":[{"temp=":"y"},{"temp=":"x"},"ev",{"VAR?":"x"},{"VAR?":"y"},"+","/ev","~ret",{"#f":3}],"#f":3}],"listDefs":{}}

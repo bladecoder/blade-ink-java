@@ -18,7 +18,7 @@ class RawListItem {
 	}
 
 	public RawListItem(String fullName) {
-		String[] nameParts = fullName.split(".");
+		String[] nameParts = fullName.split("\\.");
 		this.originName = nameParts[0];
 		this.itemName = nameParts[1];
 	}
@@ -44,7 +44,7 @@ class RawListItem {
 	public boolean equals(Object obj) {
 		if (obj instanceof RawListItem) {
 			RawListItem otherItem = (RawListItem) obj;
-			return otherItem.itemName == itemName && otherItem.originName == originName;
+			return otherItem.itemName.equals(itemName) && otherItem.originName.equals(originName);
 		}
 
 		return false;

@@ -605,11 +605,11 @@ public class NativeFunctionCall extends RTObject {
 	 
 	     // Normal (list • list) operation
 	     if (v1.getValueType() == ValueType.List && v2.getValueType() == ValueType.List) {
-	    	 List<RTObject> p = new ArrayList<RTObject>();
+	    	 List<Value<?>> p = new ArrayList<Value<?>>();
 	    	 p.add(v1);
 	    	 p.add(v2);
 	    	  
-	         return (Value<?>)call(p);
+	         return (Value<?>)callType(p);
 	     }
 	 
 	     throw new StoryException ("Can not call use '" + name + "' operation on " + v1.getValueType() + " and " + v2.getValueType());

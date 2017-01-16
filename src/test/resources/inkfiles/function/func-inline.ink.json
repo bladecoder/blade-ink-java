@@ -1,1 +1,1 @@
-﻿{"inkVersion":15,"root":["^The value of x is ","G>","ev",2,8,0.4,{"f()":"lerp"},"out","/ev","G<","^.","\n","end","done",{"lerp":[{"temp=":"k"},{"temp=":"b"},{"temp=":"a"},"ev",{"VAR?":"b"},{"VAR?":"a"},"-",{"VAR?":"k"},"*",{"VAR?":"a"},"+","/ev","~ret",{"#f":3}],"#f":3}]}
+﻿{"inkVersion":16,"root":["^The value of x is ",["G>","ev",2,8,0.4,{"f()":"lerp"},"out","/ev","G<",null],"^.","\n","end","done",{"lerp":[{"temp=":"k"},{"temp=":"b"},{"temp=":"a"},"ev",{"VAR?":"b"},{"VAR?":"a"},"-",{"VAR?":"k"},"*",{"VAR?":"a"},"+","/ev","~ret",{"#f":3}],"#f":3}],"listDefs":{}}
