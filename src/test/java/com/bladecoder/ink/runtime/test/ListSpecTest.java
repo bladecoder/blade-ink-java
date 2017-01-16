@@ -77,5 +77,17 @@ public class ListSpecTest {
 		story.choosePathString("elsewhere");
 		Assert.assertEquals("a, x, c, z\n", story.continueMaximally());
 	}
+	
+	/**
+	 * "- TestEmptyListOriginAfterAssignment"
+	 */
+	@Test
+	public void testEmptyListOriginAfterAssignment() throws Exception {
+
+		String json = TestUtils.getJsonString("inkfiles/lists/empty-list-origin-after-assignment.ink.json");
+		Story story = new Story(json);
+
+		Assert.assertEquals("a, b, c\n", story.continueMaximally());
+	}
 
 }
