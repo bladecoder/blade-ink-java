@@ -48,17 +48,8 @@ public class ListDefinition {
 		return name;
 	}
 
-	public int getValueForItem(InkListItem item) {
-		Integer v = itemNameToValues.get(item.getItemName());
-
-		if (v != null)
-			return v;
-
-		return 0;
-	}
-
-	public Integer tryGetValueForItem(String itemName) {
-		return itemNameToValues.get(itemName);
+	public Integer getValueForItem(InkListItem item) {
+		return itemNameToValues.get(item.getItemName());
 	}
 
 	public boolean containsItem(InkListItem item) {

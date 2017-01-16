@@ -51,8 +51,8 @@ public class ListDefinitionsOrigin {
 
 		// Manager to get the list that contains the given item?
 		if (list != null) {
-			int itemValue = list.getValueForItem(item);
-			return new ListValue(item, itemValue);
+			Integer itemValue = list.getValueForItem(item);
+			return new ListValue(item, itemValue != null? itemValue:0);
 		}
 
 		return null;
