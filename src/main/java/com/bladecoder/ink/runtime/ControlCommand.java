@@ -30,7 +30,7 @@ public class ControlCommand extends RTObject {
 	}
 
 	@Override
-	public RTObject copy() {
+	RTObject copy() {
 		return new ControlCommand(getcommandType());
 	}
 

@@ -191,7 +191,7 @@ public class RTObject {
 		return ancestor instanceof Container ? (Container) ancestor : (Container) null;
 	}
 
-	public RTObject copy() throws Exception {
+	RTObject copy() throws Exception {
 		throw new UnsupportedOperationException(this.getClass().getSimpleName() + " doesn't support copying");
 	}
 }

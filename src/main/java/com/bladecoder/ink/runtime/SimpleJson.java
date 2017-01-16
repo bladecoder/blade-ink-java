@@ -5,7 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-public class SimpleJson {
+
+/**
+ * Simple custom JSON serialisation implementation that takes JSON-able System.Collections that
+ * are produced by the ink engine and converts to and from JSON text.
+ */
+class SimpleJson {
 	static class Reader {
 		private int offset;
 

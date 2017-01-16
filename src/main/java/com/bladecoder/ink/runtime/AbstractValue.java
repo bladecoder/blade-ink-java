@@ -42,7 +42,7 @@ public abstract class AbstractValue extends RTObject {
 	}
 
 	@Override
-	public RTObject copy() {
+	RTObject copy() {
 		return create(getValueObject());
 	}
 

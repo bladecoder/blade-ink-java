@@ -32,7 +32,7 @@ class VariablePointerValue extends Value<String> {
 	}
 
 	@Override
-	public RTObject copy() {
+	RTObject copy() {
 		return new VariablePointerValue(getVariableName(), getContextIndex());
 	}
 

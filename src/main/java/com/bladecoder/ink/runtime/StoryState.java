@@ -162,7 +162,15 @@ public class StoryState {
 		return currentText;
 	}
 
-	void forceEnd() throws Exception {
+	/**
+	 * Ends the current ink flow, unwrapping the callstack but without affecting
+	 * any variables. Useful if the ink is (say) in the middle a nested tunnel,
+	 * and you want it to reset so that you can divert elsewhere using
+	 * ChoosePathString(). Otherwise, after finishing the content you diverted
+	 * to, it would continue where it left off. Calling this is equivalent to
+	 * calling -> END in ink.
+	 */
+	public void forceEnd() throws Exception {
 
 		while (callStack.canPopThread())
 			callStack.popThread();
@@ -453,7 +461,7 @@ public class StoryState {
 				ArrayList<ListDefinition> origins = new ArrayList<ListDefinition>();
 				for (String n : names) {
 					ListDefinition def = story.getListDefinitions().getDefinition(n);
-					if(!origins.contains(def))
+					if (!origins.contains(def))
 						origins.add(def);
 				}
 				rawList.origins = origins;
