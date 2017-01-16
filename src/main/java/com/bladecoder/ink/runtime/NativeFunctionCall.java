@@ -34,7 +34,6 @@ public class NativeFunctionCall extends RTObject {
 
 	public static final String Has = "?";
 	public static final String Hasnt = "!?";
-	public static final String Invert = "~";
 	public static final String Intersect = "^";
 
 	public static final String ListMax = "LIST_MAX";
@@ -42,6 +41,7 @@ public class NativeFunctionCall extends RTObject {
 	public static final String All = "LIST_ALL";
 	public static final String Count = "LIST_COUNT";
 	public static final String ValueOfList = "LIST_VALUE";
+	public static final String Invert = "LIST_INVERT";
 
 	public static final String NotEquals = "!=";
 
