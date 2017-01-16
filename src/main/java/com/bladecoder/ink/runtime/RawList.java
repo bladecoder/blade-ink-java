@@ -3,9 +3,9 @@ package com.bladecoder.ink.runtime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 //Confusingly from a C# point of view, a LIST in ink is actually
 // modelled using a C# Dictionary!
@@ -25,7 +25,7 @@ public class RawList extends HashMap<RawListItem, Integer> {
 	public RawList() {
 	}
 
-	public RawList(Entry<RawListItem, Integer> singleElement) {
+	public RawList(Map.Entry<RawListItem, Integer> singleElement) {
 		put(singleElement.getKey(), singleElement.getValue());
 	}
 
@@ -91,10 +91,10 @@ public class RawList extends HashMap<RawListItem, Integer> {
 		return intersection;
 	}
 
-	public Entry<RawListItem, Integer> getMaxItem() {
+	public Map.Entry<RawListItem, Integer> getMaxItem() {
 		CustomEntry max = new CustomEntry(null, 0);
 
-		for (Entry<RawListItem, Integer> kv : this.entrySet()) {
+		for (Map.Entry<RawListItem, Integer> kv : this.entrySet()) {
 			if (max.getKey() == null || kv.getValue() > max.getValue()) {
 				max.set(kv);
 			}
@@ -103,10 +103,10 @@ public class RawList extends HashMap<RawListItem, Integer> {
 		return max;
 	}
 
-	public Entry<RawListItem, Integer> getMinItem() {
+	public Map.Entry<RawListItem, Integer> getMinItem() {
 		CustomEntry min = new CustomEntry(null, 0);
 
-		for (Entry<RawListItem, Integer> kv : this.entrySet()) {
+		for (Map.Entry<RawListItem, Integer> kv : this.entrySet()) {
 			if (min.getKey() == null || kv.getValue() < min.getValue())
 				min.set(kv);
 		}
@@ -115,7 +115,7 @@ public class RawList extends HashMap<RawListItem, Integer> {
 	}
 
 	public boolean contains(RawList otherList) {
-		for (Entry<RawListItem, Integer> kv : otherList.entrySet()) {
+		for (Map.Entry<RawListItem, Integer> kv : otherList.entrySet()) {
 			if (!this.containsKey(kv.getKey()))
 				return false;
 		}
@@ -181,7 +181,7 @@ public class RawList extends HashMap<RawListItem, Integer> {
 	public String getSingleOriginListName() {
 		String name = null;
 
-		for (Entry<RawListItem, Integer> itemAndValue : entrySet()) {
+		for (Map.Entry<RawListItem, Integer> itemAndValue : entrySet()) {
 			String originName = itemAndValue.getKey().getOriginName();
 
 			// First name - take it as the assumed single origin name
@@ -203,7 +203,7 @@ public class RawList extends HashMap<RawListItem, Integer> {
 
 		if (origins != null) {
 			for (ListDefinition origin : origins) {
-				for (Entry<RawListItem, Integer> itemAndValue : origin.getItems().entrySet()) {
+				for (Map.Entry<RawListItem, Integer> itemAndValue : origin.getItems().entrySet()) {
 
 					if (!this.containsKey(itemAndValue))
 						rawList.put(itemAndValue.getKey(), itemAndValue.getValue());
@@ -221,7 +221,7 @@ public class RawList extends HashMap<RawListItem, Integer> {
 
 		if (origins != null) {
 			for (ListDefinition origin : origins) {
-				for (Entry<RawListItem, Integer> kv : origin.getItems().entrySet()) {
+				for (Map.Entry<RawListItem, Integer> kv : origin.getItems().entrySet()) {
 					list.put(kv.getKey(), kv.getValue());
 				}
 			}
