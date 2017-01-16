@@ -84,7 +84,7 @@ public class RawList extends HashMap<RawListItem, Integer> {
 
 	public RawList intersect(RawList otherList) {
 		RawList intersection = new RawList();
-		for (Entry<RawListItem, Integer> kv : this.entrySet()) {
+		for (Map.Entry<RawListItem, Integer> kv : this.entrySet()) {
 			if (otherList.containsKey(kv.getKey()))
 				intersection.put(kv.getKey(), kv.getValue());
 		}
