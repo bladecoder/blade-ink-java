@@ -18,8 +18,8 @@ public class StoryState {
 	/**
 	 * The current version of the state save file JSON-based format.
 	 */
-	public static final int kInkSaveStateVersion = 5;
-	public static final int kMinCompatibleLoadVersion = 4;
+	public static final int kInkSaveStateVersion = 6;
+	public static final int kMinCompatibleLoadVersion = 6;
 
 	// REMEMBER! REMEMBER! REMEMBER!
 	// When adding state, update the Copy method and serialisation

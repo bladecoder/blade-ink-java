@@ -48,13 +48,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * The current version of the ink story file format.
 	 */
-	public static final int inkVersionCurrent = 15;
+	public static final int inkVersionCurrent = 16;
 
 	/**
 	 * The minimum legacy version of ink that can be loaded by the current
 	 * version of the code.
 	 */
-	public static final int inkVersionMinimumCompatible = 15;
+	public static final int inkVersionMinimumCompatible = 16;
 
 	private Container mainContentContainer;
 	private ListDefinitionsOrigin listsDefinitions;
