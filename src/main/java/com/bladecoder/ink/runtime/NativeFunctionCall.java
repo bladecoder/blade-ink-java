@@ -354,56 +354,56 @@ public class NativeFunctionCall extends RTObject {
 			addListBinaryOp(Add, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).union((RawList) right);
+					return ((InkList) left).union((InkList) right);
 				}
 			});
 
 			addListBinaryOp(And, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).union((RawList) right);
+					return ((InkList) left).union((InkList) right);
 				}
 			});
 
 			addListBinaryOp(Subtract, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).without((RawList) right);
+					return ((InkList) left).without((InkList) right);
 				}
 			});
 
 			addListBinaryOp(Has, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).contains((RawList) right) ? (Integer) 1 : (Integer) 0;
+					return ((InkList) left).contains((InkList) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addListBinaryOp(Hasnt, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).contains((RawList) right) ? (Integer) 0 : (Integer) 1;
+					return ((InkList) left).contains((InkList) right) ? (Integer) 0 : (Integer) 1;
 				}
 			});
 
 			addListBinaryOp(Intersect, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).intersect((RawList) right);
+					return ((InkList) left).intersect((InkList) right);
 				}
 			});
 
 			addListBinaryOp(Equal, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).equals(right) ? (Integer) 1 : (Integer) 0;
+					return ((InkList) left).equals(right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addListBinaryOp(Greater, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).size() > 0 && ((RawList) left).greaterThan((RawList) right) ? (Integer) 1
+					return ((InkList) left).size() > 0 && ((InkList) left).greaterThan((InkList) right) ? (Integer) 1
 							: (Integer) 0;
 				}
 			});
@@ -411,14 +411,14 @@ public class NativeFunctionCall extends RTObject {
 			addListBinaryOp(Less, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).lessThan((RawList) right) ? (Integer) 1 : (Integer) 0;
+					return ((InkList) left).lessThan((InkList) right) ? (Integer) 1 : (Integer) 0;
 				}
 			});
 
 			addListBinaryOp(GreaterThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).size() > 0 && ((RawList) left).greaterThanOrEquals((RawList) right)
+					return ((InkList) left).size() > 0 && ((InkList) left).greaterThanOrEquals((InkList) right)
 							? (Integer) 1 : (Integer) 0;
 				}
 			});
@@ -426,7 +426,7 @@ public class NativeFunctionCall extends RTObject {
 			addListBinaryOp(LessThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((RawList) left).size() > 0 && ((RawList) left).lessThanOrEquals((RawList) right)
+					return ((InkList) left).size() > 0 && ((InkList) left).lessThanOrEquals((InkList) right)
 							? (Integer) 1 : (Integer) 0;
 				}
 			});
@@ -434,14 +434,14 @@ public class NativeFunctionCall extends RTObject {
 			addListBinaryOp(NotEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (!((RawList) left).equals(right) ? (Integer) 1 : (Integer) 0);
+					return (!((InkList) left).equals(right) ? (Integer) 1 : (Integer) 0);
 				}
 			});
 
 			addListUnaryOp(Not, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((RawList) val).size() == 0 ? (int) 1 : (int) 0;
+					return ((InkList) val).size() == 0 ? (int) 1 : (int) 0;
 				}
 			});
 
@@ -451,42 +451,42 @@ public class NativeFunctionCall extends RTObject {
 			addListUnaryOp(Invert, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((RawList) val).getInverse();
+					return ((InkList) val).getInverse();
 				}
 			});
 
 			addListUnaryOp(All, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((RawList) val).getAll();
+					return ((InkList) val).getAll();
 				}
 			});
 
 			addListUnaryOp(ListMin, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((RawList) val).minAsList();
+					return ((InkList) val).minAsList();
 				}
 			});
 
 			addListUnaryOp(ListMax, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((RawList) val).maxAsList();
+					return ((InkList) val).maxAsList();
 				}
 			});
 
 			addListUnaryOp(Count, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((RawList) val).size();
+					return ((InkList) val).size();
 				}
 			});
 
 			addListUnaryOp(ValueOfList, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((RawList) val).getMaxItem().getValue();
+					return ((InkList) val).getMaxItem().getValue();
 				}
 			});
 
@@ -619,11 +619,11 @@ public class NativeFunctionCall extends RTObject {
 		ListValue listVal = (ListValue) listIntParams.get(0);
 		IntValue intVal = (IntValue) listIntParams.get(1);
 
-		RawList resultRawList = new RawList();
+		InkList resultRawList = new InkList();
 
-		for (Entry<RawListItem, Integer> listItemWithValue : listVal.getValue().entrySet()) {
+		for (Entry<InkListItem, Integer> listItemWithValue : listVal.getValue().entrySet()) {
 
-			RawListItem listItem = listItemWithValue.getKey();
+			InkListItem listItem = listItemWithValue.getKey();
 			Integer listItemValue = listItemWithValue.getValue();
 
 			// Find + or - operation
@@ -643,7 +643,7 @@ public class NativeFunctionCall extends RTObject {
 			}
 
 			if (itemOrigin != null) {
-				RawListItem incrementedItem = itemOrigin.getItemWithValue(targetInt);
+				InkListItem incrementedItem = itemOrigin.getItemWithValue(targetInt);
 				if (incrementedItem != null)
 					resultRawList.put(incrementedItem, targetInt);
 			}
@@ -730,7 +730,7 @@ public class NativeFunctionCall extends RTObject {
 				} else if (val.getValueType() == ValueType.Int) {
 					int intVal = (int) val.getValueObject();
 					ListDefinition list = specialCaseList.getValue().getOriginOfMaxItem();
-					RawListItem item = list.getItemWithValue(intVal);
+					InkListItem item = list.getItemWithValue(intVal);
 
 					if (item != null) {
 						ListValue castedValue = new ListValue(item, intVal);

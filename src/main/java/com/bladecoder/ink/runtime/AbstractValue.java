@@ -34,8 +34,8 @@ public abstract class AbstractValue extends RTObject {
 			return new StringValue((String) val);
 		} else if (val instanceof Path) {
 			return new DivertTargetValue((Path) val);
-		} else if (val instanceof RawList) {
-			return new ListValue((RawList )val);
+		} else if (val instanceof InkList) {
+			return new ListValue((InkList )val);
 		}
 
 		return null;

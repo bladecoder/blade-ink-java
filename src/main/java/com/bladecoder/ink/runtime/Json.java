@@ -336,7 +336,7 @@ public class Json {
 
 			if (propValue != null) {
 				HashMap<String, Object> listContent = (HashMap<String, Object>) propValue;
-				RawList rawList = new RawList();
+				InkList rawList = new InkList();
 
 				propValue = obj.get("origins");
 
@@ -347,7 +347,7 @@ public class Json {
 				}
 
 				for (Entry<String, Object> nameToVal : listContent.entrySet()) {
-					RawListItem item = new RawListItem(nameToVal.getKey());
+					InkListItem item = new InkListItem(nameToVal.getKey());
 					int val = (int) nameToVal.getValue();
 					rawList.put(item, val);
 				}
@@ -641,14 +641,14 @@ public class Json {
 	}
 
 	static HashMap<String, Object> inkListToJObject(ListValue listVal) {
-		RawList rawList = listVal.value;
+		InkList rawList = listVal.value;
 
 		HashMap<String, Object> dict = new HashMap<String, Object>();
 
 		HashMap<String, Object> content = new HashMap<String, Object>();
 
-		for (Entry<RawListItem, Integer> itemAndValue : rawList.entrySet()) {
-			RawListItem item = itemAndValue.getKey();
+		for (Entry<InkListItem, Integer> itemAndValue : rawList.entrySet()) {
+			InkListItem item = itemAndValue.getKey();
 			int val = itemAndValue.getValue();
 			content.put(item.toString(), val);
 		}
@@ -666,8 +666,8 @@ public class Json {
 		HashMap<String, Object> result = new HashMap<String, Object>();
 		for (ListDefinition def : origin.getLists()) {
 			HashMap<String, Object> listDefJson = new HashMap<String, Object>();
-			for (Entry<RawListItem, Integer> itemToVal : def.getItems().entrySet()) {
-				RawListItem item = itemToVal.getKey();
+			for (Entry<InkListItem, Integer> itemToVal : def.getItems().entrySet()) {
+				InkListItem item = itemToVal.getKey();
 				int val = itemToVal.getValue();
 				listDefJson.put(item.getItemName(), (Object) val);
 			}

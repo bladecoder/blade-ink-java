@@ -2,18 +2,18 @@ package com.bladecoder.ink.runtime;
 
 import java.util.Map.Entry;
 
-class ListValue extends Value<RawList> {
+class ListValue extends Value<InkList> {
 
-	public ListValue(RawList list) {
+	public ListValue(InkList list) {
 		super(list);
 	}
 
 	public ListValue() {
-		super(new RawList());
+		super(new InkList());
 	}
 
-	public ListValue(RawListItem singleItem, int singleValue) {
-		super(new RawList());
+	public ListValue(InkListItem singleItem, int singleValue) {
+		super(new InkList());
 		value.put(singleItem, singleValue);
 	}
 
@@ -36,7 +36,7 @@ class ListValue extends Value<RawList> {
 	@Override
 	public AbstractValue cast(ValueType newType) {
 		if (newType == ValueType.Int) {
-			Entry<RawListItem, Integer> max = value.getMaxItem();
+			Entry<InkListItem, Integer> max = value.getMaxItem();
 			if (max.getKey().isNull())
 				return new IntValue(0);
 			else
@@ -44,7 +44,7 @@ class ListValue extends Value<RawList> {
 		}
 
 		else if (newType == ValueType.Float) {
-			Entry<RawListItem, Integer> max = value.getMaxItem();
+			Entry<InkListItem, Integer> max = value.getMaxItem();
 			if (max.getKey().isNull())
 				return new FloatValue(0.0f);
 			else
@@ -52,7 +52,7 @@ class ListValue extends Value<RawList> {
 		}
 
 		else if (newType == ValueType.String) {
-			Entry<RawListItem, Integer> max = value.getMaxItem();
+			Entry<InkListItem, Integer> max = value.getMaxItem();
 			if (max.getKey().isNull())
 				return new StringValue("");
 			else {

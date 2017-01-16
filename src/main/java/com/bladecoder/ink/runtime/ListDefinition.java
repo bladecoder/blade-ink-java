@@ -5,7 +5,7 @@ import java.util.Map.Entry;
 
 public class ListDefinition {
 	private String name;
-	private HashMap<RawListItem, Integer> items;
+	private HashMap<InkListItem, Integer> items;
 
 	// The main representation should be simple item names rather than a
 	// RawListItem,
@@ -20,10 +20,10 @@ public class ListDefinition {
 	}
 
 	public ListValue listRange(int min, int max) {
-		RawList rawList = new RawList();
+		InkList rawList = new InkList();
 		for (Entry<String, Integer> nameAndValue : itemNameToValues.entrySet()) {
 			if (nameAndValue.getValue() >= min && nameAndValue.getValue() <= max) {
-				RawListItem item = new RawListItem(name, nameAndValue.getKey());
+				InkListItem item = new InkListItem(name, nameAndValue.getKey());
 
 				rawList.put(item, nameAndValue.getValue());
 			}
@@ -32,11 +32,11 @@ public class ListDefinition {
 		return new ListValue(rawList);
 	}
 
-	public HashMap<RawListItem, Integer> getItems() {
+	public HashMap<InkListItem, Integer> getItems() {
 		if (items == null) {
-			items = new HashMap<RawListItem, Integer>();
+			items = new HashMap<InkListItem, Integer>();
 			for (Entry<String, Integer> itemNameAndValue : itemNameToValues.entrySet()) {
-				RawListItem item = new RawListItem(name, itemNameAndValue.getKey());
+				InkListItem item = new InkListItem(name, itemNameAndValue.getKey());
 				items.put(item, itemNameAndValue.getValue());
 			}
 		}
@@ -48,7 +48,7 @@ public class ListDefinition {
 		return name;
 	}
 
-	public int getValueForItem(RawListItem item) {
+	public int getValueForItem(InkListItem item) {
 		Integer v = itemNameToValues.get(item.getItemName());
 
 		if (v != null)
@@ -61,7 +61,7 @@ public class ListDefinition {
 		return itemNameToValues.get(itemName);
 	}
 
-	public boolean containsItem(RawListItem item) {
+	public boolean containsItem(InkListItem item) {
 		if (!item.getOriginName().equals(name))
 			return false;
 
@@ -72,12 +72,12 @@ public class ListDefinition {
 		return itemNameToValues.containsKey(itemName);
 	}
 
-	public RawListItem getItemWithValue(int val) {
-		RawListItem item = null;
+	public InkListItem getItemWithValue(int val) {
+		InkListItem item = null;
 
 		for (Entry<String, Integer> namedItem : itemNameToValues.entrySet()) {
 			if (namedItem.getValue() == val) {
-				return new RawListItem(name, namedItem.getKey());
+				return new InkListItem(name, namedItem.getKey());
 			}
 		}
 

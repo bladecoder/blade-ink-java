@@ -1423,7 +1423,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				ListDefinition foundListDef = listsDefinitions.getDefinition(listNameVal.value);
 
 				if (foundListDef != null) {
-					RawListItem foundItem;
+					InkListItem foundItem;
 
 					foundItem = foundListDef.getItemWithValue(intVal.value);
 
@@ -1484,7 +1484,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					for (ListDefinition origin : origins) {
 						ListValue rangeFromOrigin = origin.listRange(minVal, maxVal);
 
-						for (Entry<RawListItem, Integer> kv : rangeFromOrigin.getValue().entrySet()) {
+						for (Entry<InkListItem, Integer> kv : rangeFromOrigin.getValue().entrySet()) {
 							result.value.put(kv.getKey(), kv.getValue());
 						}
 					}

@@ -30,17 +30,17 @@ public class ListDefinitionsOrigin {
 	}
 
 	ListValue findSingleItemListWithName(String name) {
-		RawListItem item = RawListItem.getNull();
+		InkListItem item = InkListItem.getNull();
 		ListDefinition list = null;
 		String[] nameParts = name.split("\\.");
 		
 		if (nameParts.length == 2) {
-			item = new RawListItem(nameParts[0], nameParts[1]);
+			item = new InkListItem(nameParts[0], nameParts[1]);
 			list = getDefinition(item.getOriginName());
 		} else {
 			for (Entry<String, ListDefinition> namedList : lists.entrySet()) {
 				ListDefinition listWithItem = namedList.getValue();
-				item = new RawListItem(namedList.getKey(), name);
+				item = new InkListItem(namedList.getKey(), name);
 				
 				if (listWithItem.containsItem(item)) {
 					list = listWithItem;

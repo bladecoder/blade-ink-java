@@ -455,7 +455,7 @@ public class StoryState {
 		if (listValue != null) {
 			// Update origin when list is has something to indicate the list
 			// origin
-			RawList rawList = listValue.getValue();
+			InkList rawList = listValue.getValue();
 			List<String> names = rawList.getOriginNames();
 			if (names != null) {
 				ArrayList<ListDefinition> origins = new ArrayList<ListDefinition>();
