@@ -66,4 +66,20 @@ class ListValue extends Value<RawList> {
 		throw new RuntimeException("Unexpected type cast of Value to new ValueType");
 	}
 
+	public static void retainListOriginsForAssignment(RTObject oldValue, RTObject newValue) {
+		ListValue oldList = null;
+
+		if (oldValue instanceof ListValue)
+			oldList = (ListValue) oldValue;
+
+		ListValue newList = null;
+
+		if (newValue instanceof ListValue)
+			newList = (ListValue) newValue;
+
+		// When assigning the emtpy list, try to retain any initial origin names
+		if (oldList != null && newList != null && newList.value.size() == 0)
+			newList.value.setInitialOriginNames(oldList.value.getOriginNames());
+	}
+
 }

@@ -30,7 +30,7 @@ class CallStack {
 		public Element copy() {
 			Element copy = new Element(this.type, this.currentContainer, this.currentContentIndex,
 					this.inExpressionEvaluation);
-			copy.temporaryVariables = new HashMap<String,RTObject>(this.temporaryVariables);
+			copy.temporaryVariables = new HashMap<String, RTObject>(this.temporaryVariables);
 			return copy;
 		}
 
@@ -335,8 +335,14 @@ class CallStack {
 			throw new StoryException("Could not find temporary variable to set: " + name);
 		}
 
+		RTObject oldValue = contextElement.temporaryVariables.get(name);
+
+		if (oldValue != null)
+			ListValue.retainListOriginsForAssignment(oldValue, value);
+
 		contextElement.temporaryVariables.put(name, value);
 	}
+
 	public Thread getThreadWithIndex(int index) {
 		// return _threads.Find (t => t.threadIndex == index);
 

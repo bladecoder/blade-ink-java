@@ -235,9 +235,26 @@ public class VariablesState implements Iterable<String> {
 			changedVariables = null;
 		}
 	}
+	
+	void retainListOriginsForAssignment (RTObject oldValue, RTObject newValue) {
+		ListValue oldList = null;
+
+		if (oldValue instanceof ListValue)
+			oldList = (ListValue) oldValue;
+
+		ListValue newList = null;
+
+		if (newValue instanceof ListValue)
+			newList = (ListValue) newValue;
+
+		if (oldList != null && newList != null && newList.value.size() == 0)
+			newList.value.setInitialOriginNames(oldList.value.getOriginNames());
+	}
 
 	void setGlobal(String variableName, RTObject value) throws Exception {
 		RTObject oldValue = globalVariables.get(variableName);
+		
+		ListValue.retainListOriginsForAssignment (oldValue, value);
 
 		globalVariables.put(variableName, value);
 
