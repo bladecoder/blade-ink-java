@@ -350,6 +350,13 @@ public class NativeFunctionCall extends RTObject {
 				}
 			});
 
+			addStringBinaryOp(NotEquals, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (!((String) left).equals(right)) ? (Integer) 1 : (Integer) 0;
+				}
+			});
+
 			// List operations
 			addListBinaryOp(Add, new BinaryOp() {
 				@Override
@@ -587,33 +594,36 @@ public class NativeFunctionCall extends RTObject {
 
 	}
 
-	Value<?> callBinaryListOperation (List<RTObject> parameters) throws StoryException, Exception {
-	     // List-Int addition/subtraction returns a List (e.g. "alpha" + 1 = "beta")
-	     if (("+".equals(name) || "-".equals(name)) && 
-	    		 parameters.get(0) instanceof ListValue && parameters.get(1) instanceof IntValue)
-	         return callListIncrementOperation (parameters);
-	 
-	     Value<?> v1 = (Value<?>)parameters.get(0);
-	     Value<?> v2 = (Value<?>)parameters.get(1);
-	 
-	     // And/or with any other type requires coerscion to bool (int)
-	     if ((name == "&&" || name == "||") && (v1.getValueType() != ValueType.List || v2.getValueType() != ValueType.List)) {
-	    	 BinaryOp op = (BinaryOp)operationFuncs.get(ValueType.Int);
-	         int result = (int)op.invoke(v1.isTruthy() ? 1 : 0, v2.isTruthy() ? 1 : 0);
-	         return new IntValue (result);
-	     }
-	 
-	     // Normal (list • list) operation
-	     if (v1.getValueType() == ValueType.List && v2.getValueType() == ValueType.List) {
-	    	 List<Value<?>> p = new ArrayList<Value<?>>();
-	    	 p.add(v1);
-	    	 p.add(v2);
-	    	  
-	         return (Value<?>)callType(p);
-	     }
-	 
-	     throw new StoryException ("Can not call use '" + name + "' operation on " + v1.getValueType() + " and " + v2.getValueType());
-	 }
+	Value<?> callBinaryListOperation(List<RTObject> parameters) throws StoryException, Exception {
+		// List-Int addition/subtraction returns a List (e.g. "alpha" + 1 =
+		// "beta")
+		if (("+".equals(name) || "-".equals(name)) && parameters.get(0) instanceof ListValue
+				&& parameters.get(1) instanceof IntValue)
+			return callListIncrementOperation(parameters);
+
+		Value<?> v1 = (Value<?>) parameters.get(0);
+		Value<?> v2 = (Value<?>) parameters.get(1);
+
+		// And/or with any other type requires coerscion to bool (int)
+		if ((name == "&&" || name == "||")
+				&& (v1.getValueType() != ValueType.List || v2.getValueType() != ValueType.List)) {
+			BinaryOp op = (BinaryOp) operationFuncs.get(ValueType.Int);
+			int result = (int) op.invoke(v1.isTruthy() ? 1 : 0, v2.isTruthy() ? 1 : 0);
+			return new IntValue(result);
+		}
+
+		// Normal (list • list) operation
+		if (v1.getValueType() == ValueType.List && v2.getValueType() == ValueType.List) {
+			List<Value<?>> p = new ArrayList<Value<?>>();
+			p.add(v1);
+			p.add(v2);
+
+			return (Value<?>) callType(p);
+		}
+
+		throw new StoryException(
+				"Can not call use '" + name + "' operation on " + v1.getValueType() + " and " + v2.getValueType());
+	}
 
 	Value<?> callListIncrementOperation(List<RTObject> listIntParams) throws StoryException, Exception {
 		ListValue listVal = (ListValue) listIntParams.get(0);
