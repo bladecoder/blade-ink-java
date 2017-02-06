@@ -681,7 +681,7 @@ public class StoryState {
 	}
 
 	@SuppressWarnings("unchecked")
-	void setJsonToken(HashMap<String, Object> value) throws StoryException, Exception {
+	public void setJsonToken(HashMap<String, Object> value) throws StoryException, Exception {
 
 		HashMap<String, Object> jObject = value;
 
