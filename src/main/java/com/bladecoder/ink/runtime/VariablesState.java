@@ -35,6 +35,14 @@ public class VariablesState implements Iterable<String> {
 		this.listDefsOrigin = listDefsOrigin;
 	}
 
+	CallStack getCallStack() {
+		return callStack;
+	}
+
+	void setCallStack(CallStack callStack) {
+		this.callStack = callStack;
+	}
+
 	public void assign(VariableAssignment varAss, RTObject value) throws Exception {
 		String name = varAss.getVariableName();
 		int contextIndex = -1;

@@ -591,6 +591,10 @@ public class StoryState {
 		// Create a new base call stack element.
 		callStack = new CallStack(funcContainer);
 		callStack.currentElement().type = PushPopType.Function;
+		
+		 // Change the callstack the variableState is looking at to be
+		 // this temporary function evaluation one. We'll restore it afterwards
+		 variablesState.setCallStack(callStack);
 
 		// By setting ourselves in external function evaluation mode,
 		// we're saying it's okay to end the flow without a Done or End,
@@ -639,6 +643,9 @@ public class StoryState {
 		callStack = originalCallstack;
 		originalCallstack = null;
 		originalEvaluationStackHeight = 0;
+		
+		// Restore the callstack that the variablesState uses
+		variablesState.setCallStack(callStack);
 
 		// What did we get back?
 		if (returnedObj != null) {

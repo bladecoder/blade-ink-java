@@ -2012,6 +2012,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public Object evaluateFunction(String functionName, Object[] arguments) throws Exception {
 		return evaluateFunction(functionName, null, arguments);
 	}
+	
+	public Object evaluateFunction(String functionName) throws Exception {
+		return evaluateFunction(functionName, null, null);
+	}
 
 	/**
 	 * Checks if a function exists.
