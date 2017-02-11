@@ -290,8 +290,8 @@ class CallStack {
 
 	public void pushThread() {
 		Thread newThread = getcurrentThread().copy();
-		newThread.threadIndex = threadCounter;
 		threadCounter++;
+		newThread.threadIndex = threadCounter;
 		threads.add(newThread);
 	}
 
