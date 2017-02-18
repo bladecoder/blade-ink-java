@@ -171,7 +171,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 
 	/**
 	 * Returns true if all the item values in the current list are greater than
-	 * all the item values in the passed in list. Equivalent to calling (list1 >
+	 * all the item values in the passed in list. Equivalent to calling (list1 &gt;
 	 * list2) in ink.
 	 */
 	public boolean greaterThan(InkList otherList) {
@@ -188,8 +188,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	 * Returns true if the item values in the current list overlap or are all
 	 * greater than the item values in the passed in list. None of the item
 	 * values in the current list must fall below the item values in the passed
-	 * in list. Equivalent to (list1 >= list2) in ink, or LIST_MIN(list1) >=
-	 * LIST_MIN(list2) &amp;&amp; LIST_MAX(list1) >= LIST_MAX(list2).
+	 * in list. Equivalent to (list1 &gt;= list2) in ink, or LIST_MIN(list1) &gt;=
+	 * LIST_MIN(list2) &amp;&amp; LIST_MAX(list1) &gt;= LIST_MAX(list2).
 	 */
 	public boolean greaterThanOrEquals(InkList otherList) {
 		if (size() == 0)

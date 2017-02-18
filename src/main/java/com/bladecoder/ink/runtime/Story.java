@@ -397,8 +397,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *
 	 * ...because of the way that content is nested within a weave structure.
 	 *
-	 * @param A
-	 *            dot-separted path string, as specified above.
+	 * @param path
+	 *            A dot-separted path string, as specified above.
 	 */
 	public void choosePathString(String path) throws Exception {
 		choosePath(new Path(path));
@@ -865,8 +865,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * 
 	 * @param variableNames
 	 *            The set of variables to observe.
-	 * @param The
-	 *            delegate function to call when any of the named variables
+	 * @param observer
+	 *            The delegate function to call when any of the named variables
 	 *            change.
 	 */
 	public void observeVariables(List<String> variableNames, VariableObserver observer) {
@@ -2020,7 +2020,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Checks if a function exists.
 	 * 
-	 * @returns True if the function exists, else false.
+	 * @return True if the function exists, else false.
 	 * @param functionName
 	 *            The name of the function as declared in ink.
 	 */

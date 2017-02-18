@@ -168,7 +168,7 @@ public class StoryState {
 	 * and you want it to reset so that you can divert elsewhere using
 	 * ChoosePathString(). Otherwise, after finishing the content you diverted
 	 * to, it would continue where it left off. Calling this is equivalent to
-	 * calling -> END in ink.
+	 * calling -&gt; END in ink.
 	 */
 	public void forceEnd() throws Exception {
 
@@ -748,7 +748,7 @@ public class StoryState {
 	/**
 	 * Exports the current state to json format, in order to save the game.
 	 * 
-	 * @returns The save state in json format.
+	 * @return The save state in json format.
 	 */
 	public String toJson() throws Exception {
 		return SimpleJson.HashMapToText(getJsonToken());
