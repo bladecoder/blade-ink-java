@@ -592,21 +592,25 @@ public class StoryState {
 		callStack = new CallStack(funcContainer);
 		callStack.currentElement().type = PushPopType.Function;
 		
-		 // Change the callstack the variableState is looking at to be
-		 // this temporary function evaluation one. We'll restore it afterwards
-		 variablesState.setCallStack(callStack);
+		// Change the callstack the variableState is looking at to be
+		// this temporary function evaluation one. We'll restore it afterwards
+		variablesState.setCallStack(callStack);
 
 		// By setting ourselves in external function evaluation mode,
 		// we're saying it's okay to end the flow without a Done or End,
 		// but with a ~ return instead.
 		isExternalFunctionEvaluation = true;
+		passArgumentsToEvaluationStack(arguments);
+	}
 
+	void passArgumentsToEvaluationStack(Object[] arguments) throws Exception {
 		// Pass arguments onto the evaluation stack
 		if (arguments != null) {
 			for (int i = 0; i < arguments.length; i++) {
 				if (!(arguments[i] instanceof Integer || arguments[i] instanceof Float
 						|| arguments[i] instanceof String)) {
-					throw new Exception("ink arguments when calling EvaluateFunction must be int, float or string");
+					throw new Exception(
+							"ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be int, float or string");
 				}
 
 				pushEvaluationStack(Value.create(arguments[i]));
@@ -643,7 +647,7 @@ public class StoryState {
 		callStack = originalCallstack;
 		originalCallstack = null;
 		originalEvaluationStackHeight = 0;
-		
+
 		// Restore the callstack that the variablesState uses
 		variablesState.setCallStack(callStack);
 

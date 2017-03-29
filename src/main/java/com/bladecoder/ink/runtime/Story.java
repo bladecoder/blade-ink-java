@@ -377,8 +377,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		choosePath(choiceToChoose.getchoicePoint().getChoiceTarget().getPath());
 	}
 
-	void choosePath(Path path) throws Exception {
-		state.setChosenPath(path);
+	void choosePath(Path p) throws Exception {
+		state.setChosenPath(p);
 
 		// Take a note of newly visited containers for read counts etc
 		visitChangedContainersDueToDivert();
@@ -399,9 +399,16 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *
 	 * @param path
 	 *            A dot-separted path string, as specified above.
+	 * @param arguments
+	 *            Optional set of arguments to pass, if path is to a knot that takes them.
 	 */
-	public void choosePathString(String path) throws Exception {
+	public void choosePathString(String path, Object [] arguments) throws Exception {
+		state.passArgumentsToEvaluationStack (arguments);
 		choosePath(new Path(path));
+	}
+	
+	public void choosePathString(String path) throws Exception {
+		choosePathString(path, null);
 	}
 
 	RTObject contentAtPath(Path path) throws Exception {
