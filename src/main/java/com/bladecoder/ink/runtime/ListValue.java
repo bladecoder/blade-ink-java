@@ -78,7 +78,7 @@ class ListValue extends Value<InkList> {
 			newList = (ListValue) newValue;
 
 		// When assigning the emtpy list, try to retain any initial origin names
-		if (oldList != null && newList != null && newList.value.size() == 0 && oldList.value.getOriginNames() != null)
+		if (oldList != null && newList != null && newList.value.size() == 0)
 			newList.value.setInitialOriginNames(oldList.value.getOriginNames());
 	}
 

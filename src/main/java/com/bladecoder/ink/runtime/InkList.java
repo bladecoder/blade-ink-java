@@ -71,9 +71,13 @@ public class InkList extends HashMap<InkListItem, Integer> {
 		return originNames;
 	}
 
-	void setInitialOriginNames(List<String> initialOriginName) {
-		originNames = new ArrayList<String>();
-		originNames.addAll(initialOriginName);
+	void setInitialOriginNames(List<String> initialOriginNames) {
+		if (initialOriginNames == null)
+			originNames = null;
+		else {
+			originNames = new ArrayList<String>();
+			originNames.addAll(initialOriginNames);
+		}
 	}
 
 	/**
@@ -171,8 +175,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
 
 	/**
 	 * Returns true if all the item values in the current list are greater than
-	 * all the item values in the passed in list. Equivalent to calling (list1 &gt;
-	 * list2) in ink.
+	 * all the item values in the passed in list. Equivalent to calling (list1
+	 * &gt; list2) in ink.
 	 */
 	public boolean greaterThan(InkList otherList) {
 		if (size() == 0)
@@ -188,8 +192,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	 * Returns true if the item values in the current list overlap or are all
 	 * greater than the item values in the passed in list. None of the item
 	 * values in the current list must fall below the item values in the passed
-	 * in list. Equivalent to (list1 &gt;= list2) in ink, or LIST_MIN(list1) &gt;=
-	 * LIST_MIN(list2) &amp;&amp; LIST_MAX(list1) &gt;= LIST_MAX(list2).
+	 * in list. Equivalent to (list1 &gt;= list2) in ink, or LIST_MIN(list1)
+	 * &gt;= LIST_MIN(list2) &amp;&amp; LIST_MAX(list1) &gt;= LIST_MAX(list2).
 	 */
 	public boolean greaterThanOrEquals(InkList otherList) {
 		if (size() == 0)
@@ -306,79 +310,87 @@ public class InkList extends HashMap<InkListItem, Integer> {
 
 		return list;
 	}
-	
+
 	/**
-	 * Adds the given item to the ink list. Note that the item must come from a list definition that
-	 * is already "known" to this list, so that the item's value can be looked up. By "known", we mean
-	 * that it already has items in it from that source, or it did at one point - it can't be a 
-	 * completely fresh empty list, or a list that only contains items from a different list definition.
-	 * @throws Exception 
+	 * Adds the given item to the ink list. Note that the item must come from a
+	 * list definition that is already "known" to this list, so that the item's
+	 * value can be looked up. By "known", we mean that it already has items in
+	 * it from that source, or it did at one point - it can't be a completely
+	 * fresh empty list, or a list that only contains items from a different
+	 * list definition.
+	 * 
+	 * @throws Exception
 	 */
-	 public void addItem (InkListItem item) throws Exception
-	 {
-	     if (item.getOriginName() == null) {
-	         addItem (item.getItemName());
-	         return;
-	     }
-	     
-	     for (ListDefinition origin : origins) {
-	         if (origin.getName().equals(item.getOriginName())) {
-	             Integer intVal = origin.getValueForItem(item);
-	             
-	             if (intVal != null) {
-	                 this.put(item, intVal);
-	                 return;
-	             } else {
-	                 throw new Exception ("Could not add the item " + item + " to this list because it doesn't exist in the original list definition in ink.");
-	             }
-	         }
-	     }
-	 
-	     throw new Exception ("Failed to add item to list because the item was from a new list definition that wasn't previously known to this list. Only items from previously known lists can be used, so that the int value can be found.");
-	 }
-	 
-	 /**
-	 * Adds the given item to the ink list, attempting to find the origin list definition that it belongs to.
-	 * The item must therefore come from a list definition that is already "known" to this list, so that the
-	 * item's value can be looked up. By "known", we mean that it already has items in it from that source, or
-	 * it did at one point - it can't be a completely fresh empty list, or a list that only contains items from
-	 * a different list definition.
-	 * @throws Exception 
+	public void addItem(InkListItem item) throws Exception {
+		if (item.getOriginName() == null) {
+			addItem(item.getItemName());
+			return;
+		}
+
+		for (ListDefinition origin : origins) {
+			if (origin.getName().equals(item.getOriginName())) {
+				Integer intVal = origin.getValueForItem(item);
+
+				if (intVal != null) {
+					this.put(item, intVal);
+					return;
+				} else {
+					throw new Exception("Could not add the item " + item
+							+ " to this list because it doesn't exist in the original list definition in ink.");
+				}
+			}
+		}
+
+		throw new Exception(
+				"Failed to add item to list because the item was from a new list definition that wasn't previously known to this list. Only items from previously known lists can be used, so that the int value can be found.");
+	}
+
+	/**
+	 * Adds the given item to the ink list, attempting to find the origin list
+	 * definition that it belongs to. The item must therefore come from a list
+	 * definition that is already "known" to this list, so that the item's value
+	 * can be looked up. By "known", we mean that it already has items in it
+	 * from that source, or it did at one point - it can't be a completely fresh
+	 * empty list, or a list that only contains items from a different list
+	 * definition.
+	 * 
+	 * @throws Exception
 	 */
-	 public void addItem (String itemName) throws Exception
-	 {
-	     ListDefinition foundListDef = null;
-	 
-	     for (ListDefinition origin : origins) {
-	         if (origin.containsItemWithName (itemName)) {
-	             if (foundListDef != null) {
-	                 throw new Exception ("Could not add the item " + itemName + " to this list because it could come from either " + origin.getName() + " or " + foundListDef.getName());
-	             } else {
-	                 foundListDef = origin;
-	             }
-	         }
-	     }
-	 
-	     if (foundListDef == null)
-	         throw new Exception ("Could not add the item " + itemName + " to this list because it isn't known to any list definitions previously associated with this list.");
-	 
-	     InkListItem item = new InkListItem (foundListDef.getName(), itemName);
-	     Integer itemVal = foundListDef.getValueForItem(item);
-	     this.put(item, itemVal != null? itemVal:0);
-	 }
-	 
-	 /**
+	public void addItem(String itemName) throws Exception {
+		ListDefinition foundListDef = null;
+
+		for (ListDefinition origin : origins) {
+			if (origin.containsItemWithName(itemName)) {
+				if (foundListDef != null) {
+					throw new Exception(
+							"Could not add the item " + itemName + " to this list because it could come from either "
+									+ origin.getName() + " or " + foundListDef.getName());
+				} else {
+					foundListDef = origin;
+				}
+			}
+		}
+
+		if (foundListDef == null)
+			throw new Exception("Could not add the item " + itemName
+					+ " to this list because it isn't known to any list definitions previously associated with this list.");
+
+		InkListItem item = new InkListItem(foundListDef.getName(), itemName);
+		Integer itemVal = foundListDef.getValueForItem(item);
+		this.put(item, itemVal != null ? itemVal : 0);
+	}
+
+	/**
 	 * Returns true if this ink list contains an item with the given short name
 	 * (ignoring the original list where it was defined).
 	 */
-	 public boolean ContainsItemNamed (String itemName)
-	 {
-	     for (Map.Entry<InkListItem, Integer> itemWithValue : this.entrySet()) {
-	         if (itemWithValue.getKey().getItemName().equals(itemName)) return true;
-	     }
-	     return false;
-	 }
-	 
+	public boolean ContainsItemNamed(String itemName) {
+		for (Map.Entry<InkListItem, Integer> itemWithValue : this.entrySet()) {
+			if (itemWithValue.getKey().getItemName().equals(itemName))
+				return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Returns true if the passed object is also an ink list that contains the
