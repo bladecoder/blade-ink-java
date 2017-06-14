@@ -48,7 +48,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * The current version of the ink story file format.
 	 */
-	public static final int inkVersionCurrent = 16;
+	public static final int inkVersionCurrent = 17;
 
 	/**
 	 * The minimum legacy version of ink that can be loaded by the current
@@ -1149,7 +1149,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			ControlCommand evalCommand = (ControlCommand) contentObj;
 
 			int choiceCount;
-			switch (evalCommand.getcommandType()) {
+			switch (evalCommand.getCommandType()) {
 
 			case EvalStart:
 				Assert(state.getInExpressionEvaluation() == false, "Already in expression evaluation?");
@@ -1200,7 +1200,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			case PopFunction:
 			case PopTunnel:
 
-				PushPopType popType = evalCommand.getcommandType() == ControlCommand.CommandType.PopFunction
+				PushPopType popType = evalCommand.getCommandType() == ControlCommand.CommandType.PopFunction
 						? PushPopType.Function : PushPopType.Tunnel;
 
 				// Tunnel onwards is allowed to specify an optional override
@@ -1269,7 +1269,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 					ControlCommand command = obj instanceof ControlCommand ? (ControlCommand) obj : null;
 
-					if (command != null && command.getcommandType() == ControlCommand.CommandType.BeginString) {
+					if (command != null && command.getCommandType() == ControlCommand.CommandType.BeginString) {
 						break;
 					}
 
@@ -1300,6 +1300,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				break;
 
 			case TurnsSince:
+			case ReadCount:
 				RTObject target = state.popEvaluationStack();
 				if (!(target instanceof DivertTargetValue)) {
 					String extraNote = "";
@@ -1315,8 +1316,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				Container container = contentAtPath(divertTarget.getTargetPath()) instanceof Container
 						? (Container) contentAtPath(divertTarget.getTargetPath()) : null;
 
-				int turnCount = turnsSinceForContainer(container);
-				state.pushEvaluationStack(new IntValue(turnCount));
+				int eitherCount;
+				if (evalCommand.getCommandType() == ControlCommand.CommandType.TurnsSince)
+					eitherCount = turnsSinceForContainer(container);
+				else
+					eitherCount = visitCountForContainer(container);
+
+				state.pushEvaluationStack(new IntValue(eitherCount));
 				break;
 
 			case Random: {
@@ -1788,7 +1794,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// after this instruction.
 		ControlCommand controlCmd = currentContentObj instanceof ControlCommand ? (ControlCommand) currentContentObj
 				: null;
-		if (controlCmd != null && controlCmd.getcommandType() == ControlCommand.CommandType.StartThread) {
+		if (controlCmd != null && controlCmd.getCommandType() == ControlCommand.CommandType.StartThread) {
 			state.getCallStack().pushThread();
 		}
 	}

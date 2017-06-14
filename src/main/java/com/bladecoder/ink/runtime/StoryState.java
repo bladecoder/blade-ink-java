@@ -18,7 +18,7 @@ public class StoryState {
 	/**
 	 * The current version of the state save file JSON-based format.
 	 */
-	public static final int kInkSaveStateVersion = 6;
+	public static final int kInkSaveStateVersion = 7;
 	public static final int kMinCompatibleLoadVersion = 6;
 
 	// REMEMBER! REMEMBER! REMEMBER!
@@ -298,7 +298,7 @@ public class StoryState {
 			ControlCommand cmd = outputStream.get(i) instanceof ControlCommand ? (ControlCommand) outputStream.get(i)
 					: null;
 
-			if (cmd != null && cmd.getcommandType() == ControlCommand.CommandType.BeginString) {
+			if (cmd != null && cmd.getCommandType() == ControlCommand.CommandType.BeginString) {
 				return true;
 			}
 		}

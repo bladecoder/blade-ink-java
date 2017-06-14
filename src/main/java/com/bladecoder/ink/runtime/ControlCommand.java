@@ -5,23 +5,21 @@ import com.bladecoder.ink.runtime.RTObject;
 
 public class ControlCommand extends RTObject {
 	public enum CommandType {
-		NotSet, EvalStart, EvalOutput, EvalEnd, Duplicate, PopEvaluatedValue, PopFunction, PopTunnel, 
-		BeginString, EndString, NoOp, ChoiceCount, TurnsSince, Random, SeedRandom, VisitIndex, SequenceShuffleIndex, 
-		StartThread, Done, End, ListFromInt, ListRange
+		NotSet, EvalStart, EvalOutput, EvalEnd, Duplicate, PopEvaluatedValue, PopFunction, PopTunnel, BeginString, EndString, NoOp, ChoiceCount, TurnsSince, ReadCount, Random, SeedRandom, VisitIndex, SequenceShuffleIndex, StartThread, Done, End, ListFromInt, ListRange
 	}
 
 	private CommandType commandType = CommandType.NotSet;
 
-	public CommandType getcommandType() {
+	public CommandType getCommandType() {
 		return commandType;
 	}
 
-	public void setcommandType(CommandType value) {
+	public void setCommandType(CommandType value) {
 		commandType = value;
 	}
 
 	public ControlCommand(CommandType commandType) {
-		this.setcommandType(commandType);
+		this.setCommandType(commandType);
 	}
 
 	// Require default constructor for serialisation
@@ -31,7 +29,7 @@ public class ControlCommand extends RTObject {
 
 	@Override
 	RTObject copy() {
-		return new ControlCommand(getcommandType());
+		return new ControlCommand(getCommandType());
 	}
 
 	// The following static factory methods are to make generating these
@@ -92,6 +90,10 @@ public class ControlCommand extends RTObject {
 		return new ControlCommand(CommandType.TurnsSince);
 	}
 
+	public static ControlCommand readCount() {
+		return new ControlCommand(CommandType.ReadCount);
+	}
+
 	public static ControlCommand random() {
 		return new ControlCommand(CommandType.Random);
 	}
@@ -119,18 +121,18 @@ public class ControlCommand extends RTObject {
 	public static ControlCommand end() {
 		return new ControlCommand(CommandType.End);
 	}
-	
+
 	public static ControlCommand listFromInt() {
 		return new ControlCommand(CommandType.ListFromInt);
 	}
-	
+
 	public static ControlCommand listRange() {
 		return new ControlCommand(CommandType.ListRange);
 	}
 
 	@Override
 	public String toString() {
-		return getcommandType().toString();
+		return getCommandType().toString();
 	}
 
 }

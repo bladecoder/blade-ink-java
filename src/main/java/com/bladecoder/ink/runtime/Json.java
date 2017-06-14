@@ -473,7 +473,7 @@ public class Json {
 
 		ControlCommand controlCmd = obj instanceof ControlCommand ? (ControlCommand) obj : (ControlCommand) null;
 		if (controlCmd != null) {
-			return controlCommandNames[controlCmd.getcommandType().ordinal()];
+			return controlCommandNames[controlCmd.getCommandType().ordinal()];
 		}
 
 		NativeFunctionCall nativeFunc = obj instanceof NativeFunctionCall ? (NativeFunctionCall) obj
@@ -714,6 +714,7 @@ public class Json {
 		controlCommandNames[CommandType.NoOp.ordinal() - 1] = "nop";
 		controlCommandNames[CommandType.ChoiceCount.ordinal() - 1] = "choiceCnt";
 		controlCommandNames[CommandType.TurnsSince.ordinal() - 1] = "turns";
+		controlCommandNames[CommandType.ReadCount.ordinal() - 1] = "readc";
 		controlCommandNames[CommandType.Random.ordinal() - 1] = "rnd";
 		controlCommandNames[CommandType.SeedRandom.ordinal() - 1] = "srnd";
 		controlCommandNames[CommandType.VisitIndex.ordinal() - 1] = "visit";
