@@ -365,13 +365,6 @@ public class NativeFunctionCall extends RTObject {
 				}
 			});
 
-			addListBinaryOp(And, new BinaryOp() {
-				@Override
-				public Object invoke(Object left, Object right) {
-					return ((InkList) left).union((InkList) right);
-				}
-			});
-
 			addListBinaryOp(Subtract, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
@@ -442,6 +435,20 @@ public class NativeFunctionCall extends RTObject {
 				@Override
 				public Object invoke(Object left, Object right) {
 					return (!((InkList) left).equals(right) ? (Integer) 1 : (Integer) 0);
+				}
+			});
+			
+			addListBinaryOp(And, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (((InkList) left).size() > 0 && ((InkList) right).size() > 0? (Integer) 1 : (Integer) 0);
+				}
+			});
+			
+			addListBinaryOp(Or, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (((InkList) left).size() > 0 || ((InkList) right).size() > 0? (Integer) 1 : (Integer) 0);
 				}
 			});
 
