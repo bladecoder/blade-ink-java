@@ -400,13 +400,14 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @param path
 	 *            A dot-separted path string, as specified above.
 	 * @param arguments
-	 *            Optional set of arguments to pass, if path is to a knot that takes them.
+	 *            Optional set of arguments to pass, if path is to a knot that
+	 *            takes them.
 	 */
-	public void choosePathString(String path, Object [] arguments) throws Exception {
-		state.passArgumentsToEvaluationStack (arguments);
+	public void choosePathString(String path, Object[] arguments) throws Exception {
+		state.passArgumentsToEvaluationStack(arguments);
 		choosePath(new Path(path));
 	}
-	
+
 	public void choosePathString(String path) throws Exception {
 		choosePathString(path, null);
 	}
@@ -941,6 +942,14 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		} else {
 			return mainContentContainer;
 		}
+	}
+
+	String BuildStringOfContainer(Container container) {
+		StringBuilder sb = new StringBuilder();
+
+		container.buildStringOfHierarchy(sb, 0, state.getCurrentContentObject());
+
+		return sb.toString();
 	}
 
 	private void nextContent() throws Exception {
@@ -2019,7 +2028,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public Object evaluateFunction(String functionName, Object[] arguments) throws Exception {
 		return evaluateFunction(functionName, null, arguments);
 	}
-	
+
 	public Object evaluateFunction(String functionName) throws Exception {
 		return evaluateFunction(functionName, null, null);
 	}
