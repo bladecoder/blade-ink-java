@@ -32,8 +32,26 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	public InkList() {
 	}
 
-	InkList(Map.Entry<InkListItem, Integer> singleElement) {
+	public InkList(Map.Entry<InkListItem, Integer> singleElement) {
 		put(singleElement.getKey(), singleElement.getValue());
+	}
+
+	/**
+	 * Create a new empty ink list that's intended to hold items from a
+	 * particular origin list definition. The origin Story is needed in order to
+	 * be able to look up that definition.
+	 */
+	public InkList(String singleOriginListName, Story originStory) throws Exception {
+		setInitialOriginName(singleOriginListName);
+
+		ListDefinition def = originStory.getListDefinitions().getDefinition(singleOriginListName);
+
+		if (def != null) {
+			origins = new ArrayList<ListDefinition>();
+			origins.add(def);
+		} else
+			throw new Exception(
+					"InkList origin could not be found in story when constructing new list: " + singleOriginListName);
 	}
 
 	/**
@@ -69,6 +87,11 @@ public class InkList extends HashMap<InkListItem, Integer> {
 		}
 
 		return originNames;
+	}
+
+	void setInitialOriginName(String initialOriginName) {
+		originNames = new ArrayList<String>();
+		originNames.add(initialOriginName);
 	}
 
 	void setInitialOriginNames(List<String> initialOriginNames) {
