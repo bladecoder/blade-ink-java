@@ -772,7 +772,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	boolean incrementContentPointer() {
 		boolean successfulIncrement = true;
 
-		Element currEl = state.getCallStack().currentElement();
+		Element currEl = state.getCallStack().getCurrentElement();
 		currEl.currentContentIndex++;
 
 		// Each time we step off the end, we fall out to the next container, all
@@ -1211,13 +1211,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				if (state.tryExitExternalFunctionEvaluation()) {
 					break;
-				} else if (state.getCallStack().currentElement().type != popType || !state.getCallStack().canPop()) {
+				} else if (state.getCallStack().getCurrentElement().type != popType || !state.getCallStack().canPop()) {
 
 					HashMap<PushPopType, String> names = new HashMap<PushPopType, String>();
 					names.put(PushPopType.Function, "function return statement (~ return)");
 					names.put(PushPopType.Tunnel, "tunnel onwards statement (->->)");
 
-					String expected = names.get(state.getCallStack().currentElement().type);
+					String expected = names.get(state.getCallStack().getCurrentElement().type);
 					if (!state.getCallStack().canPop()) {
 						expected = "end of flow (-> END or choice)";
 					}
@@ -1699,12 +1699,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				break;
 
 			currentContentObj = currentContainer.getContent().get(0);
-			state.getCallStack().currentElement().currentContentIndex = 0;
-			state.getCallStack().currentElement().currentContainer = currentContainer;
+			state.getCallStack().getCurrentElement().currentContentIndex = 0;
+			state.getCallStack().getCurrentElement().currentContainer = currentContainer;
 
 			currentContainer = currentContentObj instanceof Container ? (Container) currentContentObj : null;
 		}
-		currentContainer = state.getCallStack().currentElement().currentContainer;
+		currentContainer = state.getCallStack().getCurrentElement().currentContainer;
 
 		// Is the current content Object:
 		// - Normal content

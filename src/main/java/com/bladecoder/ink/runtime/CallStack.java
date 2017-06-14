@@ -183,7 +183,7 @@ class CallStack {
 		if (type == null)
 			return true;
 
-		return currentElement().type == type;
+		return getCurrentElement().type == type;
 	}
 
 	public boolean canPopThread() {
@@ -197,8 +197,8 @@ class CallStack {
 	public int contextForVariableNamed(String name) {
 		// Current temporary context?
 		// (Shouldn't attempt to access contexts higher in the callstack.)
-		if (currentElement().temporaryVariables.containsKey(name)) {
-			return currentElementIndex() + 1;
+		if (getCurrentElement().temporaryVariables.containsKey(name)) {
+			return getCurrentElementIndex() + 1;
 		}
 
 		// Global
@@ -206,12 +206,16 @@ class CallStack {
 			return 0;
 		}
 	}
+	
+	public int getDepth() {
+		return getElements().size();
+	}
 
-	public Element currentElement() {
+	public Element getCurrentElement() {
 		return getCallStack().get(getCallStack().size() - 1);
 	}
 
-	public int currentElementIndex() {
+	public int getCurrentElementIndex() {
 		return getCallStack().size() - 1;
 	}
 
@@ -251,7 +255,7 @@ class CallStack {
 	// Get variable value, dereferencing a variable pointer if necessary
 	public RTObject getTemporaryVariableWithName(String name, int contextIndex) {
 		if (contextIndex == -1)
-			contextIndex = currentElementIndex() + 1;
+			contextIndex = getCurrentElementIndex() + 1;
 
 		Element contextElement = getCallStack().get(contextIndex - 1);
 		RTObject varValue = contextElement.temporaryVariables.get(name);
@@ -285,7 +289,7 @@ class CallStack {
 		// jump
 		// out of expressions by default
 		getCallStack()
-				.add(new Element(type, currentElement().currentContainer, currentElement().currentContentIndex, false));
+				.add(new Element(type, getCurrentElement().currentContainer, getCurrentElement().currentContentIndex, false));
 	}
 
 	public void pushThread() {
@@ -327,7 +331,7 @@ class CallStack {
 	public void setTemporaryVariable(String name, RTObject value, boolean declareNew, int contextIndex)
 			throws StoryException, Exception {
 		if (contextIndex == -1)
-			contextIndex = currentElementIndex() + 1;
+			contextIndex = getCurrentElementIndex() + 1;
 
 		Element contextElement = getCallStack().get(contextIndex - 1);
 

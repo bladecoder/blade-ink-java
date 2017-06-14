@@ -130,7 +130,7 @@ public class VariablesState implements Iterable<String> {
 		if (globalVariables.containsKey(varName))
 			return 0;
 
-		return callStack.currentElementIndex();
+		return callStack.getCurrentElementIndex();
 	}
 
 	public HashMap<String, Object> getjsonToken() throws Exception {

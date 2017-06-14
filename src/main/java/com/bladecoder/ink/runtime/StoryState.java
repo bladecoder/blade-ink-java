@@ -74,6 +74,10 @@ public class StoryState {
 
 		goToStart();
 	}
+	
+	int getCallStackDepth() {
+		return callStack.getDepth();
+	}
 
 	void addError(String message) {
 		// TODO: Could just add to output?
@@ -125,7 +129,7 @@ public class StoryState {
 	}
 
 	Container currentContainer() {
-		return callStack.currentElement().currentContainer;
+		return callStack.getCurrentElement().currentContainer;
 	}
 
 	int currentGlueIndex() {
@@ -187,7 +191,7 @@ public class StoryState {
 	}
 
 	RTObject getCurrentContentObject() {
-		return callStack.currentElement().getCurrentRTObject();
+		return callStack.getCurrentElement().getCurrentRTObject();
 	}
 
 	Path getCurrentPath() {
@@ -218,7 +222,7 @@ public class StoryState {
 	}
 
 	boolean getInExpressionEvaluation() {
-		return callStack.currentElement().inExpressionEvaluation;
+		return callStack.getCurrentElement().inExpressionEvaluation;
 	}
 
 	/**
@@ -281,8 +285,8 @@ public class StoryState {
 	}
 
 	void goToStart() {
-		callStack.currentElement().currentContainer = story.mainContentContainer();
-		callStack.currentElement().currentContentIndex = 0;
+		callStack.getCurrentElement().currentContainer = story.mainContentContainer();
+		callStack.getCurrentElement().currentContentIndex = 0;
 	}
 
 	boolean hasError() {
@@ -590,7 +594,7 @@ public class StoryState {
 
 		// Create a new base call stack element.
 		callStack = new CallStack(funcContainer);
-		callStack.currentElement().type = PushPopType.Function;
+		callStack.getCurrentElement().type = PushPopType.Function;
 		
 		// Change the callstack the variableState is looking at to be
 		// this temporary function evaluation one. We'll restore it afterwards
@@ -620,7 +624,7 @@ public class StoryState {
 
 	boolean tryExitExternalFunctionEvaluation() {
 		if (isExternalFunctionEvaluation && callStack.getElements().size() == 1
-				&& callStack.currentElement().type == PushPopType.Function) {
+				&& callStack.getCurrentElement().type == PushPopType.Function) {
 			setCurrentContentObject(null);
 			didSafeExit = true;
 			return true;
@@ -677,7 +681,7 @@ public class StoryState {
 	}
 
 	void setCurrentContentObject(RTObject value) {
-		callStack.currentElement().setcurrentRTObject(value);
+		callStack.getCurrentElement().setcurrentRTObject(value);
 	}
 
 	void setCurrentPath(Path value) throws Exception {
@@ -688,7 +692,7 @@ public class StoryState {
 	}
 
 	void setInExpressionEvaluation(boolean value) {
-		callStack.currentElement().inExpressionEvaluation = value;
+		callStack.getCurrentElement().inExpressionEvaluation = value;
 	}
 
 	@SuppressWarnings("unchecked")
