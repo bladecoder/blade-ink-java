@@ -141,6 +141,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (dm != null) {
 			int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
 			message = String.format("RUNTIME ERROR: '%s' line %d: %s", dm.fileName, lineNum, message);
+		} else if( state.getCurrentPath() != null  ) {
+			message = String.format ("RUNTIME ERROR: (%s): %s", state.getCurrentPath().toString(), message);
 		} else {
 			message = "RUNTIME ERROR: " + message;
 		}
