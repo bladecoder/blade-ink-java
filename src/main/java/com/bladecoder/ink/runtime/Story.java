@@ -1439,6 +1439,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				if (o instanceof StringValue)
 					listNameVal = (StringValue) o;
+				
+				if(intVal == null) {
+					throw new StoryException ("Passed non-integer when creating a list element from a numerical value."); 
+				}
 
 				ListValue generatedListValue = null;
 
