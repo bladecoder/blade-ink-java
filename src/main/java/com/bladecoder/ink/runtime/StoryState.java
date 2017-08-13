@@ -112,6 +112,7 @@ public class StoryState {
 		copy.variablesState.copyFrom(variablesState);
 
 		copy.evaluationStack.addAll(evaluationStack);
+		copy.originalEvaluationStackHeight = originalEvaluationStackHeight;
 
 		if (getDivertedTargetObject() != null)
 			copy.setDivertedTargetObject(divertedTargetObject);
