@@ -106,6 +106,7 @@ public class StoryState {
 		}
 
 		copy.callStack = new CallStack(callStack);
+		copy.originalCallstack = originalCallstack;
 
 		copy.variablesState = new VariablesState(copy.callStack, story.getListDefinitions());
 		copy.variablesState.copyFrom(variablesState);
