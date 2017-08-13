@@ -49,24 +49,24 @@ public class Container extends RTObject implements INamedContent {
 
 	public HashMap<String, RTObject> getNamedOnlyContent() {
 
-		HashMap<String, RTObject> namedOnlyContent = new HashMap<String, RTObject>();
+		HashMap<String, RTObject> namedOnlyContentDict = new HashMap<String, RTObject>();
 
 		for (Entry<String, INamedContent> kvPair : getNamedContent().entrySet()) {
-			namedOnlyContent.put(kvPair.getKey(), (RTObject) kvPair.getValue());
+			namedOnlyContentDict.put(kvPair.getKey(), (RTObject) kvPair.getValue());
 		}
 
 		for (RTObject c : getContent()) {
 			INamedContent named = c instanceof INamedContent ? (INamedContent) c : (INamedContent) null;
 			if (named != null && named.hasValidName()) {
-				namedOnlyContent.remove(named.getName());
+				namedOnlyContentDict.remove(named.getName());
 			}
 
 		}
 
-		if (namedOnlyContent.size() == 0)
-			namedOnlyContent = null;
+		if (namedOnlyContentDict.size() == 0)
+			namedOnlyContentDict = null;
 
-		return namedOnlyContent;
+		return namedOnlyContentDict;
 	}
 
 	public void setNamedOnlyContent(HashMap<String, RTObject> value) {
@@ -346,6 +346,7 @@ public class Container extends RTObject implements INamedContent {
 				onlyNamed.put(objKV.getKey(), objKV.getValue());
 			}
 		}
+		
 		if (onlyNamed.size() > 0) {
 			appendIndentation(sb, indentation);
 
