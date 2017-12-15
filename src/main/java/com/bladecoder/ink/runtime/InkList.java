@@ -19,7 +19,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	// necessary for certain operations (e.g. interacting with ints).
 	// Only the story has access to the full set of lists, so that
 	// the origin can be resolved from the originListName.
-	public List<ListDefinition> origins;
+	private List<ListDefinition> origins;
 
 	// Origin name needs to be serialised when content is empty,
 	// assuming a name is availble, for list definitions with variable
@@ -74,8 +74,16 @@ public class InkList extends HashMap<InkListItem, Integer> {
 
 		return null;
 	}
+	
+	public void setOrigins(List<ListDefinition> origins) {
+		this.origins = origins;
+	}
+	
+	public List<ListDefinition> getOrigins() {
+		return origins;
+	}
 
-	List<String> getOriginNames() {
+	public List<String> getOriginNames() {
 		if (this.size() > 0) {
 			if (originNames == null && this.size() > 0)
 				originNames = new ArrayList<String>();

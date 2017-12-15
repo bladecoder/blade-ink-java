@@ -652,7 +652,7 @@ public class NativeFunctionCall extends RTObject {
 			// Find this item's origin (linear search should be ok, should be
 			// short haha)
 			ListDefinition itemOrigin = null;
-			for (ListDefinition origin : listVal.getValue().origins) {
+			for (ListDefinition origin : listVal.getValue().getOrigins()) {
 				if (origin.getName().equals(listItem.getOriginName())) {
 					itemOrigin = origin;
 					break;

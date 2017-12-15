@@ -471,7 +471,7 @@ public class StoryState {
 					if (!origins.contains(def))
 						origins.add(def);
 				}
-				rawList.origins = origins;
+				rawList.setOrigins(origins);
 			}
 		}
 
