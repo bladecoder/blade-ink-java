@@ -175,6 +175,10 @@ public class Divert extends RTObject {
 				}
 
 				sb.append("Divert");
+				
+				if (isConditional)
+					sb.append('?');
+				
 				if (getPushesToStack()) {
 					if (getStackPushType() == PushPopType.Function) {
 						sb.append(" function");
@@ -183,6 +187,9 @@ public class Divert extends RTObject {
 					}
 				}
 
+				sb.append (" -> ");
+				sb.append (getTargetPathString());
+				
 				sb.append(" (");
 				sb.append(targetStr);
 				sb.append(")");
