@@ -170,17 +170,19 @@ public class Container extends RTObject implements INamedContent {
 	Path _pathToFirstLeafContent;
 
 	Path getInternalPathToFirstLeafContent() {
-		Path path = new Path();
+		 List<Component> components = new ArrayList<Path.Component>();
+		
 		Container container = this;
 		while (container != null) {
 			if (container.getContent().size() > 0) {
-				path.getComponents().add(new com.bladecoder.ink.runtime.Path.Component(0));
+				components.add(new Path.Component(0));
 				container = container.getContent().get(0) instanceof Container
 						? (Container) container.getContent().get(0) : (Container) null;
 			}
 
 		}
-		return path;
+		
+		return new Path(components);
 	}
 
 	public void addContent(RTObject contentObj) throws Exception {
@@ -270,12 +272,13 @@ public class Container extends RTObject implements INamedContent {
 
 	public RTObject contentAtPath(Path path, int partialPathLength) throws Exception {
 		if (partialPathLength == -1)
-			partialPathLength = path.getComponents().size();
+			partialPathLength = path.getComponentCount();
 
 		Container currentContainer = this;
 		RTObject currentObj = this;
+		
 		for (int i = 0; i < partialPathLength; ++i) {
-			Component comp = path.getComponents().get(i);
+			Component comp = path.getComponent(i);
 			if (currentContainer == null)
 				throw new Exception("Path continued, but previous RTObject wasn't a container: " + currentObj);
 

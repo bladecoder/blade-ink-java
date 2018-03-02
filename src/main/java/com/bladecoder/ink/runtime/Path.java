@@ -8,27 +8,28 @@ public class Path {
 	private final static String PARENT_ID = "^";
 
 	private List<Component> components;
-	private boolean isRelative;
+	private boolean isRelative = false;
+	private String componentsString;
 
 	public Path() {
-		setComponents(new ArrayList<Component>());
+		components = new ArrayList<Component>();
 	}
 
 	public Path(Component head, Path tail) {
 		this();
 
-		getComponents().add(head);
-		getComponents().addAll(tail.getComponents());
+		components.add(head);
+		components.addAll(tail.components);
 	}
 
 	public Path(Collection<Component> components) {
 		this(components, false);
 	}
-	
+
 	public Path(Collection<Component> components, boolean relative) {
 		this();
-		getComponents().addAll(components);
-		
+		this.components.addAll(components);
+
 		this.isRelative = relative;
 	}
 
@@ -37,12 +38,12 @@ public class Path {
 		setComponentsString(componentsString);
 	}
 
-	public List<Component> getComponents() {
-		return components;
+	public int getComponentCount() {
+		return components.size();
 	}
 
-	private void setComponents(List<Component> value) {
-		components = value;
+	public Component getComponent(int index) {
+		return components.get(index);
 	}
 
 	public boolean isRelative() {
@@ -54,16 +55,16 @@ public class Path {
 	}
 
 	public Component getHead() {
-		if (getComponents().size() > 0) {
-			return getComponents().get(0);
+		if (components.size() > 0) {
+			return components.get(0);
 		} else {
 			return null;
 		}
 	}
 
 	public Path getTail() {
-		if (getComponents().size() >= 2) {
-			List<Component> tailComps = getComponents().subList(1, getComponents().size());
+		if (components.size() >= 2) {
+			List<Component> tailComps = components.subList(1, components.size());
 
 			return new Path(tailComps);
 		} else {
@@ -72,19 +73,19 @@ public class Path {
 	}
 
 	public int getLength() {
-		return getComponents().size();
+		return components.size();
 	}
 
 	public Component getLastComponent() {
-		if (getComponents().size() > 0) {
-			return getComponents().get(getComponents().size() - 1);
-		} else {
+		int lastComponentIdx = components.size() - 1;
+		if (lastComponentIdx >= 0)
+			return components.get(lastComponentIdx);
+		else
 			return null;
-		}
 	}
 
 	public boolean containsNamedComponent() {
-		for (Component comp : getComponents()) {
+		for (Component comp : components) {
 			if (!comp.isIndex()) {
 				return true;
 			}
@@ -102,75 +103,75 @@ public class Path {
 	public Path pathByAppendingPath(Path pathToAppend) {
 		Path p = new Path();
 		int upwardMoves = 0;
-		for (int i = 0; i < pathToAppend.getComponents().size(); ++i) {
-			if (pathToAppend.getComponents().get(i).isParent()) {
+		for (int i = 0; i < pathToAppend.components.size(); ++i) {
+			if (pathToAppend.components.get(i).isParent()) {
 				upwardMoves++;
 			} else {
 				break;
 			}
 		}
-		for (int i = 0; i < this.getComponents().size() - upwardMoves; ++i) {
-			p.getComponents().add(this.getComponents().get(i));
+		for (int i = 0; i < this.components.size() - upwardMoves; ++i) {
+			p.components.add(this.components.get(i));
 		}
-		for (int i = upwardMoves; i < pathToAppend.getComponents().size(); ++i) {
-			p.getComponents().add(pathToAppend.getComponents().get(i));
+		for (int i = upwardMoves; i < pathToAppend.components.size(); ++i) {
+			p.components.add(pathToAppend.components.get(i));
 		}
 		return p;
 	}
 
 	public String getComponentsString() {
-		// String compsStr = String.join(".", getcomponents().toArray());
+		if (componentsString == null) {
+			StringBuilder sb = new StringBuilder();
+			
+			if (components.size() > 0) {
 
-		StringBuilder sb = new StringBuilder();
+				sb.append(components.get(0));
 
-		if (getComponents().size() > 0) {
-
-			sb.append(getComponents().get(0));
-
-			for (int i = 1; i < getComponents().size(); i++) {
-				sb.append('.');
-				sb.append(getComponents().get(i));
+				for (int i = 1; i < components.size(); i++) {
+					sb.append('.');
+					sb.append(components.get(i));
+				}
 			}
+
+			componentsString = sb.toString();
+
+			if (isRelative)
+				componentsString = "." + componentsString;
 		}
 
-		String compsStr = sb.toString();
-
-		if (isRelative())
-			return "." + compsStr;
-		else
-			return compsStr;
+		return componentsString;
 	}
 
 	private void setComponentsString(String value) {
-		getComponents().clear();
-		String componentsStr = value;
+		components.clear();
+		componentsString = value;
 
 		// Empty path, empty components
 		// (path is to root, like "/" in file system)
-		if (componentsStr == null || componentsStr.isEmpty())
+		if (componentsString == null || componentsString.isEmpty())
 			return;
 
 		// When components start with ".", it indicates a relative path, e.g.
 		// .^.^.hello.5
 		// is equivalent to file system style path:
 		// ../../hello/5
-		if (componentsStr.charAt(0) == '.') {
+		if (componentsString.charAt(0) == '.') {
 			setRelative(true);
-			componentsStr = componentsStr.substring(1);
+			componentsString = componentsString.substring(1);
 		} else {
 			setRelative(false);
 		}
 
-		String[] componentStrings = componentsStr.split("\\.");
+		String[] componentStrings = componentsString.split("\\.");
 
 		for (String str : componentStrings) {
 			int index = 0;
 
 			try {
 				index = Integer.parseInt(str);
-				getComponents().add(new Component(index));
+				components.add(new Component(index));
 			} catch (NumberFormatException e) {
-				getComponents().add(new Component(str));
+				components.add(new Component(str));
 			}
 		}
 	}
@@ -189,16 +190,16 @@ public class Path {
 		if (otherPath == null)
 			return false;
 
-		if (otherPath.getComponents().size() != this.getComponents().size())
+		if (otherPath.components.size() != this.components.size())
 			return false;
 
 		if (otherPath.isRelative() != this.isRelative())
 			return false;
 
 		// return
-		// otherPath.getcomponents().SequenceEqual(this.getcomponents());
-		for (int i = 0; i < otherPath.getComponents().size(); i++) {
-			if (!otherPath.getComponents().get(i).equals(getComponents().get(i)))
+		// otherPath.components.SequenceEqual(this.components);
+		for (int i = 0; i < otherPath.components.size(); i++) {
+			if (!otherPath.components.get(i).equals(components.get(i)))
 				return false;
 		}
 
