@@ -292,4 +292,8 @@ public class VariablesState implements Iterable<String> {
 	public void setVariableChangedEvent(VariableChanged variableChangedEvent) {
 		this.variableChangedEvent = variableChangedEvent;
 	}
+
+	boolean globalVariableExistsWithName(String name) {
+		return globalVariables.containsKey(name);
+	}
 }

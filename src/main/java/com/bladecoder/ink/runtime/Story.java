@@ -853,10 +853,15 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *            The name of the global variable to observe.
 	 * @param observer
 	 *            A delegate function to call when the variable changes.
+	 * @throws Exception 
+	 * @throws StoryException 
 	 */
-	public void observeVariable(String variableName, VariableObserver observer) {
+	public void observeVariable(String variableName, VariableObserver observer) throws StoryException, Exception {
 		if (variableObservers == null)
 			variableObservers = new HashMap<String, List<VariableObserver>>();
+		
+		if( !state.getVariablesState().globalVariableExistsWithName(variableName) ) 
+			throw new StoryException("Cannot observe variable '" + variableName + "' because it wasn't declared in the ink story.");
 
 		if (variableObservers.containsKey(variableName)) {
 			variableObservers.get(variableName).add(observer);
@@ -878,8 +883,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @param observer
 	 *            The delegate function to call when any of the named variables
 	 *            change.
+	 * @throws Exception 
+	 * @throws StoryException 
 	 */
-	public void observeVariables(List<String> variableNames, VariableObserver observer) {
+	public void observeVariables(List<String> variableNames, VariableObserver observer) throws StoryException, Exception {
 		for (String varName : variableNames) {
 			observeVariable(varName, observer);
 		}
