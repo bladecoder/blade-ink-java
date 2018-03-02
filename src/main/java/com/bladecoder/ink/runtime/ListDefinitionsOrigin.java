@@ -7,16 +7,29 @@ import java.util.Map.Entry;
 
 public class ListDefinitionsOrigin {
 	private HashMap<String, ListDefinition> lists;
+	private HashMap<String, ListValue> allUnambiguousListValueCache;
 
 	public ListDefinitionsOrigin(List<ListDefinition> lists) {
 		this.lists = new HashMap<String, ListDefinition>();
+		allUnambiguousListValueCache = new HashMap<String, ListValue>();
 
 		for (ListDefinition list : lists) {
 			this.lists.put(list.getName(), list);
+
+			for (Entry<InkListItem, Integer> itemWithValue : list.getItems().entrySet()) {
+				InkListItem item = itemWithValue.getKey();
+				Integer val = itemWithValue.getValue();
+				ListValue listValue = new ListValue(item, val);
+
+				// May be ambiguous, but compiler should've caught that,
+				// so we may be doing some replacement here, but that's okay.
+				allUnambiguousListValueCache.put(item.getItemName(), listValue);
+				allUnambiguousListValueCache.put(item.getFullName(), listValue);
+			}
 		}
 	}
 
-	public ListDefinition getDefinition(String name) {
+	public ListDefinition getListDefinition(String name) {
 		return lists.get(name);
 	}
 
@@ -25,37 +38,16 @@ public class ListDefinitionsOrigin {
 		for (ListDefinition namedList : lists.values()) {
 			listOfLists.add(namedList);
 		}
-		
+
 		return listOfLists;
 	}
 
 	ListValue findSingleItemListWithName(String name) {
-		InkListItem item = InkListItem.getNull();
-		ListDefinition list = null;
-		String[] nameParts = name.split("\\.");
+		ListValue val = null;
 		
-		if (nameParts.length == 2) {
-			item = new InkListItem(nameParts[0], nameParts[1]);
-			list = getDefinition(item.getOriginName());
-		} else {
-			for (Entry<String, ListDefinition> namedList : lists.entrySet()) {
-				ListDefinition listWithItem = namedList.getValue();
-				item = new InkListItem(namedList.getKey(), name);
-				
-				if (listWithItem.containsItem(item)) {
-					list = listWithItem;
-					break;
-				}
-			}
-		}
-
-		// Manager to get the list that contains the given item?
-		if (list != null) {
-			Integer itemValue = list.getValueForItem(item);
-			return new ListValue(item, itemValue != null? itemValue:0);
-		}
-
-		return null;
+		val = allUnambiguousListValueCache.get(name);
+		
+		return val;
 	}
 
 }

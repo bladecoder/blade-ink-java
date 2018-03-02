@@ -1448,7 +1448,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				ListValue generatedListValue = null;
 
-				ListDefinition foundListDef = listsDefinitions.getDefinition(listNameVal.value);
+				ListDefinition foundListDef = listsDefinitions.getListDefinition(listNameVal.value);
 
 				if (foundListDef != null) {
 					InkListItem foundItem;

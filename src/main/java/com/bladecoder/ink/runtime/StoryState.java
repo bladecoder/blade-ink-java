@@ -74,7 +74,7 @@ public class StoryState {
 
 		goToStart();
 	}
-	
+
 	int getCallStackDepth() {
 		return callStack.getDepth();
 	}
@@ -106,7 +106,7 @@ public class StoryState {
 		}
 
 		copy.callStack = new CallStack(callStack);
-		if(originalCallstack != null)
+		if (originalCallstack != null)
 			copy.originalCallstack = new CallStack(originalCallstack);
 
 		copy.variablesState = new VariablesState(copy.callStack, story.getListDefinitions());
@@ -170,12 +170,11 @@ public class StoryState {
 	}
 
 	/**
-	 * Ends the current ink flow, unwrapping the callstack but without affecting
-	 * any variables. Useful if the ink is (say) in the middle a nested tunnel,
-	 * and you want it to reset so that you can divert elsewhere using
-	 * ChoosePathString(). Otherwise, after finishing the content you diverted
-	 * to, it would continue where it left off. Calling this is equivalent to
-	 * calling -&gt; END in ink.
+	 * Ends the current ink flow, unwrapping the callstack but without affecting any
+	 * variables. Useful if the ink is (say) in the middle a nested tunnel, and you
+	 * want it to reset so that you can divert elsewhere using ChoosePathString().
+	 * Otherwise, after finishing the content you diverted to, it would continue
+	 * where it left off. Calling this is equivalent to calling -&gt; END in ink.
 	 */
 	public void forceEnd() throws Exception {
 
@@ -229,10 +228,10 @@ public class StoryState {
 	}
 
 	/**
-	 * Object representation of full JSON state. Usually you should use LoadJson
-	 * and ToJson since they serialise directly to String for you. But it may be
-	 * useful to get the object representation so that you can integrate it into
-	 * your own serialisation system.
+	 * Object representation of full JSON state. Usually you should use LoadJson and
+	 * ToJson since they serialise directly to String for you. But it may be useful
+	 * to get the object representation so that you can integrate it into your own
+	 * serialisation system.
 	 */
 	public HashMap<String, Object> getJsonToken() throws Exception {
 
@@ -463,15 +462,18 @@ public class StoryState {
 			// Update origin when list is has something to indicate the list
 			// origin
 			InkList rawList = listValue.getValue();
-			List<String> names = rawList.getOriginNames();
-			if (names != null) {
-				ArrayList<ListDefinition> origins = new ArrayList<ListDefinition>();
-				for (String n : names) {
-					ListDefinition def = story.getListDefinitions().getDefinition(n);
-					if (!origins.contains(def))
-						origins.add(def);
+			
+			if(rawList.getOriginNames() != null) {				
+				
+				if( rawList.getOrigins() == null )  rawList.setOrigins(new ArrayList<ListDefinition>());
+				rawList.getOrigins().clear();
+				
+				for ( String n : rawList.getOriginNames()) {
+					ListDefinition def = story.getListDefinitions().getListDefinition(n);
+					if( !rawList.getOrigins().contains(def) )
+						rawList.getOrigins().add (def);
+			
 				}
-				rawList.setOrigins(origins);
 			}
 		}
 
@@ -598,7 +600,7 @@ public class StoryState {
 		// Create a new base call stack element.
 		callStack = new CallStack(funcContainer);
 		callStack.getCurrentElement().type = PushPopType.Function;
-		
+
 		// Change the callstack the variableState is looking at to be
 		// this temporary function evaluation one. We'll restore it afterwards
 		variablesState.setCallStack(callStack);
@@ -925,13 +927,13 @@ public class StoryState {
 	}
 
 	/**
-	 * Gets the visit/read count of a particular Container at the given path.
-	 * For a knot or stitch, that path String will be in the form:
+	 * Gets the visit/read count of a particular Container at the given path. For a
+	 * knot or stitch, that path String will be in the form:
 	 *
 	 * knot knot.stitch
 	 * 
-	 * @return The number of times the specific knot or stitch has been
-	 *         enountered by the ink engine.
+	 * @return The number of times the specific knot or stitch has been enountered
+	 *         by the ink engine.
 	 * 
 	 * @param pathString
 	 *            The dot-separated path String of the specific knot or stitch.

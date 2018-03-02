@@ -44,7 +44,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	public InkList(String singleOriginListName, Story originStory) throws Exception {
 		setInitialOriginName(singleOriginListName);
 
-		ListDefinition def = originStory.getListDefinitions().getDefinition(singleOriginListName);
+		ListDefinition def = originStory.getListDefinitions().getListDefinition(singleOriginListName);
 
 		if (def != null) {
 			origins = new ArrayList<ListDefinition>();
