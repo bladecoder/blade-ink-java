@@ -83,7 +83,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	private boolean asyncContinueActive;
 	StoryState stateAtLastNewline = null;
-	
+
 	private int recursiveContinueCount = 0;
 
 	// Warning: When creating a Story using this constructor, you need to
@@ -421,9 +421,16 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Change the current position of the story to the given path. From here you can
-	 * call Continue() to evaluate the next line. The path String is a dot-separated
-	 * path as used ly by the engine. These examples should work:
+	 * Change the current position of the story to the given path.
+	 * 
+	 * WARNING: This is potentially dangerous! If you're in the middle of a tunnel,
+	 * it'll redirect only the inner-most tunnel, meaning that when you
+	 * tunnel-return using '->->', it'll return to where you were before. This may
+	 * be what you want though! If you want to reset the callstack (equivalent to
+	 * calling -> END) beforehand, use ResetCallstack().
+	 * 
+	 * From here you can call Continue() to evaluate the next line. The path String
+	 * is a dot-separated path as used ly by the engine. These examples should work:
 	 *
 	 * myKnot myKnot.myStitch
 	 *
@@ -441,6 +448,20 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	public void choosePathString(String path, Object[] arguments) throws Exception {
 		ifAsyncWeCant("call ChoosePathString right now");
+
+		// ChoosePathString is potentially dangerous since you can call it when the
+		// stack is
+		// pretty much in any state. Let's catch one of the worst offenders.
+		if (state.getCallStack().getCurrentElement().type == PushPopType.Function) {
+			String funcDetail = "";
+			Container container = state.getCallStack().getCurrentElement().currentContainer;
+			if (container != null) {
+				funcDetail = "(" + container.getPath().toString() + ") ";
+			}
+			throw new Exception("Story was running a function " + funcDetail + "when you called ChoosePathString("
+					+ path + ") - this is almost certainly not not what you want! Full stack trace: \n"
+					+ state.getCallStack().getCallStackTrace());
+		}
 
 		state.passArgumentsToEvaluationStack(arguments);
 		choosePath(new Path(path));
@@ -508,7 +529,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			profiler.preContinue();
 
 		boolean isAsyncTimeLimited = millisecsLimitAsync > 0;
-		
+
 		recursiveContinueCount++;
 
 		// Doing either:
@@ -520,11 +541,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				throw new StoryException("Can't continue - should check canContinue before calling Continue");
 			}
 
-			
 			state.setDidSafeExit(false);
-			
+
 			state.resetOutput();
-			
+
 			// It's possible for ink to call game to call ink to call game etc
 			// In this case, we only want to batch observe variable changes
 			// for the outermost call.
@@ -593,9 +613,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				state.getVariablesState().setbatchObservingVariableChanges(false);
 			asyncContinueActive = false;
 		}
-		
+
 		recursiveContinueCount--;
-		
+
 		if (profiler != null)
 			profiler.postContinue();
 	}
@@ -2235,8 +2255,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		// Snapshot the output stream
 		ArrayList<RTObject> outputStreamBefore = new ArrayList<RTObject>(state.getOutputStream());
-		state.resetOutput ();
-		
+		state.resetOutput();
+
 		// State will temporarily replace the callstack in order to evaluate
 		state.startFunctionEvaluationFromGame(funcContainer, arguments);
 
@@ -2247,7 +2267,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			if (textOutput != null)
 				textOutput.append(text);
 		}
-		
+
 		// Restore the output stream in case this was called
 		// during main story evaluation.
 		state.resetOutput(outputStreamBefore);
