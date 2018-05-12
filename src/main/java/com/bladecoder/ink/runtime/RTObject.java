@@ -139,7 +139,7 @@ public class RTObject {
 		// 2. Drill up using ".." style (actually represented as "^")
 		// 3. Re-build downward chain from common ancestor
 		Path ownPath = this.getPath();
-		int minPathLength = Math.min(globalPath.getComponentCount(), ownPath.getComponentCount());
+		int minPathLength = Math.min(globalPath.getLength(), ownPath.getLength());
 		int lastSharedPathCompIndex = -1;
 		for (int i = 0; i < minPathLength; ++i) {
 			Component ownComp = ownPath.getComponent(i);
@@ -155,13 +155,13 @@ public class RTObject {
 		if (lastSharedPathCompIndex == -1)
 			return globalPath;
 
-		int numUpwardsMoves = (ownPath.getComponentCount() - 1) - lastSharedPathCompIndex;
+		int numUpwardsMoves = (ownPath.getLength() - 1) - lastSharedPathCompIndex;
 		ArrayList<Component> newPathComps = new ArrayList<com.bladecoder.ink.runtime.Path.Component>();
 		
 		for (int up = 0; up < numUpwardsMoves; ++up)
 			newPathComps.add(Path.Component.toParent());
 		
-		for (int down = lastSharedPathCompIndex + 1; down < globalPath.getComponentCount(); ++down)
+		for (int down = lastSharedPathCompIndex + 1; down < globalPath.getLength(); ++down)
 			newPathComps.add(globalPath.getComponent(down));
 		
 		Path relativePath = new Path(newPathComps, true);

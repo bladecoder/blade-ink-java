@@ -53,7 +53,10 @@ public class Profiler {
 
 	private List<StepDetails> stepDetails = new ArrayList<StepDetails>();
 
-	ProfileNode getRootNode() {
+	/**
+	 *  The root node in the hierarchical tree of recorded ink timings.
+	 */
+	public ProfileNode getRootNode() {
 		return rootNode;
 	}
 
@@ -103,7 +106,7 @@ public class Profiler {
 			Path objPath = callstack.getElements().get(i).getCurrentRTObject().getPath();
 			String stackElementName = "";
 
-			for (int c = 0; c < objPath.getComponentCount(); c++) {
+			for (int c = 0; c < objPath.getLength(); c++) {
 				Component comp = objPath.getComponent(c);
 				if (!comp.isIndex()) {
 					stackElementName = comp.getName();
@@ -143,7 +146,7 @@ public class Profiler {
 	 * This report type is primarily used to profile the ink engine itself rather
 	 * than your own specific ink.
 	 */
-	String stepLengthReport() {
+	public String stepLengthReport() {
 		StringBuilder sb = new StringBuilder();
 
 		HashMap<String, Double> typeToDetails = new HashMap<String, Double>();

@@ -38,10 +38,6 @@ public class Path {
 		setComponentsString(componentsString);
 	}
 
-	public int getComponentCount() {
-		return components.size();
-	}
-
 	public Component getComponent(int index) {
 		return components.get(index);
 	}

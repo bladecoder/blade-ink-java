@@ -272,7 +272,7 @@ public class Container extends RTObject implements INamedContent {
 
 	public RTObject contentAtPath(Path path, int partialPathLength) throws Exception {
 		if (partialPathLength == -1)
-			partialPathLength = path.getComponentCount();
+			partialPathLength = path.getLength();
 
 		Container currentContainer = this;
 		RTObject currentObj = this;
