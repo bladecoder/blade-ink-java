@@ -6,6 +6,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.bladecoder.ink.runtime.Profiler;
 import com.bladecoder.ink.runtime.Story;
 import com.bladecoder.ink.runtime.Story.ExternalFunction;
 import com.bladecoder.ink.runtime.Story.VariableObserver;
@@ -176,6 +177,37 @@ public class RuntimeSpecTest {
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals("Two", text.get(0));
 	}
+	
+	/**
+	 * Test the Profiler.
+	 */
+	@Test
+	public void profiler() throws Exception {
+		List<String> text = new ArrayList<String>();
+
+		String json = TestUtils.getJsonString("inkfiles/runtime/jump-knot.ink.json");
+		Story story = new Story(json);
+		
+		Profiler profiler = story.startProfiling();
+
+		story.choosePathString("two");
+		TestUtils.nextAll(story, text);
+
+		story.choosePathString("three");
+		TestUtils.nextAll(story, text);
+
+		story.choosePathString("one");
+		TestUtils.nextAll(story, text);
+
+		story.choosePathString("two");
+		TestUtils.nextAll(story, text);
+		
+		String reportStr = profiler.report();
+		
+		story.endProfiling();
+		
+		System.out.println("PROFILER REPORT: " + reportStr);
+	}	
 
 	/**
 	 * Jump to stitch from code.

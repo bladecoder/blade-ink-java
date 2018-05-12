@@ -17,10 +17,9 @@ import com.bladecoder.ink.runtime.CallStack.Element;
  */
 public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
-	 * General purpose delegate definition for bound EXTERNAL function
-	 * definitions from ink. Note that this version isn't necessary if you have
-	 * a function with three arguments or less - see the overloads of
-	 * BindExternalFunction.
+	 * General purpose delegate definition for bound EXTERNAL function definitions
+	 * from ink. Note that this version isn't necessary if you have a function with
+	 * three arguments or less - see the overloads of BindExternalFunction.
 	 */
 	public interface ExternalFunction {
 		Object call(Object[] args) throws Exception;
@@ -51,8 +50,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public static final int inkVersionCurrent = 17;
 
 	/**
-	 * The minimum legacy version of ink that can be loaded by the current
-	 * version of the code.
+	 * The minimum legacy version of ink that can be loaded by the current version
+	 * of the code.
 	 */
 	public static final int inkVersionMinimumCompatible = 16;
 
@@ -60,11 +59,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	private ListDefinitionsOrigin listsDefinitions;
 
 	/**
-	 * An ink file can provide a fallback functions for when when an EXTERNAL
-	 * has been left unbound by the client, and the fallback function will be
-	 * called instead. Useful when testing a story in playmode, when it's not
-	 * possible to write a client-side C# external function, but you don't want
-	 * it to fail to run.
+	 * An ink file can provide a fallback functions for when when an EXTERNAL has
+	 * been left unbound by the client, and the fallback function will be called
+	 * instead. Useful when testing a story in playmode, when it's not possible to
+	 * write a client-side C# external function, but you don't want it to fail to
+	 * run.
 	 */
 	private boolean allowExternalFunctionFallbacks;
 
@@ -79,6 +78,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	private HashMap<String, List<VariableObserver>> variableObservers;
 
 	private HashSet<Container> prevContainerSet;
+
+	private Profiler profiler;
 
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
@@ -130,7 +131,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 
 		mainContentContainer = Json.jTokenToRuntimeObject(rootToken) instanceof Container
-				? (Container) Json.jTokenToRuntimeObject(rootToken) : null;
+				? (Container) Json.jTokenToRuntimeObject(rootToken)
+				: null;
 
 		resetState();
 	}
@@ -141,8 +143,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (dm != null) {
 			int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
 			message = String.format("RUNTIME ERROR: '%s' line %d: %s", dm.fileName, lineNum, message);
-		} else if( state.getCurrentPath() != null  ) {
-			message = String.format ("RUNTIME ERROR: (%s): %s", state.getCurrentPath().toString(), message);
+		} else if (state.getCurrentPath() != null) {
+			message = String.format("RUNTIME ERROR: (%s): %s", state.getCurrentPath().toString(), message);
 		} else {
 			message = "RUNTIME ERROR: " + message;
 		}
@@ -151,6 +153,16 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		// In a broken state don't need to know about any other errors.
 		state.forceEnd();
+	}
+
+	public Profiler startProfiling() {
+		profiler = new Profiler();
+
+		return profiler;
+	}
+
+	public void endProfiling() {
+		profiler = null;
 	}
 
 	void Assert(boolean condition, Object... formatParams) throws Exception {
@@ -172,8 +184,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * Most general form of function binding that returns an Object and takes an
-	 * array of Object parameters. The only way to bind a function with more
-	 * than 3 arguments.
+	 * array of Object parameters. The only way to bind a function with more than 3
+	 * arguments.
 	 * 
 	 * @param funcName
 	 *            EXTERNAL ink function name to bind to.
@@ -219,8 +231,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Get any global tags associated with the story. These are defined as hash
-	 * tags defined at the very top of the story.
+	 * Get any global tags associated with the story. These are defined as hash tags
+	 * defined at the very top of the story.
 	 * 
 	 * @throws Exception
 	 */
@@ -281,10 +293,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * Useful when debugging a (very short) story, to visualise the state of the
-	 * story. Add this call as a watch and open the extended text. A left-arrow
-	 * mark will denote the current point of the story. It's only recommended
-	 * that this is used on very short debug stories, since it can end up
-	 * generate a large quantity of text otherwise.
+	 * story. Add this call as a watch and open the extended text. A left-arrow mark
+	 * will denote the current point of the story. It's only recommended that this
+	 * is used on very short debug stories, since it can end up generate a large
+	 * quantity of text otherwise.
 	 */
 	public String buildStringOfHierarchy() {
 		StringBuilder sb = new StringBuilder();
@@ -350,8 +362,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Check whether more content is available if you were to call Continue() -
-	 * i.e. are we mid story rather than at a choice point or at the end.
+	 * Check whether more content is available if you were to call Continue() - i.e.
+	 * are we mid story rather than at a choice point or at the end.
 	 * 
 	 * @return true if it's possible to call Continue()
 	 */
@@ -387,9 +399,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Change the current position of the story to the given path. From here you
-	 * can call Continue() to evaluate the next line. The path String is a
-	 * dot-separated path as used ly by the engine. These examples should work:
+	 * Change the current position of the story to the given path. From here you can
+	 * call Continue() to evaluate the next line. The path String is a dot-separated
+	 * path as used ly by the engine. These examples should work:
 	 *
 	 * myKnot myKnot.myStitch
 	 *
@@ -402,8 +414,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @param path
 	 *            A dot-separted path string, as specified above.
 	 * @param arguments
-	 *            Optional set of arguments to pass, if path is to a knot that
-	 *            takes them.
+	 *            Optional set of arguments to pass, if path is to a knot that takes
+	 *            them.
 	 */
 	public void choosePathString(String path, Object[] arguments) throws Exception {
 		state.passArgumentsToEvaluationStack(arguments);
@@ -419,10 +431,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Continue the story for one line of content, if possible. If you're not
-	 * sure if there's more content available, for example if you want to check
-	 * whether you're at a choice point or at the end of the story, you should
-	 * call canContinue before calling this function.
+	 * Continue the story for one line of content, if possible. If you're not sure
+	 * if there's more content available, for example if you want to check whether
+	 * you're at a choice point or at the end of the story, you should call
+	 * canContinue before calling this function.
 	 * 
 	 * @return The line of text content.
 	 */
@@ -436,9 +448,14 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	String continueInternal() throws StoryException, Exception {
-		if (!canContinue()) {
+		boolean canContinue_cached = canContinue();
+
+		if (!canContinue_cached) {
 			throw new StoryException("Can't continue - should check canContinue before calling Continue");
 		}
+
+		if (profiler != null)
+			profiler.preContinue();
 
 		state.resetOutput();
 
@@ -469,14 +486,25 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 			do {
 
+				if (profiler != null)
+					profiler.preStep();
+
 				// Run main step function (walks through content)
 				step();
 
+				if (profiler != null)
+					profiler.postStep();
+
 				// Run out of content and we have a default invisible choice
 				// that we can follow?
-				if (!canContinue()) {
+				canContinue_cached = canContinue();
+				if (!canContinue_cached) {
 					tryFollowDefaultInvisibleChoice();
+					canContinue_cached = canContinue();
 				}
+
+				if (profiler != null)
+					profiler.preSnapshot();
 
 				// Don't save/rewind during String evaluation, which is e.g.
 				// used for choices
@@ -530,7 +558,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 						// We're going to continue stepping in case we see glue
 						// or some
 						// non-text content such as choices.
-						if (canContinue()) {
+						if (canContinue_cached) {
 							// Don't bother to record the state beyond the
 							// current newline.
 							// e.g.:
@@ -552,11 +580,20 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				}
 
-			} while (canContinue());
+				if (profiler != null)
+					profiler.postSnapshot();
+
+			} while (canContinue_cached);
 
 			// Need to rewind, due to evaluating further than we should?
 			if (stateAtLastNewline != null) {
+				if (profiler != null)
+					profiler.preRestore();
+
 				restoreStateSnapshot(stateAtLastNewline);
+
+				if (profiler != null)
+					profiler.postRestore();
 			}
 
 			// Finished a section of content / reached a choice point?
@@ -590,13 +627,16 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			state.getVariablesState().setbatchObservingVariableChanges(false);
 		}
 
+		if (profiler != null)
+			profiler.postContinue();
+
 		return getCurrentText();
 	}
 
 	/**
 	 * Continue the story until the next choice point or until it runs out of
-	 * content. This is as opposed to the Continue() method which only evaluates
-	 * one line of output at a time.
+	 * content. This is as opposed to the Continue() method which only evaluates one
+	 * line of output at a time.
 	 * 
 	 * @return The resulting text evaluated by the ink engine, concatenated
 	 *         together.
@@ -625,7 +665,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		// Move up callstack if possible
 		for (int i = state.getCallStack().getElements().size() - 1; i >= 0; --i) {
-			RTObject currentObj = state.getCallStack().getElements().get(i).currentRTObject;
+			RTObject currentObj = state.getCallStack().getElements().get(i).getCurrentRTObject();
 			if (currentObj != null && currentObj.getDebugMetadata() != null) {
 				return currentObj.getDebugMetadata();
 			}
@@ -699,10 +739,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * The list of Choice Objects available at the current point in the Story.
-	 * This list will be populated as the Story is stepped through with the
-	 * Continue() method. Once canContinue becomes false, this list will be
-	 * populated, and is usually (but not always) on the final Continue() step.
+	 * The list of Choice Objects available at the current point in the Story. This
+	 * list will be populated as the Story is stepped through with the Continue()
+	 * method. Once canContinue becomes false, this list will be populated, and is
+	 * usually (but not always) on the final Continue() step.
 	 */
 	public List<Choice> getCurrentChoices() {
 
@@ -719,8 +759,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Gets a list of tags as defined with '#' in source that were seen during
-	 * the latest Continue() call.
+	 * Gets a list of tags as defined with '#' in source that were seen during the
+	 * latest Continue() call.
 	 */
 	public List<String> getCurrentTags() {
 		return state.getCurrentTags();
@@ -743,8 +783,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * The entire current state of the story including (but not limited to):
 	 *
-	 * * Global variables * Temporary variables * Read/visit and turn counts *
-	 * The callstack and evaluation stacks * The current threads
+	 * * Global variables * Temporary variables * Read/visit and turn counts * The
+	 * callstack and evaluation stacks * The current threads
 	 *
 	 */
 	public StoryState getState() {
@@ -753,9 +793,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * The VariablesState Object contains all the global variables in the story.
-	 * However, note that there's more to the state of a Story than just the
-	 * global variables. This is a convenience accessor to the full state
-	 * Object.
+	 * However, note that there's more to the state of a Story than just the global
+	 * variables. This is a convenience accessor to the full state Object.
 	 */
 	public VariablesState getVariablesState() {
 		return state.getVariablesState();
@@ -786,7 +825,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			successfulIncrement = false;
 
 			Container nextAncestor = currEl.currentContainer.getParent() instanceof Container
-					? (Container) currEl.currentContainer.getParent() : null;
+					? (Container) currEl.currentContainer.getParent()
+					: null;
 
 			if (nextAncestor == null) {
 				break;
@@ -841,27 +881,27 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * When the named global variable changes it's value, the observer will be
-	 * called to notify it of the change. Note that if the value changes
-	 * multiple times within the ink, the observer will only be called once, at
-	 * the end of the ink's evaluation. If, during the evaluation, it changes
-	 * and then changes back again to its original value, it will still be
-	 * called. Note that the observer will also be fired if the value of the
-	 * variable is changed externally to the ink, by directly setting a value in
-	 * story.variablesState.
+	 * called to notify it of the change. Note that if the value changes multiple
+	 * times within the ink, the observer will only be called once, at the end of
+	 * the ink's evaluation. If, during the evaluation, it changes and then changes
+	 * back again to its original value, it will still be called. Note that the
+	 * observer will also be fired if the value of the variable is changed
+	 * externally to the ink, by directly setting a value in story.variablesState.
 	 * 
 	 * @param variableName
 	 *            The name of the global variable to observe.
 	 * @param observer
 	 *            A delegate function to call when the variable changes.
-	 * @throws Exception 
-	 * @throws StoryException 
+	 * @throws Exception
+	 * @throws StoryException
 	 */
 	public void observeVariable(String variableName, VariableObserver observer) throws StoryException, Exception {
 		if (variableObservers == null)
 			variableObservers = new HashMap<String, List<VariableObserver>>();
-		
-		if( !state.getVariablesState().globalVariableExistsWithName(variableName) ) 
-			throw new StoryException("Cannot observe variable '" + variableName + "' because it wasn't declared in the ink story.");
+
+		if (!state.getVariablesState().globalVariableExistsWithName(variableName))
+			throw new StoryException(
+					"Cannot observe variable '" + variableName + "' because it wasn't declared in the ink story.");
 
 		if (variableObservers.containsKey(variableName)) {
 			variableObservers.get(variableName).add(observer);
@@ -873,31 +913,30 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Convenience function to allow multiple variables to be observed with the
-	 * same observer delegate function. See the singular ObserveVariable for
-	 * details. The observer will get one call for every variable that has
-	 * changed.
+	 * Convenience function to allow multiple variables to be observed with the same
+	 * observer delegate function. See the singular ObserveVariable for details. The
+	 * observer will get one call for every variable that has changed.
 	 * 
 	 * @param variableNames
 	 *            The set of variables to observe.
 	 * @param observer
 	 *            The delegate function to call when any of the named variables
 	 *            change.
-	 * @throws Exception 
-	 * @throws StoryException 
+	 * @throws Exception
+	 * @throws StoryException
 	 */
-	public void observeVariables(List<String> variableNames, VariableObserver observer) throws StoryException, Exception {
+	public void observeVariables(List<String> variableNames, VariableObserver observer)
+			throws StoryException, Exception {
 		for (String varName : variableNames) {
 			observeVariable(varName, observer);
 		}
 	}
 
 	/**
-	 * Removes the variable observer, to stop getting variable change
-	 * notifications. If you pass a specific variable name, it will stop
-	 * observing that particular one. If you pass null (or leave it blank, since
-	 * it's optional), then the observer will be removed from all variables that
-	 * it's subscribed to.
+	 * Removes the variable observer, to stop getting variable change notifications.
+	 * If you pass a specific variable name, it will stop observing that particular
+	 * one. If you pass null (or leave it blank, since it's optional), then the
+	 * observer will be removed from all variables that it's subscribed to.
 	 * 
 	 * @param observer
 	 *            The observer to stop observing.
@@ -1079,8 +1118,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Checks whether contentObj is a control or flow Object rather than a piece
-	 * of content, and performs the required command if necessary.
+	 * Checks whether contentObj is a control or flow Object rather than a piece of
+	 * content, and performs the required command if necessary.
 	 * 
 	 * @return true if Object was logic or flow control, false if it's normal
 	 *         content.
@@ -1210,7 +1249,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			case PopTunnel:
 
 				PushPopType popType = evalCommand.getCommandType() == ControlCommand.CommandType.PopFunction
-						? PushPopType.Function : PushPopType.Tunnel;
+						? PushPopType.Function
+						: PushPopType.Tunnel;
 
 				// Tunnel onwards is allowed to specify an optional override
 				// divert to go to immediately after returning: ->-> target
@@ -1323,7 +1363,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				DivertTargetValue divertTarget = target instanceof DivertTargetValue ? (DivertTargetValue) target
 						: null;
 				Container container = contentAtPath(divertTarget.getTargetPath()) instanceof Container
-						? (Container) contentAtPath(divertTarget.getTargetPath()) : null;
+						? (Container) contentAtPath(divertTarget.getTargetPath())
+						: null;
 
 				int eitherCount;
 				if (evalCommand.getCommandType() == ControlCommand.CommandType.TurnsSince)
@@ -1448,9 +1489,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				if (o instanceof StringValue)
 					listNameVal = (StringValue) o;
-				
-				if(intVal == null) {
-					throw new StoryException ("Passed non-integer when creating a list element from a numerical value."); 
+
+				if (intVal == null) {
+					throw new StoryException("Passed non-integer when creating a list element from a numerical value.");
 				}
 
 				ListValue generatedListValue = null;
@@ -1655,9 +1696,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Unwinds the callstack. Useful to reset the Story's evaluation without
 	 * actually changing any meaningful state, for example if you want to exit a
 	 * section of story prematurely and tell it to go elsewhere with a call to
-	 * ChoosePathString(...). Doing so without calling ResetCallstack() could
-	 * cause unexpected issues if, for example, the Story was in a tunnel
-	 * already.
+	 * ChoosePathString(...). Doing so without calling ResetCallstack() could cause
+	 * unexpected issues if, for example, the Story was in a tunnel already.
 	 */
 	public void resetCallstack() throws Exception {
 		state.forceEnd();
@@ -1734,6 +1774,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 		currentContainer = state.getCallStack().getCurrentElement().currentContainer;
 
+		if (profiler != null) {
+			profiler.step(state.getCallStack());
+		}
+
 		// Is the current content Object:
 		// - Normal content
 		// - Or a logic/flow statement - if so, do it
@@ -1778,7 +1822,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			// copy of the pointer
 			// so that we're not editing the original runtime Object.
 			VariablePointerValue varPointer = currentContentObj instanceof VariablePointerValue
-					? (VariablePointerValue) currentContentObj : null;
+					? (VariablePointerValue) currentContentObj
+					: null;
 
 			if (varPointer != null && varPointer.getContextIndex() == -1) {
 
@@ -1872,8 +1917,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Check that all EXTERNAL ink functions have a valid bound C# function.
-	 * Note that this is automatically called on the first call to Continue().
+	 * Check that all EXTERNAL ink functions have a valid bound C# function. Note
+	 * that this is automatically called on the first call to Continue().
 	 */
 	public void validateExternalBindings() throws Exception {
 		HashSet<String> missingExternals = new HashSet<String>();
@@ -1897,8 +1942,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			}
 
 			String message = String.format("ERROR: Missing function binding for external%s: '%s' %s",
-					missingExternals.size() > 1 ? "s" : "", join.toString(), allowExternalFunctionFallbacks
-							? ", and no fallback ink function found." : " (ink fallbacks disabled)");
+					missingExternals.size() > 1 ? "s" : "", join.toString(),
+					allowExternalFunctionFallbacks ? ", and no fallback ink function found."
+							: " (ink fallbacks disabled)");
 
 			error(message);
 		}
@@ -1980,7 +2026,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// there are more new containers
 		RTObject currentChildOfContainer = newContentObject;
 		Container currentContainerAncestor = currentChildOfContainer.getParent() instanceof Container
-				? (Container) currentChildOfContainer.getParent() : null;
+				? (Container) currentChildOfContainer.getParent()
+				: null;
 
 		while (currentContainerAncestor != null && !prevContainerSet.contains(currentContainerAncestor)) {
 
@@ -1995,7 +2042,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 			currentChildOfContainer = currentContainerAncestor;
 			currentContainerAncestor = currentContainerAncestor.getParent() instanceof Container
-					? (Container) currentContainerAncestor.getParent() : null;
+					? (Container) currentContainerAncestor.getParent()
+					: null;
 
 		}
 	}
@@ -2037,9 +2085,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @param functionName
 	 *            The name of the function as declared in ink.
 	 * @param arguments
-	 *            The arguments that the ink function takes, if any. Note that
-	 *            we don't (can't) do any validation on the number of arguments
-	 *            right now, so make sure you get it right!
+	 *            The arguments that the ink function takes, if any. Note that we
+	 *            don't (can't) do any validation on the number of arguments right
+	 *            now, so make sure you get it right!
 	 * @return The return value as returned from the ink function with `~ return
 	 *         myValue`, or null if nothing is returned.
 	 * @throws Exception
@@ -2068,19 +2116,19 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Evaluates a function defined in ink, and gathers the possibly multi-line
-	 * text as generated by the function.
+	 * Evaluates a function defined in ink, and gathers the possibly multi-line text
+	 * as generated by the function.
 	 * 
 	 * @param arguments
-	 *            The arguments that the ink function takes, if any. Note that
-	 *            we don't (can't) do any validation on the number of arguments
-	 *            right now, so make sure you get it right!
+	 *            The arguments that the ink function takes, if any. Note that we
+	 *            don't (can't) do any validation on the number of arguments right
+	 *            now, so make sure you get it right!
 	 * @param functionName
 	 *            The name of the function as declared in ink.
 	 * @param textOutput
-	 *            This text output is any text written as normal content within
-	 *            the function, as opposed to the return value, as returned with
-	 *            `~ return`.
+	 *            This text output is any text written as normal content within the
+	 *            function, as opposed to the return value, as returned with `~
+	 *            return`.
 	 * @return The return value as returned from the ink function with `~ return
 	 *         myValue`, or null if nothing is returned.
 	 * @throws Exception

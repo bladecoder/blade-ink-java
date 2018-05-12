@@ -9,7 +9,6 @@ class CallStack {
 		public Container currentContainer;
 		public int currentContentIndex;
 
-		public RTObject currentRTObject;
 		public boolean inExpressionEvaluation;
 		public HashMap<String, RTObject> temporaryVariables;
 
