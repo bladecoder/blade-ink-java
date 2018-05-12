@@ -421,16 +421,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Change the current position of the story to the given path.
+	 * Change the current position of the story to the given path. From here you can
+	 * call Continue() to evaluate the next line.
 	 * 
-	 * WARNING: This is potentially dangerous! If you're in the middle of a tunnel,
-	 * it'll redirect only the inner-most tunnel, meaning that when you
-	 * tunnel-return using '->->', it'll return to where you were before. This may
-	 * be what you want though! If you want to reset the callstack (equivalent to
-	 * calling -> END) beforehand, use ResetCallstack().
-	 * 
-	 * From here you can call Continue() to evaluate the next line. The path String
-	 * is a dot-separated path as used ly by the engine. These examples should work:
+	 * The path String is a dot-separated path as used ly by the engine. These
+	 * examples should work:
 	 *
 	 * myKnot myKnot.myStitch
 	 *
@@ -439,28 +434,51 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * myKnot.myStitch.myLabelledChoice
 	 *
 	 * ...because of the way that content is nested within a weave structure.
+	 * 
+	 * By default this will reset the callstack beforehand, which means that any
+	 * tunnels, threads or functions you were in at the time of calling will be
+	 * discarded. This is different from the behaviour of ChooseChoiceIndex, which
+	 * will always keep the callstack, since the choices are known to come from the
+	 * correct state, and known their source thread.
+	 * 
+	 * You have the option of passing false to the resetCallstack parameter if you
+	 * don't want this behaviour, and will leave any active threads, tunnels or
+	 * function calls in-tact.
+	 * 
+	 * This is potentially dangerous! If you're in the middle of a tunnel, it'll
+	 * redirect only the inner-most tunnel, meaning that when you tunnel-return
+	 * using '->->', it'll return to where you were before. This may be what you
+	 * want though. However, if you're in the middle of a function, ChoosePathString
+	 * will throw an exception.
+	 * 
 	 *
 	 * @param path
 	 *            A dot-separted path string, as specified above.
+	 * @param resetCallstack
+	 *            Whether to reset the callstack first (see summary description).
 	 * @param arguments
 	 *            Optional set of arguments to pass, if path is to a knot that takes
 	 *            them.
 	 */
-	public void choosePathString(String path, Object[] arguments) throws Exception {
+	public void choosePathString(String path, boolean resetCallstack, Object[] arguments) throws Exception {
 		ifAsyncWeCant("call ChoosePathString right now");
 
-		// ChoosePathString is potentially dangerous since you can call it when the
-		// stack is
-		// pretty much in any state. Let's catch one of the worst offenders.
-		if (state.getCallStack().getCurrentElement().type == PushPopType.Function) {
-			String funcDetail = "";
-			Container container = state.getCallStack().getCurrentElement().currentContainer;
-			if (container != null) {
-				funcDetail = "(" + container.getPath().toString() + ") ";
+		if (resetCallstack) {
+			resetCallstack();
+		} else {
+			// ChoosePathString is potentially dangerous since you can call it when the
+			// stack is
+			// pretty much in any state. Let's catch one of the worst offenders.
+			if (state.getCallStack().getCurrentElement().type == PushPopType.Function) {
+				String funcDetail = "";
+				Container container = state.getCallStack().getCurrentElement().currentContainer;
+				if (container != null) {
+					funcDetail = "(" + container.getPath().toString() + ") ";
+				}
+				throw new Exception("Story was running a function " + funcDetail + "when you called ChoosePathString("
+						+ path + ") - this is almost certainly not not what you want! Full stack trace: \n"
+						+ state.getCallStack().getCallStackTrace());
 			}
-			throw new Exception("Story was running a function " + funcDetail + "when you called ChoosePathString("
-					+ path + ") - this is almost certainly not not what you want! Full stack trace: \n"
-					+ state.getCallStack().getCallStackTrace());
 		}
 
 		state.passArgumentsToEvaluationStack(arguments);
@@ -468,7 +486,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	public void choosePathString(String path) throws Exception {
-		choosePathString(path, null);
+		choosePathString(path, true, null);
+	}
+
+	public void choosePathString(String path, boolean resetCallstack) throws Exception {
+		choosePathString(path, resetCallstack, null);
 	}
 
 	void ifAsyncWeCant(String activityStr) throws Exception {
@@ -1807,7 +1829,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (mainContentContainer.getNamedContent().containsKey("global decl")) {
 			Path originalPath = getState().getCurrentPath();
 
-			choosePathString("global decl");
+			choosePathString("global decl", false);
 
 			// Continue, but without validating external bindings,
 			// since we may be doing this reset at initialisation time.
