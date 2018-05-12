@@ -114,6 +114,7 @@ public class StoryState {
 
 		copy.evaluationStack.addAll(evaluationStack);
 		copy.originalEvaluationStackHeight = originalEvaluationStackHeight;
+		copy.isExternalFunctionEvaluation = isExternalFunctionEvaluation;
 
 		if (getDivertedTargetObject() != null)
 			copy.setDivertedTargetObject(divertedTargetObject);
@@ -659,6 +660,9 @@ public class StoryState {
 
 		// Restore the callstack that the variablesState uses
 		variablesState.setCallStack(callStack);
+		
+		// No longer in external function eval
+		isExternalFunctionEvaluation = false;
 
 		// What did we get back?
 		if (returnedObj != null) {
