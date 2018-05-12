@@ -611,7 +611,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			if (stateAtLastNewline != null) {
 
 				// Cover cases that non-text generated content was evaluated last step
-				String currText = getCurrentText();
+				String currText = state.getCurrentText();
 				int prevTextLength = stateAtLastNewline.getCurrentText().length();
 
 				// Take tags into account too, so that a tag following a content line:
@@ -621,7 +621,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				int prevTagCount = stateAtLastNewline.getCurrentTags().size();
 
 				// Output has been extended?
-				if (!currText.equals(stateAtLastNewline.getCurrentText()) || prevTagCount != getCurrentTags().size()) {
+				if (!currText.equals(stateAtLastNewline.getCurrentText()) || prevTagCount != state.getCurrentTags().size()) {
 
 					// Original newline still exists?
 					if (currText.length() >= prevTextLength && currText.charAt(prevTextLength - 1) == '\n') {
