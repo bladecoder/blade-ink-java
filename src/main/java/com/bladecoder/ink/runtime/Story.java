@@ -140,6 +140,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		resetState();
 	}
 
+	void addError(String message) throws Exception {
+		addError(message, false);
+	}
+
 	void addError(String message, boolean useEndLineNumber) throws Exception {
 		DebugMetadata dm = currentDebugMetadata();
 
@@ -162,8 +166,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Start recording ink profiling information during calls to Continue on Story.
 	 * Return a Profiler instance that you can request a report from when you're
 	 * finished.
+	 * @throws Exception 
 	 */
-	public Profiler startProfiling() {
+	public Profiler startProfiling() throws Exception {
+		ifAsyncWeCant("start profiling");
 		profiler = new Profiler();
 
 		return profiler;
@@ -205,6 +211,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *            The Java function to bind.
 	 */
 	public void bindExternalFunction(String funcName, ExternalFunction func) throws Exception {
+		 ifAsyncWeCant ("bind an external function");
 		Assert(!externals.containsKey(funcName), "Function '" + funcName + "' has already been bound.");
 		externals.put(funcName, func);
 	}
@@ -430,12 +437,20 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *            them.
 	 */
 	public void choosePathString(String path, Object[] arguments) throws Exception {
+		ifAsyncWeCant("call ChoosePathString right now");
+
 		state.passArgumentsToEvaluationStack(arguments);
 		choosePath(new Path(path));
 	}
 
 	public void choosePathString(String path) throws Exception {
 		choosePathString(path, null);
+	}
+
+	void ifAsyncWeCant(String activityStr) throws Exception {
+		if (asyncContinueActive)
+			throw new Exception("Can't " + activityStr
+					+ ". Story is in the middle of a ContinueAsync(). Make more ContinueAsync() calls or a single Continue() call beforehand.");
 	}
 
 	RTObject contentAtPath(Path path) throws Exception {
@@ -454,7 +469,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		continueAsync(0);
 		return getCurrentText();
 	}
-
 
 	/**
 	 * If ContinueAsync was called (with milliseconds limit > 0) then this property
@@ -548,18 +562,18 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			// Finished a section of content / reached a choice point?
 			if (!canContinue()) {
 				if (state.getCallStack().canPopThread())
-					error("Thread available to pop, threads should always be flat by the end of evaluation?");
+					addError("Thread available to pop, threads should always be flat by the end of evaluation?");
 
 				if (state.getGeneratedChoices().size() == 0 && !state.isDidSafeExit()
 						&& temporaryEvaluationContainer == null) {
 					if (state.getCallStack().canPop(PushPopType.Tunnel))
-						error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
+						addError("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
 					else if (state.getCallStack().canPop(PushPopType.Function))
-						error("unexpectedly reached end of content. Do you need a '~ return'?");
+						addError("unexpectedly reached end of content. Do you need a '~ return'?");
 					else if (!state.getCallStack().canPop())
-						error("ran out of content. Do you need a '-> DONE' or '-> END'?");
+						addError("ran out of content. Do you need a '-> DONE' or '-> END'?");
 					else
-						error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
+						addError("unexpectedly reached end of content for unknown reason. Please debug compiler!");
 				}
 			}
 			state.setDidSafeExit(false);
@@ -660,7 +674,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		return false;
 	}
 
-
 	/**
 	 * Continue the story until the next choice point or until it runs out of
 	 * content. This is as opposed to the Continue() method which only evaluates one
@@ -670,6 +683,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *         together.
 	 */
 	public String continueMaximally() throws StoryException, Exception {
+		ifAsyncWeCant("ContinueMaximally");
+
 		StringBuilder sb = new StringBuilder();
 
 		while (canContinue()) {
@@ -789,8 +804,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Gets a list of tags as defined with '#' in source that were seen during the
 	 * latest Continue() call.
+	 * @throws Exception 
 	 */
-	public List<String> getCurrentTags() {
+	public List<String> getCurrentTags() throws Exception {
+		ifAsyncWeCant("call currentTags since it's a work in progress");
 		return state.getCurrentTags();
 	}
 
@@ -803,8 +820,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * The latest line of text to be generated from a Continue() call.
+	 * @throws Exception 
 	 */
-	public String getCurrentText() {
+	public String getCurrentText() throws Exception {
+		ifAsyncWeCant("call currentText since it's a work in progress");
 		return state.getCurrentText();
 	}
 
@@ -924,6 +943,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @throws StoryException
 	 */
 	public void observeVariable(String variableName, VariableObserver observer) throws StoryException, Exception {
+		ifAsyncWeCant ("observe a new variable");
+		
 		if (variableObservers == null)
 			variableObservers = new HashMap<String, List<VariableObserver>>();
 
@@ -970,8 +991,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *            The observer to stop observing.
 	 * @param specificVariableName
 	 *            (Optional) Specific variable name to stop observing.
+	 * @throws Exception 
 	 */
-	public void removeVariableObserver(VariableObserver observer, String specificVariableName) {
+	public void removeVariableObserver(VariableObserver observer, String specificVariableName) throws Exception {
+		ifAsyncWeCant ("remove a variable observer");
+		 
 		if (variableObservers == null)
 			return;
 
@@ -988,7 +1012,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 	}
 
-	public void removeVariableObserver(VariableObserver observer) {
+	public void removeVariableObserver(VariableObserver observer) throws Exception {
 		removeVariableObserver(observer, null);
 	}
 
@@ -1728,6 +1752,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * unexpected issues if, for example, the Story was in a tunnel already.
 	 */
 	public void resetCallstack() throws Exception {
+		ifAsyncWeCant("ResetCallstack");
+
 		state.forceEnd();
 	}
 
@@ -1757,6 +1783,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * constructed.
 	 */
 	public void resetState() throws Exception {
+		// TODO: Could make this possible
+		ifAsyncWeCant("ResetState");
+
 		state = new StoryState(this);
 
 		state.getVariablesState().setVariableChangedEvent(this);
@@ -1940,6 +1969,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Remove a binding for a named EXTERNAL ink function.
 	 */
 	public void unbindExternalFunction(String funcName) throws Exception {
+		ifAsyncWeCant ("unbind an external a function");
 		Assert(externals.containsKey(funcName), "Function '" + funcName + "' has not been bound.");
 		externals.remove(funcName);
 	}
@@ -2162,6 +2192,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @throws Exception
 	 */
 	public Object evaluateFunction(String functionName, StringBuffer textOutput, Object[] arguments) throws Exception {
+		ifAsyncWeCant ("evaluate a function");
+		
 		// Get the content that we need to run
 		Container funcContainer = null;
 
