@@ -539,8 +539,9 @@ public class StoryState {
 		else if (text != null) {
 
 			int functionTrimIndex = -1;
-			if (callStack.getCurrentElement().type == PushPopType.Function) {
-				functionTrimIndex = callStack.getCurrentElement().functionStartInOuputStream;
+			Element currEl = callStack.getCurrentElement();
+			if (currEl.type == PushPopType.Function) {
+				functionTrimIndex = currEl.functionStartInOuputStream;
 			}
 
 			int glueTrimIndex = currentGlueIndex();
@@ -565,7 +566,9 @@ public class StoryState {
 
 				// Able to completely reset when normal text is pushed
 				else if (text.isNonWhitespace()) {
-					removeExistingGlue();
+					
+					 if( glueTrimIndex > -1 )
+						 removeExistingGlue();
 
 					// Tell all functions in callstack that we have seen proper text,
 					// so trimming whitespace at the start is done.
