@@ -155,12 +155,20 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		state.forceEnd();
 	}
 
+	/**
+	 * Start recording ink profiling information during calls to Continue on Story.
+	 * Return a Profiler instance that you can request a report from when you're finished.
+	 */
 	public Profiler startProfiling() {
 		profiler = new Profiler();
 
 		return profiler;
 	}
 
+	/**
+	 * Stop recording ink profiling information during calls to Continue on Story.
+	 * To generate a report from the profiler, call 
+	 */
 	public void endProfiling() {
 		profiler = null;
 	}

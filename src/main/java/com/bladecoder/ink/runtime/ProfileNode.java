@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
-public class ProfileNode {
+class ProfileNode {
 	private HashMap<String, ProfileNode> nodes;
 	private double selfMillisecs;
 	private double totalMillisecs;
@@ -16,6 +16,10 @@ public class ProfileNode {
 
 	private String key;
 
+	// Horribly hacky field only used by ink unity integration,
+	// but saves constructing an entire data structure that mirrors
+	// the one in here purely to store the state of whether each
+	// node in the UI has been opened or not.
 	public boolean openInUI;
 
 	public boolean hasChildren() {

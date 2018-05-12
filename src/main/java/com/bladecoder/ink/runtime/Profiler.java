@@ -53,7 +53,7 @@ public class Profiler {
 
 	private List<StepDetails> stepDetails = new ArrayList<StepDetails>();
 
-	public ProfileNode getRootNode() {
+	ProfileNode getRootNode() {
 		return rootNode;
 	}
 
@@ -61,6 +61,9 @@ public class Profiler {
 		rootNode = new ProfileNode();
 	}
 
+	/**
+	 * Generate a printable report based on the data recording during profiling.
+	 */
 	public String report() {
 		StringBuilder sb = new StringBuilder();
 
@@ -134,7 +137,13 @@ public class Profiler {
 		stepDetails.add(currStepDetails);
 	}
 
-	public String stepLengthReport() {
+	/**
+	 * Generate a printable report specifying the average and maximum times spent
+	 * stepping over different internal ink instruction types.
+	 * This report type is primarily used to profile the ink engine itself rather
+	 * than your own specific ink.
+	 */
+	String stepLengthReport() {
 		StringBuilder sb = new StringBuilder();
 
 		HashMap<String, Double> typeToDetails = new HashMap<String, Double>();
