@@ -83,6 +83,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	private boolean asyncContinueActive;
 	StoryState stateAtLastNewline = null;
+	
+	private int recursiveContinueCount = 0;
 
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
@@ -506,6 +508,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			profiler.preContinue();
 
 		boolean isAsyncTimeLimited = millisecsLimitAsync > 0;
+		
+		recursiveContinueCount++;
 
 		// Doing either:
 		// - full run through non-async (so not active and don't want to be)
@@ -516,9 +520,16 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				throw new StoryException("Can't continue - should check canContinue before calling Continue");
 			}
 
-			state.resetOutput();
+			
 			state.setDidSafeExit(false);
-			state.getVariablesState().setbatchObservingVariableChanges(true);
+			
+			state.resetOutput();
+			
+			// It's possible for ink to call game to call ink to call game etc
+			// In this case, we only want to batch observe variable changes
+			// for the outermost call.
+			if (recursiveContinueCount == 1)
+				state.getVariablesState().setbatchObservingVariableChanges(true);
 		}
 
 		// Start timing
@@ -578,9 +589,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 			}
 			state.setDidSafeExit(false);
-			state.getVariablesState().setbatchObservingVariableChanges(false);
+			if (recursiveContinueCount == 1)
+				state.getVariablesState().setbatchObservingVariableChanges(false);
 			asyncContinueActive = false;
 		}
+		
+		recursiveContinueCount--;
+		
 		if (profiler != null)
 			profiler.postContinue();
 	}
@@ -2218,6 +2233,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				throw e;
 		}
 
+		// Snapshot the output stream
+		ArrayList<RTObject> outputStreamBefore = new ArrayList<RTObject>(state.getOutputStream());
+		state.resetOutput ();
+		
 		// State will temporarily replace the callstack in order to evaluate
 		state.startFunctionEvaluationFromGame(funcContainer, arguments);
 
@@ -2228,6 +2247,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			if (textOutput != null)
 				textOutput.append(text);
 		}
+		
+		// Restore the output stream in case this was called
+		// during main story evaluation.
+		state.resetOutput(outputStreamBefore);
 
 		// Finish evaluation, and see whether anything was produced
 		Object result = state.completeFunctionEvaluationFromGame();

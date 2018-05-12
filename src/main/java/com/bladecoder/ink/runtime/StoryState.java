@@ -567,9 +567,14 @@ public class StoryState {
 		currentErrors = null;
 	}
 
-	void resetOutput() {
+	void resetOutput(List<RTObject> objs ) {
 		outputStream.clear();
+		if( objs != null ) outputStream.addAll (objs);
 		outputStreamDirty();
+	}
+	
+	void resetOutput() {
+		resetOutput(null);
 	}
 
 	// Don't make public since the method need to be wrapped in Story for visit
