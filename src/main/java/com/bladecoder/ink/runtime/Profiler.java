@@ -27,12 +27,10 @@ public class Profiler {
 	private Stopwatch continueWatch = new Stopwatch();
 	private Stopwatch stepWatch = new Stopwatch();
 	private Stopwatch snapWatch = new Stopwatch();
-	private Stopwatch restoreWatch = new Stopwatch();
 
 	private double continueTotal;
 	private double snapTotal;
 	private double stepTotal;
-	private double restoreTotal;
 
 	private String[] currStepStack;
 	private StepDetails currStepDetails;
@@ -73,9 +71,8 @@ public class Profiler {
 		sb.append(String.format("%d CONTINUES / LINES:\n", numContinues));
 		sb.append(String.format("TOTAL TIME: %s\n", formatMillisecs(continueTotal)));
 		sb.append(String.format("SNAPSHOTTING: %s\n", formatMillisecs(snapTotal)));
-		sb.append(String.format("RESTORING: %s\n", formatMillisecs(restoreTotal)));
 		sb.append(
-				String.format("OTHER: %s\n", formatMillisecs(continueTotal - (stepTotal + snapTotal + restoreTotal))));
+				String.format("OTHER: %s\n", formatMillisecs(continueTotal - (stepTotal + snapTotal))));
 		sb.append(rootNode.toString());
 
 		return sb.toString();
@@ -228,16 +225,6 @@ public class Profiler {
 	void postSnapshot() {
 		snapWatch.stop();
 		snapTotal += millisecs(snapWatch);
-	}
-
-	void preRestore() {
-		restoreWatch.reset();
-		restoreWatch.start();
-	}
-
-	void postRestore() {
-		restoreWatch.stop();
-		restoreTotal += millisecs(restoreWatch);
 	}
 
 	double millisecs(Stopwatch watch) {

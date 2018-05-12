@@ -451,22 +451,30 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @return The line of text content.
 	 */
 	public String Continue() throws StoryException, Exception {
-		// TODO: Should we leave this to the client, since it could be
-		// slow to iterate through all the content an extra time?
-		if (!hasValidatedExternals)
-			validateExternalBindings();
-
-		// return continueInternal();
-
-		continueInternal();
-
+		continueAsync(0);
 		return getCurrentText();
 	}
 
+
+	/**
+	 * If ContinueAsync was called (with milliseconds limit > 0) then this property
+	 * will return false if the ink evaluation isn't yet finished, and you need to
+	 * call it again in order for the Continue to fully complete.
+	 */
 	public boolean asyncContinueComplete() {
 		return !asyncContinueActive;
 	}
 
+	/**
+	 * An "asnychronous" version of Continue that only partially evaluates the ink,
+	 * with a budget of a certain time limit. It will exit ink evaluation early if
+	 * the evaluation isn't complete within the time limit, with the
+	 * asyncContinueComplete property being false. This is useful if ink evaluation
+	 * takes a long time, and you want to distribute it over multiple game frames
+	 * for smoother animation. If you pass a limit of zero, then it will fully
+	 * evaluate the ink in the same way as calling Continue (and in fact, this
+	 * exactly what Continue does internally).
+	 */
 	public void continueAsync(float millisecsLimitAsync) throws Exception {
 		if (!hasValidatedExternals)
 			validateExternalBindings();
@@ -489,7 +497,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// - Starting async run-through
 		if (!asyncContinueActive) {
 			asyncContinueActive = isAsyncTimeLimited;
-			prepareContinue();
+			if (!canContinue()) {
+				throw new StoryException("Can't continue - should check canContinue before calling Continue");
+			}
+
+			state.resetOutput();
+			state.setDidSafeExit(false);
+			state.getVariablesState().setbatchObservingVariableChanges(true);
 		}
 
 		// Start timing
@@ -526,22 +540,34 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		//
 		// Successfully finished evaluation in time (or in error)
 		if (outputStreamEndsInNewline || !canContinue()) {
-			completeContinue();
+			// Need to rewind, due to evaluating further than we should?
+			if (stateAtLastNewline != null) {
+				restoreStateSnapshot(stateAtLastNewline);
+				stateAtLastNewline = null;
+			}
+			// Finished a section of content / reached a choice point?
+			if (!canContinue()) {
+				if (state.getCallStack().canPopThread())
+					error("Thread available to pop, threads should always be flat by the end of evaluation?");
+
+				if (state.getGeneratedChoices().size() == 0 && !state.isDidSafeExit()
+						&& temporaryEvaluationContainer == null) {
+					if (state.getCallStack().canPop(PushPopType.Tunnel))
+						error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
+					else if (state.getCallStack().canPop(PushPopType.Function))
+						error("unexpectedly reached end of content. Do you need a '~ return'?");
+					else if (!state.getCallStack().canPop())
+						error("ran out of content. Do you need a '-> DONE' or '-> END'?");
+					else
+						error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
+				}
+			}
+			state.setDidSafeExit(false);
+			state.getVariablesState().setbatchObservingVariableChanges(false);
 			asyncContinueActive = false;
 		}
-
 		if (profiler != null)
 			profiler.postContinue();
-	}
-
-	void prepareContinue() throws StoryException, Exception {
-		if (!canContinue()) {
-			throw new StoryException("Can't continue - should check canContinue before calling Continue");
-		}
-		state.resetOutput();
-
-		state.setDidSafeExit(false);
-		state.getVariablesState().setbatchObservingVariableChanges(true);
 	}
 
 	boolean continueSingleStep() throws Exception {
@@ -634,51 +660,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		return false;
 	}
 
-	void completeContinue() throws Exception {
-		// Need to rewind, due to evaluating further than we should?
-		if (stateAtLastNewline != null) {
-
-			if (profiler != null)
-				profiler.preRestore();
-
-			restoreStateSnapshot(stateAtLastNewline);
-			stateAtLastNewline = null;
-
-			if (profiler != null)
-				profiler.postRestore();
-		}
-
-		// Finished a section of content / reached a choice point?
-		if (!canContinue()) {
-
-			if (state.getCallStack().canPopThread()) {
-
-				error("Thread available to pop, threads should always be flat by the end of evaluation?");
-			}
-
-			if (state.getGeneratedChoices().size() == 0 && !state.isDidSafeExit()
-					&& temporaryEvaluationContainer == null) {
-				if (state.getCallStack().canPop(PushPopType.Tunnel)) {
-
-					error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-				} else if (state.getCallStack().canPop(PushPopType.Function)) {
-
-					error("unexpectedly reached end of content. Do you need a '~ return'?");
-				} else if (!state.getCallStack().canPop()) {
-
-					error("ran out of content. Do you need a '-> DONE' or '-> END'?");
-				} else {
-
-					error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
-				}
-			}
-
-		}
-
-		state.setDidSafeExit(false);
-
-		state.getVariablesState().setbatchObservingVariableChanges(false);
-	}
 
 	/**
 	 * Continue the story until the next choice point or until it runs out of
