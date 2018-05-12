@@ -40,11 +40,6 @@ public class StoryState {
 	private HashMap<String, Integer> visitCounts;
 	private String currentText;
 
-	// Temporary state only, during externally called function evaluation
-	private boolean isExternalFunctionEvaluation;
-	private CallStack originalCallstack;
-	private int originalEvaluationStackHeight;
-
 	private boolean outputStreamTextDirty = true;
 	private boolean outputStreamTagsDirty = true;
 	private List<String> currentTags;
@@ -106,15 +101,11 @@ public class StoryState {
 		}
 
 		copy.callStack = new CallStack(callStack);
-		if (originalCallstack != null)
-			copy.originalCallstack = new CallStack(originalCallstack);
 
 		copy.variablesState = new VariablesState(copy.callStack, story.getListDefinitions());
 		copy.variablesState.copyFrom(variablesState);
 
 		copy.evaluationStack.addAll(evaluationStack);
-		copy.originalEvaluationStackHeight = originalEvaluationStackHeight;
-		copy.isExternalFunctionEvaluation = isExternalFunctionEvaluation;
 
 		if (getDivertedTargetObject() != null)
 			copy.setDivertedTargetObject(divertedTargetObject);
@@ -463,17 +454,18 @@ public class StoryState {
 			// Update origin when list is has something to indicate the list
 			// origin
 			InkList rawList = listValue.getValue();
-			
-			if(rawList.getOriginNames() != null) {				
-				
-				if( rawList.getOrigins() == null )  rawList.setOrigins(new ArrayList<ListDefinition>());
+
+			if (rawList.getOriginNames() != null) {
+
+				if (rawList.getOrigins() == null)
+					rawList.setOrigins(new ArrayList<ListDefinition>());
 				rawList.getOrigins().clear();
-				
-				for ( String n : rawList.getOriginNames()) {
+
+				for (String n : rawList.getOriginNames()) {
 					ListDefinition def = story.getListDefinitions().getListDefinition(n);
-					if( !rawList.getOrigins().contains(def) )
-						rawList.getOrigins().add (def);
-			
+					if (!rawList.getOrigins().contains(def))
+						rawList.getOrigins().add(def);
+
 				}
 			}
 		}
@@ -591,25 +583,10 @@ public class StoryState {
 		currentTurnIndex++;
 	}
 
-	void startExternalFunctionEvaluation(Container funcContainer, Object[] arguments) throws Exception {
-		// We'll start a new callstack, so keep hold of the original,
-		// as well as the evaluation stack so we know if the function
-		// returned something
-		originalCallstack = callStack;
-		originalEvaluationStackHeight = evaluationStack.size();
+	void startFunctionEvaluationFromGame(Container funcContainer, Object[] arguments) throws Exception {
+		callStack.push(PushPopType.FunctionEvaluationFromGame, evaluationStack.size());
+		callStack.getCurrentElement().setcurrentRTObject(funcContainer);
 
-		// Create a new base call stack element.
-		callStack = new CallStack(funcContainer);
-		callStack.getCurrentElement().type = PushPopType.Function;
-
-		// Change the callstack the variableState is looking at to be
-		// this temporary function evaluation one. We'll restore it afterwards
-		variablesState.setCallStack(callStack);
-
-		// By setting ourselves in external function evaluation mode,
-		// we're saying it's okay to end the flow without a Done or End,
-		// but with a ~ return instead.
-		isExternalFunctionEvaluation = true;
 		passArgumentsToEvaluationStack(arguments);
 	}
 
@@ -628,9 +605,8 @@ public class StoryState {
 		}
 	}
 
-	boolean tryExitExternalFunctionEvaluation() {
-		if (isExternalFunctionEvaluation && callStack.getElements().size() == 1
-				&& callStack.getCurrentElement().type == PushPopType.Function) {
+	boolean tryExitFunctionEvaluationFromGame() {
+		if (callStack.getCurrentElement().type == PushPopType.FunctionEvaluationFromGame) {
 			setCurrentContentObject(null);
 			didSafeExit = true;
 			return true;
@@ -639,8 +615,14 @@ public class StoryState {
 		return false;
 	}
 
-	Object completeExternalFunctionEvaluation() {
+	Object completeFunctionEvaluationFromGame() throws StoryException, Exception {
+		if (callStack.getCurrentElement().type != PushPopType.FunctionEvaluationFromGame) {
+			throw new StoryException(
+					"Expected external function evaluation to be complete. Stack trace: " + callStack.getCallStackTrace());
+		}
 
+		int originalEvaluationStackHeight = callStack.getCurrentElement().evaluationStackHeightWhenPushed;
+		
 		// Do we have a returned value?
 		// Potentially pop multiple values off the stack, in case we need
 		// to clean up after ourselves (e.g. caller of EvaluateFunction may
@@ -653,16 +635,8 @@ public class StoryState {
 				returnedObj = poppedObj;
 		}
 
-		// Restore our own state
-		callStack = originalCallstack;
-		originalCallstack = null;
-		originalEvaluationStackHeight = 0;
-
-		// Restore the callstack that the variablesState uses
-		variablesState.setCallStack(callStack);
-		
-		// No longer in external function eval
-		isExternalFunctionEvaluation = false;
+		 // Finally, pop the external function evaluation
+		callStack.pop (PushPopType.FunctionEvaluationFromGame);
 
 		// What did we get back?
 		if (returnedObj != null) {

@@ -1061,7 +1061,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				didPop = true;
 			} else {
-				state.tryExitExternalFunctionEvaluation();
+				state.tryExitFunctionEvaluationFromGame();
 			}
 
 			// Step past the point where we last called out
@@ -1275,7 +1275,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					}
 				}
 
-				if (state.tryExitExternalFunctionEvaluation()) {
+				if (state.tryExitFunctionEvaluationFromGame()) {
 					break;
 				} else if (state.getCallStack().getCurrentElement().type != popType || !state.getCallStack().canPop()) {
 
@@ -2163,7 +2163,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 
 		// State will temporarily replace the callstack in order to evaluate
-		state.startExternalFunctionEvaluation(funcContainer, arguments);
+		state.startFunctionEvaluationFromGame(funcContainer, arguments);
 
 		// Evaluate the function, and collect the string output
 		while (canContinue()) {
@@ -2174,7 +2174,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 
 		// Finish evaluation, and see whether anything was produced
-		Object result = state.completeExternalFunctionEvaluation();
+		Object result = state.completeFunctionEvaluationFromGame();
 		return result;
 	}
 }

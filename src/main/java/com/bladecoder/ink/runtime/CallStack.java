@@ -14,6 +14,12 @@ class CallStack {
 
 		public PushPopType type;
 
+		// When this callstack element is actually a function evaluation called from the
+		// game,
+		// we need to keep track of the size of the evaluation stack when it was called
+		// so that we know whether there was any return value.
+		public int evaluationStackHeightWhenPushed;
+
 		public Element(PushPopType type, Container container, int contentIndex) {
 			this(type, container, contentIndex, false);
 		}
@@ -30,6 +36,7 @@ class CallStack {
 			Element copy = new Element(this.type, this.currentContainer, this.currentContentIndex,
 					this.inExpressionEvaluation);
 			copy.temporaryVariables = new HashMap<String, RTObject>(this.temporaryVariables);
+			copy.evaluationStackHeightWhenPushed = evaluationStackHeightWhenPushed;
 			return copy;
 		}
 
@@ -284,11 +291,19 @@ class CallStack {
 	}
 
 	public void push(PushPopType type) {
+		push(type, 0);
+	}
+
+	public void push(PushPopType type, int externalEvaluationStackHeight) {
 		// When pushing to callstack, maintain the current content path, but
 		// jump
 		// out of expressions by default
-		getCallStack().add(new Element(type, getCurrentElement().currentContainer,
-				getCurrentElement().currentContentIndex, false));
+		Element element = new Element(type, getCurrentElement().currentContainer,
+				getCurrentElement().currentContentIndex, false);
+
+		element.evaluationStackHeightWhenPushed = externalEvaluationStackHeight;
+
+		getCallStack().add(element);
 	}
 
 	public void pushThread() {
@@ -363,7 +378,8 @@ class CallStack {
 
 			Thread thread = threads.get(t);
 			boolean isCurrent = (t == threads.size() - 1);
-			sb.append(String.format("=== THREAD %d/%d %s===\n", (t + 1), threads.size(), (isCurrent ? "(current) " : "")));
+			sb.append(String.format("=== THREAD %d/%d %s===\n", (t + 1), threads.size(),
+					(isCurrent ? "(current) " : "")));
 
 			for (int i = 0; i < thread.callstack.size(); i++) {
 
