@@ -34,7 +34,7 @@ class ListValue extends Value<InkList> {
 	}
 
 	@Override
-	public AbstractValue cast(ValueType newType) {
+	public AbstractValue cast(ValueType newType) throws Exception {
 		if (newType == ValueType.Int) {
 			Entry<InkListItem, Integer> max = value.getMaxItem();
 			if (max.getKey().isNull())
@@ -63,7 +63,7 @@ class ListValue extends Value<InkList> {
 		if (newType == getValueType())
 			return this;
 
-		throw new RuntimeException("Unexpected type cast of Value to new ValueType");
+		 throw BadCastException (newType);
 	}
 
 	public static void retainListOriginsForAssignment(RTObject oldValue, RTObject newValue) {

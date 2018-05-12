@@ -50,7 +50,7 @@ public class StringValue extends Value<String> {
 			}
 		}
 
-		throw new Exception("Unexpected type cast of Value to new ValueType");
+		 throw BadCastException (newType);
 	}
 
 	public boolean isInlineWhitespace() {

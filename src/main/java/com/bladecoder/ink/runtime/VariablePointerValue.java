@@ -28,7 +28,7 @@ class VariablePointerValue extends Value<String> {
 		if (newType == getValueType())
 			return this;
 
-		throw new Exception("Unexpected type cast of Value to new ValueType");
+		 throw BadCastException (newType);
 	}
 
 	@Override

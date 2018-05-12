@@ -35,7 +35,7 @@ public abstract class AbstractValue extends RTObject {
 		} else if (val instanceof Path) {
 			return new DivertTargetValue((Path) val);
 		} else if (val instanceof InkList) {
-			return new ListValue((InkList )val);
+			return new ListValue((InkList) val);
 		}
 
 		return null;
@@ -46,4 +46,7 @@ public abstract class AbstractValue extends RTObject {
 		return create(getValueObject());
 	}
 
+	protected StoryException BadCastException(ValueType targetType) throws Exception {
+		return new StoryException("Can't cast " + this.getValueObject() + " from " + this.getValueType() + " to " + targetType);
+	}
 }
