@@ -1,1 +1,1 @@
-﻿{"inkVersion":17,"root":["ev",{"list":{}},"/ev",{"temp=":"x","re":true},["G>","ev",{"VAR?":"x"},"LIST_ALL","out","/ev","G<",null],"\n","done",{"global decl":["ev",{"list":{},"origins":["x"]},{"VAR=":"x"},"/ev","end",null],"#f":3}],"listDefs":{"x":{"a":1,"b":2,"c":3}}}
+﻿{"inkVersion":18,"root":[["ev",{"list":{}},"/ev",{"temp=":"x","re":true},"ev",{"VAR?":"x"},"LIST_ALL","out","/ev","\n",["end",{"#n":"g-0"}],null],"done",{"global decl":["ev",{"list":{},"origins":["x"]},{"VAR=":"x"},"/ev","end",null],"#f":3}],"listDefs":{"x":{"a":1,"b":2,"c":3}}}

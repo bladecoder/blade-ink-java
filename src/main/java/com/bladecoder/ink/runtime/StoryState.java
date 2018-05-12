@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+import com.bladecoder.ink.runtime.CallStack.Element;
 import com.bladecoder.ink.runtime.CallStack.Thread;
 
 /**
@@ -174,7 +175,7 @@ public class StoryState {
 			callStack.popThread();
 
 		while (callStack.canPop())
-			callStack.pop();
+			popCallstack();
 
 		currentChoices.clear();
 
@@ -182,6 +183,52 @@ public class StoryState {
 		setPreviousContentObject(null);
 
 		setDidSafeExit(true);
+	}
+
+	// Add the end of a function call, trim any whitespace from the end.
+	// We always trim the start and end of the text that a function produces.
+	// The start whitespace is discard as it is generated, and the end
+	// whitespace is trimmed in one go here when we pop the function.
+	void trimWhitespaceFromFunctionEnd() {
+		assert (callStack.getCurrentElement().type == PushPopType.Function);
+
+		int functionStartPoint = callStack.getCurrentElement().functionStartInOuputStream;
+
+		// If the start point has become -1, it means that some non-whitespace
+		// text has been pushed, so it's safe to go as far back as we're able.
+		if (functionStartPoint == -1) {
+			functionStartPoint = 0;
+		}
+
+		// Trim whitespace from END of function call
+		for (int i = outputStream.size() - 1; i >= functionStartPoint; i--) {
+			RTObject obj = outputStream.get(i);
+
+			if (!(obj instanceof StringValue))
+				continue;
+			StringValue txt = (StringValue) obj;
+
+			if (obj instanceof ControlCommand)
+				break;
+
+			if (txt.isNewline() || txt.isInlineWhitespace()) {
+				outputStream.remove(i);
+			} else {
+				break;
+			}
+		}
+	}
+
+	void popCallstack() throws Exception {
+		popCallstack(null);
+	}
+
+	void popCallstack(PushPopType popType) throws Exception {
+		// Add the end of a function call, trim any whitespace from the end.
+		if (callStack.getCurrentElement().type == PushPopType.Function)
+			trimWhitespaceFromFunctionEnd();
+
+		callStack.pop(popType);
 	}
 
 	RTObject getCurrentContentObject() {
@@ -377,25 +424,6 @@ public class StoryState {
 		return false;
 	}
 
-	Glue matchRightGlueForLeftGlue(Glue leftGlue) {
-		if (!leftGlue.isLeft())
-			return null;
-
-		for (int i = outputStream.size() - 1; i >= 0; i--) {
-			RTObject c = outputStream.get(i);
-			Glue g = null;
-
-			if (c instanceof Glue)
-				g = (Glue) c;
-
-			if (g != null && g.isRight() && g.getParent() == leftGlue.getParent()) {
-				return g;
-			} else if (c instanceof ControlCommand) // e.g. BeginString
-				break;
-		}
-		return null;
-	}
-
 	boolean outputStreamEndsInNewline() {
 		if (outputStream.size() > 0) {
 
@@ -484,6 +512,7 @@ public class StoryState {
 				for (StringValue textObj : listText) {
 					pushToOutputStreamIndividual(textObj);
 				}
+				outputStreamDirty();
 				return;
 			}
 		}
@@ -497,40 +526,65 @@ public class StoryState {
 
 		boolean includeInOutput = true;
 
+		// New glue, so chomp away any whitespace from the end of the stream
 		if (glue != null) {
+			trimNewlinesFromOutputStream();
+			includeInOutput = true;
+		}
+		// New text: do we really want to append it, if it's whitespace?
+		// Two different reasons for whitespace to be thrown away:
+		// - User defined glue: <>
+		// - Function start/end trimming
+		// We also need to know when to stop trimming, when there's non-whitespace.
+		else if (text != null) {
 
-			// Found matching left-glue for right-glue? Close it.
-
-			Glue matchingRightGlue = null;
-			if (glue.isLeft())
-				matchingRightGlue = matchRightGlueForLeftGlue(glue);
-
-			// Left/Right glue is auto-generated for inline expressions
-			// where we want to absorb newlines but only in a certain direction.
-			// "Bi" glue is written by the user in their ink with <>
-			if (glue.isLeft() || glue.isBi()) {
-				trimNewlinesFromOutputStream(matchingRightGlue);
+			int functionTrimIndex = -1;
+			if (callStack.getCurrentElement().type == PushPopType.Function) {
+				functionTrimIndex = callStack.getCurrentElement().functionStartInOuputStream;
 			}
 
-			// New right-glue
-			includeInOutput = glue.isBi() || glue.isRight();
-		} else if (text != null) {
+			int glueTrimIndex = currentGlueIndex();
 
-			if (currentGlueIndex() != -1) {
+			int trimIndex = -1;
+			if (glueTrimIndex != -1 && functionTrimIndex != -1)
+				trimIndex = Math.min(functionTrimIndex, glueTrimIndex);
+			else if (glueTrimIndex != -1)
+				trimIndex = glueTrimIndex;
+			else
+				trimIndex = functionTrimIndex;
+
+			if (trimIndex != -1) {
 
 				// Absorb any new newlines if there's existing glue
 				// in the output stream.
 				// Also trim any extra whitespace (spaces/tabs) if so.
 				if (text.isNewline()) {
-					trimFromExistingGlue();
+					trimWhitespaceForwardsFrom(trimIndex);
 					includeInOutput = false;
 				}
 
-				// Able to completely reset when
+				// Able to completely reset when normal text is pushed
 				else if (text.isNonWhitespace()) {
 					removeExistingGlue();
+
+					// Tell all functions in callstack that we have seen proper text,
+					// so trimming whitespace at the start is done.
+					if (functionTrimIndex > -1) {
+						List<Element> callstackElements = callStack.getElements();
+						for (int i = callstackElements.size() - 1; i >= 0; i--) {
+							Element el = callstackElements.get(i);
+							if (el.type == PushPopType.Function) {
+								el.functionStartInOuputStream = -1;
+							} else {
+								break;
+							}
+						}
+					}
 				}
-			} else if (text.isNewline()) {
+			}
+
+			// De-duplicate newlines, and don't ever lead with a newline
+			else if (text.isNewline()) {
 				if (outputStreamEndsInNewline() || !outputStreamContainsContent())
 					includeInOutput = false;
 			}
@@ -541,6 +595,7 @@ public class StoryState {
 		}
 
 		outputStreamDirty();
+
 	}
 
 	// Only called when non-whitespace is appended
@@ -567,12 +622,13 @@ public class StoryState {
 		currentErrors = null;
 	}
 
-	void resetOutput(List<RTObject> objs ) {
+	void resetOutput(List<RTObject> objs) {
 		outputStream.clear();
-		if( objs != null ) outputStream.addAll (objs);
+		if (objs != null)
+			outputStream.addAll(objs);
 		outputStreamDirty();
 	}
-	
+
 	void resetOutput() {
 		resetOutput(null);
 	}
@@ -622,12 +678,12 @@ public class StoryState {
 
 	Object completeFunctionEvaluationFromGame() throws StoryException, Exception {
 		if (callStack.getCurrentElement().type != PushPopType.FunctionEvaluationFromGame) {
-			throw new StoryException(
-					"Expected external function evaluation to be complete. Stack trace: " + callStack.getCallStackTrace());
+			throw new StoryException("Expected external function evaluation to be complete. Stack trace: "
+					+ callStack.getCallStackTrace());
 		}
 
 		int originalEvaluationStackHeight = callStack.getCurrentElement().evaluationStackHeightWhenPushed;
-		
+
 		// Do we have a returned value?
 		// Potentially pop multiple values off the stack, in case we need
 		// to clean up after ourselves (e.g. caller of EvaluateFunction may
@@ -640,8 +696,8 @@ public class StoryState {
 				returnedObj = poppedObj;
 		}
 
-		 // Finally, pop the external function evaluation
-		callStack.pop (PushPopType.FunctionEvaluationFromGame);
+		// Finally, pop the external function evaluation
+		callStack.pop(PushPopType.FunctionEvaluationFromGame);
 
 		// What did we get back?
 		if (returnedObj != null) {
@@ -750,8 +806,8 @@ public class StoryState {
 		return SimpleJson.HashMapToText(getJsonToken());
 	}
 
-	void trimFromExistingGlue() {
-		int i = currentGlueIndex();
+	void trimWhitespaceForwardsFrom(int startIndex) {
+		int i = startIndex;
 		while (i < outputStream.size()) {
 			StringValue txt = outputStream.get(i) instanceof StringValue ? (StringValue) outputStream.get(i) : null;
 
@@ -764,33 +820,25 @@ public class StoryState {
 		outputStreamDirty();
 	}
 
-	void trimNewlinesFromOutputStream(Glue rightGlueToStopAt) {
+	void trimNewlinesFromOutputStream() {
 		int removeWhitespaceFrom = -1;
-		int rightGluePos = -1;
-		boolean foundNonWhitespace = false;
 
 		// Work back from the end, and try to find the point where
-		// we need to start removing content. There are two ways:
-		// - Start from the matching right-glue (because we just saw a
-		// left-glue)
+		// we need to start removing content.
 		// - Simply work backwards to find the first newline in a String of
 		// whitespace
+		// e.g. This is the content \n \n\n
+		// ^---------^ whitespace to remove
+		// ^--- first while loop stops here
 		int i = outputStream.size() - 1;
 		while (i >= 0) {
 			RTObject obj = outputStream.get(i);
 			ControlCommand cmd = obj instanceof ControlCommand ? (ControlCommand) obj : null;
 			StringValue txt = obj instanceof StringValue ? (StringValue) obj : null;
-			Glue glue = obj instanceof Glue ? (Glue) obj : null;
 
 			if (cmd != null || (txt != null && txt.isNonWhitespace())) {
-				foundNonWhitespace = true;
-
-				if (rightGlueToStopAt == null)
-					break;
-			} else if (rightGlueToStopAt != null && glue == rightGlueToStopAt) {
-				rightGluePos = i;
 				break;
-			} else if (txt != null && txt.isNewline() && !foundNonWhitespace) {
+			} else if (txt != null && txt.isNewline()) {
 				removeWhitespaceFrom = i;
 			}
 			i--;
@@ -810,20 +858,7 @@ public class StoryState {
 			}
 		}
 
-		// Remove the glue (it will come before the whitespace,
-		// so index is still valid)
-		// Also remove any other non-matching right glues that come after,
-		// since they'll have lost their matching glues already
-		if (rightGlueToStopAt != null && rightGluePos > -1) {
-			i = rightGluePos;
-			while (i < outputStream.size()) {
-				if (outputStream.get(i) instanceof Glue && ((Glue) outputStream.get(i)).isRight()) {
-					outputStream.remove(i);
-				} else {
-					i++;
-				}
-			}
-		}
+		outputStreamDirty();
 	}
 
 	// At both the start and the end of the String, split out the new lines like

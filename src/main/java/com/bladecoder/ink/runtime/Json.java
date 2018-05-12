@@ -149,11 +149,7 @@ public class Json {
 
 			// Glue
 			if ("<>".equals(str))
-				return new Glue(GlueType.Bidirectional);
-			else if ("G<".equals(str))
-				return new Glue(GlueType.Left);
-			else if ("G>".equals(str))
-				return new Glue(GlueType.Right);
+				return new Glue();
 
 			for (int i = 0; i < controlCommandNames.length; ++i) {
 				// Control commands (would looking up in a hash set be faster?)
@@ -163,7 +159,7 @@ public class Json {
 				}
 
 			}
-			
+
 			// Native functions
 			// "^" conflicts with the way to identify strings, so now
 			// we know it's not a string, we can convert back to the proper
@@ -463,12 +459,7 @@ public class Json {
 
 		Glue glue = obj instanceof Glue ? (Glue) obj : (Glue) null;
 		if (glue != null) {
-			if (glue.isBi())
-				return "<>";
-			else if (glue.isLeft())
-				return "G<";
-			else
-				return "G>";
+			return "<>";
 		}
 
 		ControlCommand controlCmd = obj instanceof ControlCommand ? (ControlCommand) obj : (ControlCommand) null;
@@ -555,7 +546,8 @@ public class Json {
 				for (Entry<String, Object> namedContentObj : terminatingObj.entrySet()) {
 					// Strip redundant names from containers if necessary
 					List<Object> subContainerJArray = namedContentObj.getValue() instanceof List<?>
-							? (List<Object>) namedContentObj.getValue() : (List<Object>) null;
+							? (List<Object>) namedContentObj.getValue()
+							: (List<Object>) null;
 
 					if (subContainerJArray != null) {
 						HashMap<String, Object> attrJObj = subContainerJArray

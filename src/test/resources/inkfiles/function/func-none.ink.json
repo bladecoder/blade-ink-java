@@ -1,1 +1,1 @@
-﻿{"inkVersion":16,"root":["ev",{"f()":"f"},"/ev",{"temp=":"x","re":true},"^The value of x is ",["G>","ev",{"VAR?":"x"},"out","/ev","G<",null],"^.","\n","end","done",{"f":["ev",3.8,"/ev","~ret",{"#f":3}],"global decl":["ev",0.0,{"VAR=":"x"},"/ev","end",null],"#f":3}],"listDefs":{}}
+﻿{"inkVersion":18,"root":[["ev",{"f()":"f"},"/ev",{"temp=":"x","re":true},"^The value of x is ","ev",{"VAR?":"x"},"out","/ev","^.","\n","end",["end",{"#n":"g-0"}],null],"done",{"f":["ev",3.8,"/ev","~ret",{"#f":3}],"global decl":["ev",0.0,{"VAR=":"x"},"/ev","end",null],"#f":3}],"listDefs":{}}

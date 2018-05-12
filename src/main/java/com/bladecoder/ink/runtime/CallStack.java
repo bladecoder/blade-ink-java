@@ -19,6 +19,10 @@ class CallStack {
 		// we need to keep track of the size of the evaluation stack when it was called
 		// so that we know whether there was any return value.
 		public int evaluationStackHeightWhenPushed;
+		
+		// When functions are called, we trim whitespace from the start and end of what
+		// they generate, so we make sure know where the function's start and end are.
+		public int functionStartInOuputStream;
 
 		public Element(PushPopType type, Container container, int contentIndex) {
 			this(type, container, contentIndex, false);
@@ -37,6 +41,7 @@ class CallStack {
 					this.inExpressionEvaluation);
 			copy.temporaryVariables = new HashMap<String, RTObject>(this.temporaryVariables);
 			copy.evaluationStackHeightWhenPushed = evaluationStackHeightWhenPushed;
+			copy.functionStartInOuputStream = functionStartInOuputStream;
 			return copy;
 		}
 
@@ -295,10 +300,14 @@ class CallStack {
 	}
 
 	public void push(PushPopType type) {
-		push(type, 0);
+		push(type, 0, 0);
+	}
+	
+	public void push(PushPopType type, int externalEvaluationStackHeight) {
+		push(type, externalEvaluationStackHeight, 0);
 	}
 
-	public void push(PushPopType type, int externalEvaluationStackHeight) {
+	public void push(PushPopType type, int externalEvaluationStackHeight, int outputStreamLengthWithPushed) {
 		// When pushing to callstack, maintain the current content path, but
 		// jump
 		// out of expressions by default
@@ -306,6 +315,7 @@ class CallStack {
 				getCurrentElement().currentContentIndex, false);
 
 		element.evaluationStackHeightWhenPushed = externalEvaluationStackHeight;
+		element.functionStartInOuputStream = outputStreamLengthWithPushed;
 
 		getCallStack().add(element);
 	}

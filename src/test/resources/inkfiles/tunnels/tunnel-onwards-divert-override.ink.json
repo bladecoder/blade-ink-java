@@ -1,1 +1,1 @@
-﻿{"inkVersion":16,"root":[{"->t->":"A"},"^We will never return to here!","\n","done",{"A":["^This is A","\n","ev",{"^->":"B"},"/ev","->->",{"#f":3}],"B":["^Now in B.","\n","end",{"#f":3}],"#f":3}],"listDefs":{}}
+﻿{"inkVersion":18,"root":[[{"->t->":"A"},"^We will never return to here!","\n",["end",{"#n":"g-0"}],null],"done",{"A":["^This is A","\n","ev",{"^->":"B"},"/ev","->->",{"#f":3}],"B":["^Now in B.","\n","end",{"#f":3}],"#f":3}],"listDefs":{}}

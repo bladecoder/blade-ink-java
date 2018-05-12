@@ -47,13 +47,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * The current version of the ink story file format.
 	 */
-	public static final int inkVersionCurrent = 17;
+	public static final int inkVersionCurrent = 18;
 
 	/**
 	 * The minimum legacy version of ink that can be loaded by the current version
 	 * of the code.
 	 */
-	public static final int inkVersionMinimumCompatible = 16;
+	public static final int inkVersionMinimumCompatible = 18;
 
 	private Container mainContentContainer;
 	private ListDefinitionsOrigin listsDefinitions;
@@ -828,7 +828,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// have auto-popped, but just in case we didn't for some reason,
 		// manually pop to restore the state (including currentPath).
 		if (state.getCallStack().getElements().size() > startCallStackHeight) {
-			state.getCallStack().pop();
+			state.popCallstack();
 		}
 
 		int endStackHeight = state.getEvaluationStack().size();
@@ -1150,7 +1150,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			if (state.getCallStack().canPop(PushPopType.Function)) {
 
 				// Pop from the call stack
-				state.getCallStack().pop(PushPopType.Function);
+				state.popCallstack(PushPopType.Function);
 
 				// This pop was due to dropping off the end of a function that
 				// didn't return anything,
@@ -1288,7 +1288,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			}
 
 			if (currentDivert.getPushesToStack()) {
-				state.getCallStack().push(currentDivert.getStackPushType());
+				state.getCallStack().push(
+						currentDivert.getStackPushType(),
+						0,
+						state.getOutputStream().size()
+						);
 			}
 
 			if (state.getDivertedTargetObject() == null && !currentDivert.isExternal()) {
@@ -1399,7 +1403,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				else {
-					state.getCallStack().pop();
+					state.popCallstack();
 
 					// Does tunnel onwards override by diverting to a new ->->
 					// target?
