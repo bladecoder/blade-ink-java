@@ -81,6 +81,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	private Profiler profiler;
 
+	private boolean asyncContinueActive;
+	StoryState stateAtLastNewline = null;
+
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
 	// For normal use, use the constructor that takes a json string.
@@ -157,7 +160,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * Start recording ink profiling information during calls to Continue on Story.
-	 * Return a Profiler instance that you can request a report from when you're finished.
+	 * Return a Profiler instance that you can request a report from when you're
+	 * finished.
 	 */
 	public Profiler startProfiling() {
 		profiler = new Profiler();
@@ -167,7 +171,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * Stop recording ink profiling information during calls to Continue on Story.
-	 * To generate a report from the profiler, call 
+	 * To generate a report from the profiler, call
 	 */
 	public void endProfiling() {
 		profiler = null;
@@ -452,193 +456,228 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (!hasValidatedExternals)
 			validateExternalBindings();
 
-		return continueInternal();
+		// return continueInternal();
+
+		continueInternal();
+
+		return getCurrentText();
 	}
 
-	String continueInternal() throws StoryException, Exception {
-		boolean canContinue_cached = canContinue();
+	public boolean asyncContinueComplete() {
+		return !asyncContinueActive;
+	}
 
-		if (!canContinue_cached) {
-			throw new StoryException("Can't continue - should check canContinue before calling Continue");
-		}
+	public void continueAsync(float millisecsLimitAsync) throws Exception {
+		if (!hasValidatedExternals)
+			validateExternalBindings();
 
+		continueInternal(millisecsLimitAsync);
+	}
+
+	void continueInternal() throws StoryException, Exception {
+		continueInternal(0);
+	}
+
+	void continueInternal(float millisecsLimitAsync) throws StoryException, Exception {
 		if (profiler != null)
 			profiler.preContinue();
 
-		state.resetOutput();
+		boolean isAsyncTimeLimited = millisecsLimitAsync > 0;
 
-		state.setDidSafeExit(false);
-		state.getVariablesState().setbatchObservingVariableChanges(true);
+		// Doing either:
+		// - full run through non-async (so not active and don't want to be)
+		// - Starting async run-through
+		if (!asyncContinueActive) {
+			asyncContinueActive = isAsyncTimeLimited;
+			prepareContinue();
+		}
 
-		// _previousContainer = null;
+		// Start timing
+		Stopwatch durationStopwatch = new Stopwatch();
+		durationStopwatch.start();
 
-		try {
+		boolean outputStreamEndsInNewline = false;
+		do {
 
-			StoryState stateAtLastNewline = null;
-
-			// The basic algorithm here is:
-			//
-			// do { Step() } while( canContinue && !outputStreamEndsInNewline );
-			//
-			// But the complexity comes from:
-			// - Stepping beyond the newline in case it'll be absorbed by glue
-			// later
-			// - Ensuring that non-text content beyond newlines are generated -
-			// i.e. choices,
-			// which are actually built out of text content.
-			// So we have to take a snapshot of the state, continue
-			// prospectively,
-			// and rewind if necessary.
-			// This code is slightly fragile :-/
-			//
-
-			do {
-
-				if (profiler != null)
-					profiler.preStep();
-
-				// Run main step function (walks through content)
-				step();
-
-				if (profiler != null)
-					profiler.postStep();
-
-				// Run out of content and we have a default invisible choice
-				// that we can follow?
-				canContinue_cached = canContinue();
-				if (!canContinue_cached) {
-					tryFollowDefaultInvisibleChoice();
-					canContinue_cached = canContinue();
-				}
-
-				if (profiler != null)
-					profiler.preSnapshot();
-
-				// Don't save/rewind during String evaluation, which is e.g.
-				// used for choices
-				if (!getState().inStringEvaluation()) {
-
-					// We previously found a newline, but were we just double
-					// checking that
-					// it wouldn't immediately be removed by glue?
-					if (stateAtLastNewline != null) {
-
-						// Cover cases that non-text generated content was
-						// evaluated last step
-						String currText = getCurrentText();
-						int prevTextLength = stateAtLastNewline.getCurrentText().length();
-
-						// Take tags into account too, so that a tag following a
-						// content line:
-						// Content
-						// # tag
-						// ... doesn't cause the tag to be wrongly associated
-						// with the content above.
-						int prevTagCount = stateAtLastNewline.getCurrentTags().size();
-
-						// Output has been extended?
-						if (!currText.equals(stateAtLastNewline.getCurrentText())
-								|| prevTagCount != getCurrentTags().size()) {
-
-							// Original newline still exists?
-							if (currText.length() >= prevTextLength && currText.charAt(prevTextLength - 1) == '\n') {
-
-								restoreStateSnapshot(stateAtLastNewline);
-								break;
-							}
-
-							// Newline that previously existed is no longer
-							// valid - e.g.
-							// glue was encounted that caused it to be removed.
-							else {
-								stateAtLastNewline = null;
-							}
-						}
-
-					}
-
-					// Current content ends in a newline - approaching end of
-					// our evaluation
-					if (getState().outputStreamEndsInNewline()) {
-
-						// If we can continue evaluation for a bit:
-						// Create a snapshot in case we need to rewind.
-						// We're going to continue stepping in case we see glue
-						// or some
-						// non-text content such as choices.
-						if (canContinue_cached) {
-							// Don't bother to record the state beyond the
-							// current newline.
-							// e.g.:
-							// Hello world\n
-							// record state at the end of here
-							// ~ complexCalculation()
-							// don't actually need this unless it generates text
-							if (stateAtLastNewline == null)
-								stateAtLastNewline = stateSnapshot();
-						}
-
-						// Can't continue, so we're about to exit - make sure we
-						// don't have an old state hanging around.
-						else {
-							stateAtLastNewline = null;
-						}
-
-					}
-
-				}
-
-				if (profiler != null)
-					profiler.postSnapshot();
-
-			} while (canContinue_cached);
-
-			// Need to rewind, due to evaluating further than we should?
-			if (stateAtLastNewline != null) {
-				if (profiler != null)
-					profiler.preRestore();
-
-				restoreStateSnapshot(stateAtLastNewline);
-
-				if (profiler != null)
-					profiler.postRestore();
+			try {
+				outputStreamEndsInNewline = continueSingleStep();
+			} catch (StoryException e) {
+				addError(e.getMessage(), e.useEndLineNumber);
+				break;
 			}
 
-			// Finished a section of content / reached a choice point?
-			if (!canContinue()) {
+			if (outputStreamEndsInNewline)
+				break;
 
-				if (getState().getCallStack().canPopThread()) {
-					error("Thread available to pop, threads should always be flat by the end of evaluation?");
-				}
-
-				if (getState().getGeneratedChoices().size() == 0 && !getState().isDidSafeExit()
-						&& temporaryEvaluationContainer == null) {
-					if (getState().getCallStack().canPop(PushPopType.Tunnel)) {
-						error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-					} else if (getState().getCallStack().canPop(PushPopType.Function)) {
-						error("unexpectedly reached end of content. Do you need a '~ return'?");
-					} else if (!getState().getCallStack().canPop()) {
-						error("ran out of content. Do you need a '-> DONE' or '-> END'?");
-					} else {
-						error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
-					}
-				}
-
+			// Run out of async time?
+			if (asyncContinueActive && durationStopwatch.getElapsedMilliseconds() > millisecsLimitAsync) {
+				break;
 			}
 
-		} catch (StoryException e) {
-			addError(e.getMessage(), e.useEndLineNumber);
-		} finally {
+		} while (canContinue());
 
-			getState().setDidSafeExit(false);
+		durationStopwatch.stop();
 
-			state.getVariablesState().setbatchObservingVariableChanges(false);
+		// 4 outcomes:
+		// - got newline (so finished this line of text)
+		// - can't continue (e.g. choices or ending)
+		// - ran out of time during evaluation
+		// - error
+		//
+		// Successfully finished evaluation in time (or in error)
+		if (outputStreamEndsInNewline || !canContinue()) {
+			completeContinue();
+			asyncContinueActive = false;
 		}
 
 		if (profiler != null)
 			profiler.postContinue();
+	}
 
-		return getCurrentText();
+	void prepareContinue() throws StoryException, Exception {
+		if (!canContinue()) {
+			throw new StoryException("Can't continue - should check canContinue before calling Continue");
+		}
+		state.resetOutput();
+
+		state.setDidSafeExit(false);
+		state.getVariablesState().setbatchObservingVariableChanges(true);
+	}
+
+	boolean continueSingleStep() throws Exception {
+		if (profiler != null)
+			profiler.preStep();
+
+		// Run main step function (walks through content)
+		step();
+
+		if (profiler != null)
+			profiler.postStep();
+
+		// Run out of content and we have a default invisible choice that we can follow?
+		if (!canContinue()) {
+
+			tryFollowDefaultInvisibleChoice();
+		}
+
+		if (profiler != null)
+			profiler.preSnapshot();
+
+		// Don't save/rewind during string evaluation, which is e.g. used for choices
+		if (!state.inStringEvaluation()) {
+
+			// We previously found a newline, but were we just double checking that
+			// it wouldn't immediately be removed by glue?
+			if (stateAtLastNewline != null) {
+
+				// Cover cases that non-text generated content was evaluated last step
+				String currText = getCurrentText();
+				int prevTextLength = stateAtLastNewline.getCurrentText().length();
+
+				// Take tags into account too, so that a tag following a content line:
+				// Content
+				// # tag
+				// ... doesn't cause the tag to be wrongly associated with the content above.
+				int prevTagCount = stateAtLastNewline.getCurrentTags().size();
+
+				// Output has been extended?
+				if (!currText.equals(stateAtLastNewline.getCurrentText()) || prevTagCount != getCurrentTags().size()) {
+
+					// Original newline still exists?
+					if (currText.length() >= prevTextLength && currText.charAt(prevTextLength - 1) == '\n') {
+						restoreStateSnapshot(stateAtLastNewline);
+
+						// Hit a newline for sure, we're done
+						return true;
+					}
+
+					// Newline that previously existed is no longer valid - e.g.
+					// glue was encounted that caused it to be removed.
+					else {
+						stateAtLastNewline = null;
+					}
+				}
+
+			}
+
+			// Current content ends in a newline - approaching end of our evaluation
+			if (state.outputStreamEndsInNewline()) {
+
+				// If we can continue evaluation for a bit:
+				// Create a snapshot in case we need to rewind.
+				// We're going to continue stepping in case we see glue or some
+				// non-text content such as choices.
+				if (canContinue()) {
+
+					// Don't bother to record the state beyond the current newline.
+					// e.g.:
+					// Hello world\n // record state at the end of here
+					// ~ complexCalculation() // don't actually need this unless it generates text
+					if (stateAtLastNewline == null)
+						stateAtLastNewline = stateSnapshot();
+				}
+
+				// Can't continue, so we're about to exit - make sure we
+				// don't have an old state hanging around.
+				else {
+					stateAtLastNewline = null;
+				}
+
+			}
+
+		}
+
+		if (profiler != null)
+			profiler.postSnapshot();
+
+		// outputStreamEndsInNewline = false
+		return false;
+	}
+
+	void completeContinue() throws Exception {
+		// Need to rewind, due to evaluating further than we should?
+		if (stateAtLastNewline != null) {
+
+			if (profiler != null)
+				profiler.preRestore();
+
+			restoreStateSnapshot(stateAtLastNewline);
+			stateAtLastNewline = null;
+
+			if (profiler != null)
+				profiler.postRestore();
+		}
+
+		// Finished a section of content / reached a choice point?
+		if (!canContinue()) {
+
+			if (state.getCallStack().canPopThread()) {
+
+				error("Thread available to pop, threads should always be flat by the end of evaluation?");
+			}
+
+			if (state.getGeneratedChoices().size() == 0 && !state.isDidSafeExit()
+					&& temporaryEvaluationContainer == null) {
+				if (state.getCallStack().canPop(PushPopType.Tunnel)) {
+
+					error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
+				} else if (state.getCallStack().canPop(PushPopType.Function)) {
+
+					error("unexpectedly reached end of content. Do you need a '~ return'?");
+				} else if (!state.getCallStack().canPop()) {
+
+					error("ran out of content. Do you need a '-> DONE' or '-> END'?");
+				} else {
+
+					error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
+				}
+			}
+
+		}
+
+		state.setDidSafeExit(false);
+
+		state.getVariablesState().setbatchObservingVariableChanges(false);
 	}
 
 	/**
