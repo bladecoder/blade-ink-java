@@ -205,7 +205,7 @@ class CallStack {
 			return 0;
 		}
 	}
-	
+
 	public int getDepth() {
 		return getElements().size();
 	}
@@ -287,8 +287,8 @@ class CallStack {
 		// When pushing to callstack, maintain the current content path, but
 		// jump
 		// out of expressions by default
-		getCallStack()
-				.add(new Element(type, getCurrentElement().currentContainer, getCurrentElement().currentContentIndex, false));
+		getCallStack().add(new Element(type, getCurrentElement().currentContainer,
+				getCurrentElement().currentContentIndex, false));
 	}
 
 	public void pushThread() {
@@ -299,7 +299,7 @@ class CallStack {
 	}
 
 	public void setCurrentThread(Thread value) {
-		// Debug.Assert (_threads.Count == 1, "Shouldn't be directly setting the
+		// Debug.Assert (threads.Count == 1, "Shouldn't be directly setting the
 		// current thread when we have a stack of them");
 		threads.clear();
 		threads.add(value);
@@ -347,12 +347,47 @@ class CallStack {
 	}
 
 	public Thread getThreadWithIndex(int index) {
-		// return _threads.Find (t => t.threadIndex == index);
+		// return threads.Find (t => t.threadIndex == index);
 
 		for (Thread t : threads)
 			if (t.threadIndex == index)
 				return t;
 
 		return null;
+	}
+
+	String getCallStackTrace() {
+		StringBuilder sb = new StringBuilder();
+
+		for (int t = 0; t < threads.size(); t++) {
+
+			Thread thread = threads.get(t);
+			boolean isCurrent = (t == threads.size() - 1);
+			sb.append(String.format("=== THREAD %d/%d %s===\n", (t + 1), threads.size(), (isCurrent ? "(current) " : "")));
+
+			for (int i = 0; i < thread.callstack.size(); i++) {
+
+				if (thread.callstack.get(i).type == PushPopType.Function)
+					sb.append("  [FUNCTION] ");
+				else
+					sb.append("  [TUNNEL] ");
+
+				RTObject obj = thread.callstack.get(i).getCurrentRTObject();
+				if (obj == null) {
+					if (thread.callstack.get(i).currentContainer != null) {
+						sb.append("<SOMEWHERE IN ");
+						sb.append(thread.callstack.get(i).currentContainer.getPath().toString());
+						sb.append(">\n");
+					} else {
+						sb.append("<UNKNOWN STACK ELEMENT>\n");
+					}
+				} else {
+					String elementStr = obj.getPath().toString();
+					sb.append(elementStr + "\n");
+				}
+			}
+		}
+
+		return sb.toString();
 	}
 }
