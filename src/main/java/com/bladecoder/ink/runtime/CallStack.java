@@ -193,7 +193,11 @@ class CallStack {
 	}
 
 	public boolean canPopThread() {
-		return threads.size() > 1;
+		return threads.size() > 1 && !elementIsEvaluateFromGame();
+	}
+
+	public boolean elementIsEvaluateFromGame() {
+		return getCurrentElement().type == PushPopType.FunctionEvaluationFromGame;
 	}
 
 	// Find the most appropriate context for this variable.

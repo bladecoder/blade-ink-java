@@ -166,7 +166,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Start recording ink profiling information during calls to Continue on Story.
 	 * Return a Profiler instance that you can request a report from when you're
 	 * finished.
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 */
 	public Profiler startProfiling() throws Exception {
 		ifAsyncWeCant("start profiling");
@@ -211,7 +212,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *            The Java function to bind.
 	 */
 	public void bindExternalFunction(String funcName, ExternalFunction func) throws Exception {
-		 ifAsyncWeCant ("bind an external function");
+		ifAsyncWeCant("bind an external function");
 		Assert(!externals.containsKey(funcName), "Function '" + funcName + "' has already been bound.");
 		externals.put(funcName, func);
 	}
@@ -595,7 +596,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			profiler.postStep();
 
 		// Run out of content and we have a default invisible choice that we can follow?
-		if (!canContinue()) {
+		if (!canContinue() && !state.getCallStack().elementIsEvaluateFromGame()) {
 
 			tryFollowDefaultInvisibleChoice();
 		}
@@ -621,7 +622,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				int prevTagCount = stateAtLastNewline.getCurrentTags().size();
 
 				// Output has been extended?
-				if (!currText.equals(stateAtLastNewline.getCurrentText()) || prevTagCount != state.getCurrentTags().size()) {
+				if (!currText.equals(stateAtLastNewline.getCurrentText())
+						|| prevTagCount != state.getCurrentTags().size()) {
 
 					// Original newline still exists?
 					if (currText.length() >= prevTextLength && currText.charAt(prevTextLength - 1) == '\n') {
@@ -804,7 +806,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Gets a list of tags as defined with '#' in source that were seen during the
 	 * latest Continue() call.
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 */
 	public List<String> getCurrentTags() throws Exception {
 		ifAsyncWeCant("call currentTags since it's a work in progress");
@@ -820,7 +823,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * The latest line of text to be generated from a Continue() call.
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 */
 	public String getCurrentText() throws Exception {
 		ifAsyncWeCant("call currentText since it's a work in progress");
@@ -943,8 +947,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @throws StoryException
 	 */
 	public void observeVariable(String variableName, VariableObserver observer) throws StoryException, Exception {
-		ifAsyncWeCant ("observe a new variable");
-		
+		ifAsyncWeCant("observe a new variable");
+
 		if (variableObservers == null)
 			variableObservers = new HashMap<String, List<VariableObserver>>();
 
@@ -991,11 +995,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *            The observer to stop observing.
 	 * @param specificVariableName
 	 *            (Optional) Specific variable name to stop observing.
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public void removeVariableObserver(VariableObserver observer, String specificVariableName) throws Exception {
-		ifAsyncWeCant ("remove a variable observer");
-		 
+		ifAsyncWeCant("remove a variable observer");
+
 		if (variableObservers == null)
 			return;
 
@@ -1969,7 +1973,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Remove a binding for a named EXTERNAL ink function.
 	 */
 	public void unbindExternalFunction(String funcName) throws Exception {
-		ifAsyncWeCant ("unbind an external a function");
+		ifAsyncWeCant("unbind an external a function");
 		Assert(externals.containsKey(funcName), "Function '" + funcName + "' has not been bound.");
 		externals.remove(funcName);
 	}
@@ -2192,8 +2196,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @throws Exception
 	 */
 	public Object evaluateFunction(String functionName, StringBuffer textOutput, Object[] arguments) throws Exception {
-		ifAsyncWeCant ("evaluate a function");
-		
+		ifAsyncWeCant("evaluate a function");
+
 		// Get the content that we need to run
 		Container funcContainer = null;
 
