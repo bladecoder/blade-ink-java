@@ -447,7 +447,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * 
 	 * This is potentially dangerous! If you're in the middle of a tunnel, it'll
 	 * redirect only the inner-most tunnel, meaning that when you tunnel-return
-	 * using '->->', it'll return to where you were before. This may be what you
+	 * using '-&gt;-&gt->', it'll return to where you were before. This may be what you
 	 * want though. However, if you're in the middle of a function, ChoosePathString
 	 * will throw an exception.
 	 * 
@@ -517,7 +517,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * If ContinueAsync was called (with milliseconds limit > 0) then this property
+	 * If ContinueAsync was called (with milliseconds limit &gt; 0) then this property
 	 * will return false if the ink evaluation isn't yet finished, and you need to
 	 * call it again in order for the Continue to fully complete.
 	 */
