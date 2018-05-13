@@ -447,7 +447,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * 
 	 * This is potentially dangerous! If you're in the middle of a tunnel, it'll
 	 * redirect only the inner-most tunnel, meaning that when you tunnel-return
-	 * using '-&gt;-&gt;->', it'll return to where you were before. This may be what you
+	 * using '-&gt;-&gt;-&gt;', it'll return to where you were before. This may be what you
 	 * want though. However, if you're in the middle of a function, ChoosePathString
 	 * will throw an exception.
 	 * 
