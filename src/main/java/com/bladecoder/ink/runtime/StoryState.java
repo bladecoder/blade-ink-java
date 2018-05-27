@@ -543,11 +543,9 @@ public class StoryState {
 
 			if (trimIndex != -1) {
 
-				// Absorb any new newlines if there's existing glue
-				// in the output stream.
-				// Also trim any extra whitespace (spaces/tabs) if so.
+				// While trimming, we want to throw all newlines away,
+				// whether due to glue or the start of a function
 				if (text.isNewline()) {
-					trimWhitespaceForwardsFrom(trimIndex);
 					includeInOutput = false;
 				}
 
@@ -791,20 +789,6 @@ public class StoryState {
 	 */
 	public String toJson() throws Exception {
 		return SimpleJson.HashMapToText(getJsonToken());
-	}
-
-	void trimWhitespaceForwardsFrom(int startIndex) {
-		int i = startIndex;
-		while (i < outputStream.size()) {
-			StringValue txt = outputStream.get(i) instanceof StringValue ? (StringValue) outputStream.get(i) : null;
-
-			if (txt != null && !txt.isNonWhitespace())
-				outputStream.remove(i);
-			else
-				i++;
-		}
-
-		outputStreamDirty();
 	}
 
 	void trimNewlinesFromOutputStream() {
