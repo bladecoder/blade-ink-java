@@ -124,23 +124,9 @@ public class StoryState {
 		return copy;
 	}
 
-	int currentGlueIndex() {
-		for (int i = outputStream.size() - 1; i >= 0; i--) {
-			RTObject c = outputStream.get(i);
-			Glue glue = c instanceof Glue ? (Glue) c : null;
-			if (glue != null)
-				return i;
-			else if (c instanceof ControlCommand) // e.g. BeginString
-				break;
-		}
-		return -1;
-	}
-
 	void popFromOutputStream(int count) {
-		outputStream
-		.subList(outputStream.size() - count, outputStream.size())
-		.clear();
-		
+		outputStream.subList(outputStream.size() - count, outputStream.size()).clear();
+
 		outputStreamDirty();
 	}
 
@@ -217,7 +203,7 @@ public class StoryState {
 
 			if (txt.isNewline() || txt.isInlineWhitespace()) {
 				outputStream.remove(i);
-				outputStreamDirty ();
+				outputStreamDirty();
 			} else {
 				break;
 			}
@@ -529,19 +515,45 @@ public class StoryState {
 		}
 		// New text: do we really want to append it, if it's whitespace?
 		// Two different reasons for whitespace to be thrown away:
-		// - User defined glue: <>
 		// - Function start/end trimming
+		// - User defined glue: <>
 		// We also need to know when to stop trimming, when there's non-whitespace.
 		else if (text != null) {
 
+			// Where does the current function call begin?
 			int functionTrimIndex = -1;
 			Element currEl = callStack.getCurrentElement();
 			if (currEl.type == PushPopType.Function) {
 				functionTrimIndex = currEl.functionStartInOuputStream;
 			}
 
-			int glueTrimIndex = currentGlueIndex();
+			// Do 2 things:
+			// - Find latest glue
+			// - Check whether we're in the middle of string evaluation
+			// If we're in string eval within the current function, we
+			// don't want to trim back further than the length of the current string.
+			int glueTrimIndex = -1;
+			for (int i = outputStream.size() - 1; i >= 0; i--) {
+				RTObject o = outputStream.get(i);
+				ControlCommand c = o instanceof ControlCommand ? (ControlCommand) o : null;
+				Glue g = o instanceof Glue ? (Glue) o : null;
 
+				// Find latest glue
+				if (g != null) {
+					glueTrimIndex = i;
+					break;
+				}
+
+				// Don't function-trim past the start of a string evaluation section
+				else if (c != null && c.getCommandType() == ControlCommand.CommandType.BeginString) {
+					if (i >= functionTrimIndex) {
+						functionTrimIndex = -1;
+					}
+					break;
+				}
+			}
+
+			// Where is the most agressive (earliest) trim point?
 			int trimIndex = -1;
 			if (glueTrimIndex != -1 && functionTrimIndex != -1)
 				trimIndex = Math.min(functionTrimIndex, glueTrimIndex);
@@ -550,6 +562,7 @@ public class StoryState {
 			else
 				trimIndex = functionTrimIndex;
 
+			// So, are we trimming then?
 			if (trimIndex != -1) {
 
 				// While trimming, we want to throw all newlines away,
@@ -589,9 +602,8 @@ public class StoryState {
 
 		if (includeInOutput) {
 			outputStream.add(obj);
+			outputStreamDirty();
 		}
-
-		outputStreamDirty();
 
 	}
 
