@@ -136,6 +136,14 @@ public class StoryState {
 		return -1;
 	}
 
+	void popFromOutputStream(int count) {
+		outputStream
+		.subList(outputStream.size() - count, outputStream.size())
+		.clear();
+		
+		outputStreamDirty();
+	}
+
 	String getCurrentText() {
 		if (outputStreamTextDirty) {
 			StringBuilder sb = new StringBuilder();
@@ -209,6 +217,7 @@ public class StoryState {
 
 			if (txt.isNewline() || txt.isInlineWhitespace()) {
 				outputStream.remove(i);
+				outputStreamDirty ();
 			} else {
 				break;
 			}
@@ -288,7 +297,7 @@ public class StoryState {
 
 		obj.put("currentChoices", Json.listToJArray(currentChoices));
 
-		if (!divertedPointer.isNull() )
+		if (!divertedPointer.isNull())
 			obj.put("currentDivertTarget", getDivertedPointer().getPath().getComponentsString());
 
 		obj.put("visitCounts", Json.intHashMapToJObject(visitCounts));
@@ -551,9 +560,9 @@ public class StoryState {
 
 				// Able to completely reset when normal text is pushed
 				else if (text.isNonWhitespace()) {
-					
-					 if( glueTrimIndex > -1 )
-						 removeExistingGlue();
+
+					if (glueTrimIndex > -1)
+						removeExistingGlue();
 
 					// Tell all functions in callstack that we have seen proper text,
 					// so trimming whitespace at the start is done.
@@ -626,10 +635,10 @@ public class StoryState {
 	void setChosenPath(Path path) throws Exception {
 		// Changing direction, assume we need to clear current set of choices
 		currentChoices.clear();
-		
-		Pointer newPointer = new Pointer(story.pointerAtPath (path));
+
+		Pointer newPointer = new Pointer(story.pointerAtPath(path));
 		if (!newPointer.isNull() && newPointer.index == -1)
-		     newPointer.index = 0;
+			newPointer.index = 0;
 
 		setCurrentPointer(newPointer);
 
@@ -638,7 +647,7 @@ public class StoryState {
 
 	void startFunctionEvaluationFromGame(Container funcContainer, Object[] arguments) throws Exception {
 		callStack.push(PushPopType.FunctionEvaluationFromGame, evaluationStack.size());
-		callStack.getCurrentElement().currentPointer.assign(Pointer.startOf (funcContainer));
+		callStack.getCurrentElement().currentPointer.assign(Pointer.startOf(funcContainer));
 
 		passArgumentsToEvaluationStack(arguments);
 	}

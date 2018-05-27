@@ -1445,9 +1445,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				// Consume the content that was produced for this string
-				state.getOutputStream()
-						.subList(state.getOutputStream().size() - outputCountConsumed, state.getOutputStream().size())
-						.clear();
+				state.popFromOutputStream (outputCountConsumed);
 
 				// Build String out of the content we collected
 				StringBuilder sb = new StringBuilder();
