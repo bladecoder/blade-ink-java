@@ -6,8 +6,7 @@ import java.util.List;
 
 class CallStack {
 	static class Element {
-		public Container currentContainer;
-		public int currentContentIndex;
+		public final Pointer currentPointer = new Pointer();
 
 		public boolean inExpressionEvaluation;
 		public HashMap<String, RTObject> temporaryVariables;
@@ -19,66 +18,35 @@ class CallStack {
 		// we need to keep track of the size of the evaluation stack when it was called
 		// so that we know whether there was any return value.
 		public int evaluationStackHeightWhenPushed;
-		
+
 		// When functions are called, we trim whitespace from the start and end of what
 		// they generate, so we make sure know where the function's start and end are.
 		public int functionStartInOuputStream;
 
-		public Element(PushPopType type, Container container, int contentIndex) {
-			this(type, container, contentIndex, false);
+		public Element(PushPopType type, Pointer pointer) {
+			this(type, pointer, false);
 		}
 
-		public Element(PushPopType type, Container container, int contentIndex, boolean inExpressionEvaluation) {
-			this.currentContainer = container;
-			this.currentContentIndex = contentIndex;
+		public Element(PushPopType type, Pointer pointer, boolean inExpressionEvaluation) {
+			this.currentPointer.assign(pointer);
+
 			this.inExpressionEvaluation = inExpressionEvaluation;
 			this.temporaryVariables = new HashMap<String, RTObject>();
 			this.type = type;
 		}
 
 		public Element copy() {
-			Element copy = new Element(this.type, this.currentContainer, this.currentContentIndex,
-					this.inExpressionEvaluation);
+			Element copy = new Element(this.type, currentPointer, this.inExpressionEvaluation);
 			copy.temporaryVariables = new HashMap<String, RTObject>(this.temporaryVariables);
 			copy.evaluationStackHeightWhenPushed = evaluationStackHeightWhenPushed;
 			copy.functionStartInOuputStream = functionStartInOuputStream;
 			return copy;
 		}
-
-		public RTObject getCurrentRTObject() {
-			if (currentContainer != null && currentContentIndex < currentContainer.getContent().size()) {
-				return currentContainer.getContent().get(currentContentIndex);
-			}
-
-			return null;
-		}
-
-		public void setcurrentRTObject(RTObject currentObj) {
-			if (currentObj == null) {
-				currentContainer = null;
-				currentContentIndex = 0;
-				return;
-			}
-
-			currentContainer = currentObj.getParent() instanceof Container ? (Container) currentObj.getParent() : null;
-
-			if (currentContainer != null)
-				currentContentIndex = currentContainer.getContent().indexOf(currentObj);
-
-			// Two reasons why the above operation might not work:
-			// - currentObj is already the root container
-			// - currentObj is a named container rather than being an RTObject
-			// at an index
-			if (currentContainer == null || currentContentIndex == -1) {
-				currentContainer = currentObj instanceof Container ? (Container) currentObj : null;
-				currentContentIndex = 0;
-			}
-		}
 	}
 
 	static class Thread {
 		public List<Element> callstack;
-		public RTObject previousContentRTObject;
+		public final Pointer previousPointer = new Pointer();
 		public int threadIndex;
 
 		public Thread() {
@@ -98,22 +66,19 @@ class CallStack {
 
 				PushPopType pushPopType = PushPopType.values()[(Integer) jElementObj.get("type")];
 
-				Container currentContainer = null;
-				int contentIndex = 0;
+				final Pointer pointer = new Pointer(Pointer.Null);
 
 				String currentContainerPathStr = null;
 				Object currentContainerPathStrToken = jElementObj.get("cPath");
 				if (currentContainerPathStrToken != null) {
 					currentContainerPathStr = currentContainerPathStrToken.toString();
-					RTObject contentAtPath = storyContext.contentAtPath(new Path(currentContainerPathStr));
-					currentContainer = contentAtPath instanceof Container ? (Container) contentAtPath : null;
-
-					contentIndex = (int) jElementObj.get("idx");
+					pointer.container = (Container) storyContext.contentAtPath(new Path(currentContainerPathStr));
+					pointer.index = (int) jElementObj.get("idx");
 				}
 
 				boolean inExpressionEvaluation = (boolean) jElementObj.get("exp");
 
-				Element el = new Element(pushPopType, currentContainer, contentIndex, inExpressionEvaluation);
+				Element el = new Element(pushPopType, pointer, inExpressionEvaluation);
 
 				HashMap<String, Object> jObjTemps = (HashMap<String, Object>) jElementObj.get("temp");
 				el.temporaryVariables = Json.jObjectToHashMapRuntimeObjs(jObjTemps);
@@ -121,10 +86,10 @@ class CallStack {
 				callstack.add(el);
 			}
 
-			Object prevContentObjPath = jThreadObj.get("previousContentRTObject");
+			Object prevContentObjPath = jThreadObj.get("previousContentObject");
 			if (prevContentObjPath != null) {
 				Path prevPath = new Path((String) prevContentObjPath);
-				previousContentRTObject = storyContext.contentAtPath(prevPath);
+				previousPointer.assign(storyContext.pointerAtPath(prevPath));
 			}
 		}
 
@@ -134,7 +99,7 @@ class CallStack {
 			for (Element e : callstack) {
 				copy.callstack.add(e.copy());
 			}
-			copy.previousContentRTObject = previousContentRTObject;
+			copy.previousPointer.assign(previousPointer);
 			return copy;
 		}
 
@@ -144,9 +109,9 @@ class CallStack {
 			List<Object> jThreadCallstack = new ArrayList<Object>();
 			for (CallStack.Element el : callstack) {
 				HashMap<String, Object> jObj = new HashMap<String, Object>();
-				if (el.currentContainer != null) {
-					jObj.put("cPath", el.currentContainer.getPath().getComponentsString());
-					jObj.put("idx", el.currentContentIndex);
+				if (!el.currentPointer.isNull()) {
+					jObj.put("cPath", el.currentPointer.container.getPath().getComponentsString());
+					jObj.put("idx", el.currentPointer.index);
 				}
 				jObj.put("exp", el.inExpressionEvaluation);
 				jObj.put("type", el.type.ordinal());
@@ -157,8 +122,8 @@ class CallStack {
 			threadJObj.put("callstack", jThreadCallstack);
 			threadJObj.put("threadIndex", threadIndex);
 
-			if (previousContentRTObject != null)
-				threadJObj.put("previousContentRTObject", previousContentRTObject.getPath().toString());
+			if (!previousPointer.isNull())
+				threadJObj.put("previousContentObject", previousPointer.resolve().getPath().toString());
 
 			return threadJObj;
 		}
@@ -179,7 +144,7 @@ class CallStack {
 		threads = new ArrayList<Thread>();
 		threads.add(new Thread());
 
-		threads.get(0).callstack.add(new Element(PushPopType.Tunnel, rootContentContainer, 0));
+		threads.get(0).callstack.add(new Element(PushPopType.Tunnel, Pointer.startOf(rootContentContainer)));
 	}
 
 	public boolean canPop() {
@@ -227,7 +192,9 @@ class CallStack {
 	}
 
 	public Element getCurrentElement() {
-		return getCallStack().get(getCallStack().size() - 1);
+		Thread thread = threads.get(threads.size() - 1);
+		List<Element> cs = thread.callstack;
+		return cs.get(cs.size() - 1);
 	}
 
 	public int getCurrentElementIndex() {
@@ -302,7 +269,7 @@ class CallStack {
 	public void push(PushPopType type) {
 		push(type, 0, 0);
 	}
-	
+
 	public void push(PushPopType type, int externalEvaluationStackHeight) {
 		push(type, externalEvaluationStackHeight, 0);
 	}
@@ -311,8 +278,7 @@ class CallStack {
 		// When pushing to callstack, maintain the current content path, but
 		// jump
 		// out of expressions by default
-		Element element = new Element(type, getCurrentElement().currentContainer,
-				getCurrentElement().currentContentIndex, false);
+		Element element = new Element(type, getCurrentElement().currentPointer, false);
 
 		element.evaluationStackHeightWhenPushed = externalEvaluationStackHeight;
 		element.functionStartInOuputStream = outputStreamLengthWithPushed;
@@ -402,18 +368,12 @@ class CallStack {
 				else
 					sb.append("  [TUNNEL] ");
 
-				RTObject obj = thread.callstack.get(i).getCurrentRTObject();
-				if (obj == null) {
-					if (thread.callstack.get(i).currentContainer != null) {
-						sb.append("<SOMEWHERE IN ");
-						sb.append(thread.callstack.get(i).currentContainer.getPath().toString());
-						sb.append(">\n");
-					} else {
-						sb.append("<UNKNOWN STACK ELEMENT>\n");
-					}
-				} else {
-					String elementStr = obj.getPath().toString();
-					sb.append(elementStr + "\n");
+				final Pointer pointer = new Pointer();
+				pointer.assign(thread.callstack.get(i).currentPointer);
+				if (!pointer.isNull()) {
+					sb.append("<SOMEWHERE IN ");
+					sb.append(pointer.container.getPath().toString());
+					sb.append(">\n");
 				}
 			}
 		}

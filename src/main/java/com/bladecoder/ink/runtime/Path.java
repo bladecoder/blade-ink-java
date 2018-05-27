@@ -118,7 +118,7 @@ public class Path {
 	public String getComponentsString() {
 		if (componentsString == null) {
 			StringBuilder sb = new StringBuilder();
-			
+
 			if (components.size() > 0) {
 
 				sb.append(components.get(0));
@@ -206,6 +206,13 @@ public class Path {
 	@Override
 	public int hashCode() {
 		return toString().hashCode();
+	}
+
+	public Path pathByAppendingComponent(Component c) {
+		Path p = new Path();
+		p.components.addAll(components);
+		p.components.add(c);
+		return p;
 	}
 
 	// Immutable Component

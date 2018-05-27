@@ -100,7 +100,7 @@ public class Profiler {
 
 		String[] stack = new String[callstack.getElements().size()];
 		for (int i = 0; i < stack.length; i++) {
-			Path objPath = callstack.getElements().get(i).getCurrentRTObject().getPath();
+			Path objPath = callstack.getElements().get(i).currentPointer.getPath();
 			String stackElementName = "";
 
 			for (int c = 0; c < objPath.getLength(); c++) {
@@ -116,9 +116,7 @@ public class Profiler {
 
 		currStepStack = stack;
 
-		RTObject currObj = callstack.getCurrentElement().getCurrentRTObject() != null
-				? callstack.getCurrentElement().getCurrentRTObject()
-				: callstack.getCurrentElement().currentContainer;
+		RTObject currObj = callstack.getCurrentElement().currentPointer.resolve();
 
 		currStepDetails = new StepDetails(currObj.getClass().getSimpleName(), currObj.toString(), 0f);
 

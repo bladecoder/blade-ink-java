@@ -11,7 +11,7 @@ public class Divert extends RTObject {
 
 	private PushPopType stackPushType = PushPopType.Tunnel;
 
-	private RTObject targetContent;
+	private final Pointer targetPointer = new Pointer();
 
 	private Path targetPath;
 
@@ -59,18 +59,24 @@ public class Divert extends RTObject {
 		return stackPushType;
 	}
 
-	public RTObject getTargetContent() throws Exception {
-		if (targetContent == null) {
-			targetContent = resolvePath(targetPath);
-		}
+	public Pointer getTargetPointer() throws Exception {
+		if (targetPointer.isNull()) {
+			RTObject targetObj = resolvePath(targetPath);
 
-		return targetContent;
+			if (targetPath.getLastComponent().isIndex()) {
+				targetPointer.container = (Container) targetObj.getParent();
+				targetPointer.index = targetPath.getLastComponent().getIndex();
+			} else {
+				targetPointer.assign(Pointer.startOf((Container) targetObj));
+			}
+		}
+		return targetPointer;
 	}
 
 	public Path getTargetPath() throws Exception {
 		// Resolve any relative paths to global ones as we come across them
 		if (targetPath != null && targetPath.isRelative()) {
-			RTObject targetObj = getTargetContent();
+			RTObject targetObj = getTargetPointer().resolve();
 
 			if (targetObj != null) {
 				targetPath = targetObj.getPath();
@@ -144,7 +150,7 @@ public class Divert extends RTObject {
 
 	public void setTargetPath(Path value) {
 		targetPath = value;
-		targetContent = null;
+		targetPointer.assign(Pointer.Null);
 	}
 
 	public void setTargetPathString(String value) {
@@ -175,10 +181,10 @@ public class Divert extends RTObject {
 				}
 
 				sb.append("Divert");
-				
+
 				if (isConditional)
 					sb.append('?');
-				
+
 				if (getPushesToStack()) {
 					if (getStackPushType() == PushPopType.Function) {
 						sb.append(" function");
@@ -187,9 +193,9 @@ public class Divert extends RTObject {
 					}
 				}
 
-				sb.append (" -> ");
-				sb.append (getTargetPathString());
-				
+				sb.append(" -> ");
+				sb.append(getTargetPathString());
+
 				sb.append(" (");
 				sb.append(targetStr);
 				sb.append(")");

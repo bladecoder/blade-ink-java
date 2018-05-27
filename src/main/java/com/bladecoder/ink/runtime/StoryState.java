@@ -31,7 +31,7 @@ public class StoryState {
 	private List<String> currentErrors;
 	private int currentTurnIndex;
 	private boolean didSafeExit;
-	private RTObject divertedTargetObject;
+	private final Pointer divertedPointer = new Pointer();
 	private List<RTObject> evaluationStack;
 	private Story story;
 	private int storySeed;
@@ -108,10 +108,10 @@ public class StoryState {
 
 		copy.evaluationStack.addAll(evaluationStack);
 
-		if (getDivertedTargetObject() != null)
-			copy.setDivertedTargetObject(divertedTargetObject);
+		if (!divertedPointer.isNull())
+			copy.divertedPointer.assign(divertedPointer);
 
-		copy.setPreviousContentObject(getPreviousContentObject());
+		copy.setPreviousPointer(getPreviousPointer());
 
 		copy.visitCounts = new HashMap<String, Integer>(visitCounts);
 		copy.turnIndices = new HashMap<String, Integer>(turnIndices);
@@ -122,10 +122,6 @@ public class StoryState {
 		copy.setDidSafeExit(didSafeExit);
 
 		return copy;
-	}
-
-	Container currentContainer() {
-		return callStack.getCurrentElement().currentContainer;
 	}
 
 	int currentGlueIndex() {
@@ -179,8 +175,8 @@ public class StoryState {
 
 		currentChoices.clear();
 
-		setCurrentContentObject(null);
-		setPreviousContentObject(null);
+		setCurrentPointer(Pointer.Null);
+		setPreviousPointer(Pointer.Null);
 
 		setDidSafeExit(true);
 	}
@@ -231,16 +227,8 @@ public class StoryState {
 		callStack.pop(popType);
 	}
 
-	RTObject getCurrentContentObject() {
-		return callStack.getCurrentElement().getCurrentRTObject();
-	}
-
-	Path getCurrentPath() {
-
-		if (getCurrentContentObject() == null)
-			return null;
-
-		return getCurrentContentObject().getPath();
+	Pointer getCurrentPointer() {
+		return callStack.getCurrentElement().currentPointer;
 	}
 
 	List<String> getCurrentTags() {
@@ -300,8 +288,8 @@ public class StoryState {
 
 		obj.put("currentChoices", Json.listToJArray(currentChoices));
 
-		if (getDivertedTargetObject() != null)
-			obj.put("currentDivertTarget", getDivertedTargetObject().getPath().getComponentsString());
+		if (!divertedPointer.isNull() )
+			obj.put("currentDivertTarget", getDivertedPointer().getPath().getComponentsString());
 
 		obj.put("visitCounts", Json.intHashMapToJObject(visitCounts));
 		obj.put("turnIndices", Json.intHashMapToJObject(turnIndices));
@@ -317,8 +305,8 @@ public class StoryState {
 		return obj;
 	}
 
-	RTObject getPreviousContentObject() {
-		return callStack.getcurrentThread().previousContentRTObject;
+	Pointer getPreviousPointer() {
+		return callStack.getcurrentThread().previousPointer;
 	}
 
 	public HashMap<String, Integer> getVisitCounts() {
@@ -326,8 +314,7 @@ public class StoryState {
 	}
 
 	void goToStart() {
-		callStack.getCurrentElement().currentContainer = story.mainContentContainer();
-		callStack.getCurrentElement().currentContentIndex = 0;
+		callStack.getCurrentElement().currentPointer.assign(Pointer.startOf(story.getMainContentContainer()));
 	}
 
 	boolean hasError() {
@@ -369,7 +356,7 @@ public class StoryState {
 	}
 
 	boolean canContinue() {
-		return getCurrentContentObject() != null && !hasError();
+		return !getCurrentPointer().isNull() && !hasError();
 	}
 
 	List<String> getCurrentErrors() {
@@ -641,15 +628,19 @@ public class StoryState {
 	void setChosenPath(Path path) throws Exception {
 		// Changing direction, assume we need to clear current set of choices
 		currentChoices.clear();
+		
+		Pointer newPointer = new Pointer(story.pointerAtPath (path));
+		if (!newPointer.isNull() && newPointer.index == -1)
+		     newPointer.index = 0;
 
-		setCurrentPath(path);
+		setCurrentPointer(newPointer);
 
 		currentTurnIndex++;
 	}
 
 	void startFunctionEvaluationFromGame(Container funcContainer, Object[] arguments) throws Exception {
 		callStack.push(PushPopType.FunctionEvaluationFromGame, evaluationStack.size());
-		callStack.getCurrentElement().setcurrentRTObject(funcContainer);
+		callStack.getCurrentElement().currentPointer.assign(Pointer.startOf (funcContainer));
 
 		passArgumentsToEvaluationStack(arguments);
 	}
@@ -671,7 +662,7 @@ public class StoryState {
 
 	boolean tryExitFunctionEvaluationFromGame() {
 		if (callStack.getCurrentElement().type == PushPopType.FunctionEvaluationFromGame) {
-			setCurrentContentObject(null);
+			setCurrentPointer(Pointer.Null);
 			didSafeExit = true;
 			return true;
 		}
@@ -727,15 +718,8 @@ public class StoryState {
 		return null;
 	}
 
-	void setCurrentContentObject(RTObject value) {
-		callStack.getCurrentElement().setcurrentRTObject(value);
-	}
-
-	void setCurrentPath(Path value) throws Exception {
-		if (value != null)
-			setCurrentContentObject(story.contentAtPath(value));
-		else
-			setCurrentContentObject(null);
+	void setCurrentPointer(Pointer value) {
+		callStack.getCurrentElement().currentPointer.assign(value);
 	}
 
 	void setInExpressionEvaluation(boolean value) {
@@ -769,7 +753,7 @@ public class StoryState {
 		Object currentDivertTargetPath = jObject.get("currentDivertTarget");
 		if (currentDivertTargetPath != null) {
 			Path divertPath = new Path(currentDivertTargetPath.toString());
-			setDivertedTargetObject(story.contentAtPath(divertPath));
+			setDivertedPointer(story.pointerAtPath(divertPath));
 		}
 
 		visitCounts = Json.jObjectToIntHashMap((HashMap<String, Object>) jObject.get("visitCounts"));
@@ -796,8 +780,8 @@ public class StoryState {
 
 	}
 
-	void setPreviousContentObject(RTObject value) {
-		callStack.getcurrentThread().previousContentRTObject = value;
+	void setPreviousPointer(Pointer value) {
+		callStack.getcurrentThread().previousPointer.assign(value);
 	}
 
 	/**
@@ -969,12 +953,12 @@ public class StoryState {
 		return 0;
 	}
 
-	public RTObject getDivertedTargetObject() {
-		return divertedTargetObject;
+	public Pointer getDivertedPointer() {
+		return divertedPointer;
 	}
 
-	public void setDivertedTargetObject(RTObject divertedTargetObject) {
-		this.divertedTargetObject = divertedTargetObject;
+	public void setDivertedPointer(Pointer p) {
+		divertedPointer.assign(p);
 	}
 
 	public boolean isDidSafeExit() {

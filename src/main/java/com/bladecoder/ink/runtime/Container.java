@@ -267,17 +267,17 @@ public class Container extends RTObject implements INamedContent {
 	}
 
 	public RTObject contentAtPath(Path path) throws Exception {
-		return contentAtPath(path, -1);
+		return contentAtPath(path, 0, -1);
 	}
 
-	public RTObject contentAtPath(Path path, int partialPathLength) throws Exception {
+	public RTObject contentAtPath(Path path, int partialPathStart, int partialPathLength) throws Exception {
 		if (partialPathLength == -1)
 			partialPathLength = path.getLength();
 
 		Container currentContainer = this;
 		RTObject currentObj = this;
 		
-		for (int i = 0; i < partialPathLength; ++i) {
+		for (int i = partialPathStart; i < partialPathLength; ++i) {
 			Component comp = path.getComponent(i);
 			if (currentContainer == null)
 				throw new Exception("Path continued, but previous RTObject wasn't a container: " + currentObj);

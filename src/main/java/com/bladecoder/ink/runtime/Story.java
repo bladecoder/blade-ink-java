@@ -9,8 +9,6 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Stack;
 
-import com.bladecoder.ink.runtime.CallStack.Element;
-
 /**
  * A Story is the core class that represents a complete Ink narrative, and
  * manages the evaluation and state of it.
@@ -77,7 +75,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	private HashMap<String, List<VariableObserver>> variableObservers;
 
-	private HashSet<Container> prevContainerSet;
+	private List<Container> prevContainers = new ArrayList<Container>();
 
 	private Profiler profiler;
 
@@ -152,8 +150,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (dm != null) {
 			int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
 			message = String.format("RUNTIME ERROR: '%s' line %d: %s", dm.fileName, lineNum, message);
-		} else if (state.getCurrentPath() != null) {
-			message = String.format("RUNTIME ERROR: (%s): %s", state.getCurrentPath().toString(), message);
+		} else if (!state.getCurrentPointer().isNull()) {
+			message = String.format("RUNTIME ERROR: (%s): %s", state.getCurrentPointer().getPath().toString(), message);
 		} else {
 			message = "RUNTIME ERROR: " + message;
 		}
@@ -323,7 +321,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public String buildStringOfHierarchy() {
 		StringBuilder sb = new StringBuilder();
 
-		mainContentContainer.buildStringOfHierarchy(sb, 0, state.getCurrentContentObject());
+		getMainContentContainer().buildStringOfHierarchy(sb, 0, state.getCurrentPointer().resolve());
 
 		return sb.toString();
 	}
@@ -345,7 +343,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				// Divert direct into fallback function and we're done
 				state.getCallStack().push(PushPopType.Function);
-				state.setDivertedTargetObject(fallbackFunctionContainer);
+				state.setDivertedPointer(Pointer.startOf(fallbackFunctionContainer));
 				return;
 
 			} else {
@@ -447,9 +445,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * 
 	 * This is potentially dangerous! If you're in the middle of a tunnel, it'll
 	 * redirect only the inner-most tunnel, meaning that when you tunnel-return
-	 * using '-&gt;-&gt;-&gt;', it'll return to where you were before. This may be what you
-	 * want though. However, if you're in the middle of a function, ChoosePathString
-	 * will throw an exception.
+	 * using '-&gt;-&gt;-&gt;', it'll return to where you were before. This may be
+	 * what you want though. However, if you're in the middle of a function,
+	 * ChoosePathString will throw an exception.
 	 * 
 	 *
 	 * @param path
@@ -471,7 +469,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			// pretty much in any state. Let's catch one of the worst offenders.
 			if (state.getCallStack().getCurrentElement().type == PushPopType.Function) {
 				String funcDetail = "";
-				Container container = state.getCallStack().getCurrentElement().currentContainer;
+				Container container = state.getCallStack().getCurrentElement().currentPointer.container;
 				if (container != null) {
 					funcDetail = "(" + container.getPath().toString() + ") ";
 				}
@@ -500,7 +498,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	RTObject contentAtPath(Path path) throws Exception {
-		return mainContentContainer().contentAtPath(path);
+		return getMainContentContainer().contentAtPath(path);
 	}
 
 	/**
@@ -517,9 +515,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * If ContinueAsync was called (with milliseconds limit &gt; 0) then this property
-	 * will return false if the ink evaluation isn't yet finished, and you need to
-	 * call it again in order for the Continue to fully complete.
+	 * If ContinueAsync was called (with milliseconds limit &gt; 0) then this
+	 * property will return false if the ink evaluation isn't yet finished, and you
+	 * need to call it again in order for the Continue to fully complete.
 	 */
 	public boolean asyncContinueComplete() {
 		return !asyncContinueActive;
@@ -757,9 +755,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		DebugMetadata dm;
 
 		// Try to get from the current path first
-		RTObject currentContent = state.getCurrentContentObject();
-		if (currentContent != null) {
-			dm = currentContent.getDebugMetadata();
+		final Pointer pointer = new Pointer(state.getCurrentPointer());
+		if (!pointer.isNull()) {
+			dm = pointer.resolve().getDebugMetadata();
 			if (dm != null) {
 				return dm;
 			}
@@ -767,9 +765,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		// Move up callstack if possible
 		for (int i = state.getCallStack().getElements().size() - 1; i >= 0; --i) {
-			RTObject currentObj = state.getCallStack().getElements().get(i).getCurrentRTObject();
-			if (currentObj != null && currentObj.getDebugMetadata() != null) {
-				return currentObj.getDebugMetadata();
+			pointer.assign(state.getCallStack().getElements().get(i).currentPointer);
+			if (!pointer.isNull() && pointer.resolve() != null) {
+				dm = pointer.resolve().getDebugMetadata();
+				if (dm != null) {
+					return dm;
+				}
 			}
 		}
 
@@ -922,37 +923,41 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	boolean incrementContentPointer() {
 		boolean successfulIncrement = true;
 
-		Element currEl = state.getCallStack().getCurrentElement();
-		currEl.currentContentIndex++;
+		Pointer pointer = new Pointer(state.getCallStack().getCurrentElement().currentPointer);
+		pointer.index++;
 
 		// Each time we step off the end, we fall out to the next container, all
 		// the
 		// while we're in indexed rather than named content
-		while (currEl.currentContentIndex >= currEl.currentContainer.getContent().size()) {
+		while (pointer.index >= pointer.container.getContent().size()) {
 
 			successfulIncrement = false;
 
-			Container nextAncestor = currEl.currentContainer.getParent() instanceof Container
-					? (Container) currEl.currentContainer.getParent()
+			Container nextAncestor = pointer.container.getParent() instanceof Container
+					? (Container) pointer.container.getParent()
 					: null;
 
 			if (nextAncestor == null) {
 				break;
 			}
 
-			int indexInAncestor = nextAncestor.getContent().indexOf(currEl.currentContainer);
+			int indexInAncestor = nextAncestor.getContent().indexOf(pointer.container);
 			if (indexInAncestor == -1) {
 				break;
 			}
 
-			currEl.currentContainer = nextAncestor;
-			currEl.currentContentIndex = indexInAncestor + 1;
+			pointer = new Pointer(nextAncestor, indexInAncestor);
+
+			// Increment to next content in outer container
+			pointer.index++;
 
 			successfulIncrement = true;
 		}
 
 		if (!successfulIncrement)
-			currEl.currentContainer = null;
+			pointer.assign(Pointer.Null);
+
+		state.getCallStack().getCurrentElement().currentPointer.assign(pointer);
 
 		return successfulIncrement;
 	}
@@ -1097,7 +1102,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 	}
 
-	Container mainContentContainer() {
+	Container getMainContentContainer() {
 		if (temporaryEvaluationContainer != null) {
 			return temporaryEvaluationContainer;
 		} else {
@@ -1108,7 +1113,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	String BuildStringOfContainer(Container container) {
 		StringBuilder sb = new StringBuilder();
 
-		container.buildStringOfHierarchy(sb, 0, state.getCurrentContentObject());
+		container.buildStringOfHierarchy(sb, 0, state.getCurrentPointer().resolve());
 
 		return sb.toString();
 	}
@@ -1116,20 +1121,20 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	private void nextContent() throws Exception {
 		// Setting previousContentObject is critical for
 		// VisitChangedContainersDueToDivert
-		state.setPreviousContentObject(state.getCurrentContentObject());
+		state.setPreviousPointer(state.getCurrentPointer());
 
 		// Divert step?
-		if (state.getDivertedTargetObject() != null) {
+		if (!state.getDivertedPointer().isNull()) {
 
-			state.setCurrentContentObject(state.getDivertedTargetObject());
-			state.setDivertedTargetObject(null);
+			state.setCurrentPointer(state.getDivertedPointer());
+			state.setDivertedPointer(Pointer.Null);
 
 			// Internally uses state.previousContentObject and
 			// state.currentContentObject
 			visitChangedContainersDueToDivert();
 
 			// Diverted location has valid content?
-			if (state.getCurrentContentObject() != null) {
+			if (!state.getCurrentPointer().isNull()) {
 				return;
 			}
 
@@ -1170,7 +1175,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			}
 
 			// Step past the point where we last called out
-			if (didPop && state.getCurrentContentObject() != null) {
+			if (didPop && !state.getCurrentPointer().isNull()) {
 				nextContent();
 			}
 		}
@@ -1189,7 +1194,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			return 0;
 		}
 
-		Container seqContainer = state.currentContainer();
+		Container seqContainer = state.getCurrentPointer().container;
 
 		int numElements = numElementsIntVal.value;
 
@@ -1278,24 +1283,20 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				DivertTargetValue target = (DivertTargetValue) varContents;
-				state.setDivertedTargetObject(contentAtPath(target.getTargetPath()));
+				state.setDivertedPointer(pointerAtPath(target.getTargetPath()));
 
 			} else if (currentDivert.isExternal()) {
 				callExternalFunction(currentDivert.getTargetPathString(), currentDivert.getExternalArgs());
 				return true;
 			} else {
-				state.setDivertedTargetObject(currentDivert.getTargetContent());
+				state.setDivertedPointer(currentDivert.getTargetPointer());
 			}
 
 			if (currentDivert.getPushesToStack()) {
-				state.getCallStack().push(
-						currentDivert.getStackPushType(),
-						0,
-						state.getOutputStream().size()
-						);
+				state.getCallStack().push(currentDivert.getStackPushType(), 0, state.getOutputStream().size());
 			}
 
-			if (state.getDivertedTargetObject() == null && !currentDivert.isExternal()) {
+			if (state.getDivertedPointer().isNull() && !currentDivert.isExternal()) {
 
 				// Human readable name available - runtime divert is part of a
 				// hard-written divert that to missing content
@@ -1408,7 +1409,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					// Does tunnel onwards override by diverting to a new ->->
 					// target?
 					if (overrideTunnelReturnTarget != null)
-						state.setDivertedTargetObject(contentAtPath(overrideTunnelReturnTarget.getTargetPath()));
+						state.setDivertedPointer(pointerAtPath(overrideTunnelReturnTarget.getTargetPath()));
 				}
 				break;
 
@@ -1553,9 +1554,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				break;
 			}
 			case VisitIndex:
-				int count = visitCountForContainer(state.currentContainer()) - 1; // index
-																					// not
-																					// count
+				int count = visitCountForContainer(state.getCurrentPointer().container) - 1; // index
+				// not
+				// count
 				state.pushEvaluationStack(new IntValue(count));
 				break;
 
@@ -1582,7 +1583,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					state.setDidSafeExit(true);
 
 					// Stop flow in current thread
-					state.setCurrentContentObject(null);
+					state.setCurrentPointer(Pointer.Null);
 				}
 
 				break;
@@ -1831,7 +1832,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	void resetGlobals() throws Exception {
 		if (mainContentContainer.getNamedContent().containsKey("global decl")) {
-			Path originalPath = getState().getCurrentPath();
+			final Pointer originalPointer = new Pointer(state.getCurrentPointer());
 
 			choosePathString("global decl", false);
 
@@ -1839,7 +1840,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			// since we may be doing this reset at initialisation time.
 			continueInternal();
 
-			getState().setCurrentPath(originalPath);
+			state.setCurrentPointer(originalPointer);
 		}
 	}
 
@@ -1862,39 +1863,60 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		this.state = state;
 	}
 
+	Pointer pointerAtPath(Path path) throws Exception {
+		if (path.getLength() == 0)
+			return Pointer.Null;
+
+		final Pointer p = new Pointer();
+
+		if (path.getLastComponent().isIndex()) {
+			p.container = (Container) getMainContentContainer().contentAtPath(path, 0, path.getLength() - 1);
+			p.index = path.getLastComponent().getIndex();
+		} else {
+			p.container = (Container) getMainContentContainer().contentAtPath(path);
+			p.index = -1;
+		}
+
+		return p;
+	}
+
 	StoryState stateSnapshot() throws Exception {
 		return state.copy();
 	}
 
 	void step() throws Exception {
+		
 		boolean shouldAddToStream = true;
 
 		// Get current content
-		RTObject currentContentObj = state.getCurrentContentObject();
-		if (currentContentObj == null) {
+		final Pointer pointer = new Pointer();
+		pointer.assign(state.getCurrentPointer());
+		
+		if (pointer.isNull()) {
 			return;
 		}
 
 		// Step directly to the first element of content in a container (if
 		// necessary)
-		Container currentContainer = currentContentObj instanceof Container ? (Container) currentContentObj : null;
+		RTObject r = pointer.resolve();
+		Container containerToEnter = r instanceof Container ? (Container) r : null;
 
-		while (currentContainer != null) {
+		while (containerToEnter != null) {
 
 			// Mark container as being entered
-			visitContainer(currentContainer, true);
+			visitContainer(containerToEnter, true);
 
 			// No content? the most we can do is step past it
-			if (currentContainer.getContent().size() == 0)
+			if (containerToEnter.getContent().size() == 0)
 				break;
 
-			currentContentObj = currentContainer.getContent().get(0);
-			state.getCallStack().getCurrentElement().currentContentIndex = 0;
-			state.getCallStack().getCurrentElement().currentContainer = currentContainer;
+			pointer.assign( Pointer.startOf(containerToEnter));
 
-			currentContainer = currentContentObj instanceof Container ? (Container) currentContentObj : null;
+			r = pointer.resolve();
+			containerToEnter = r instanceof Container ? (Container) r : null;
 		}
-		currentContainer = state.getCallStack().getCurrentElement().currentContainer;
+
+		state.setCurrentPointer(pointer);
 
 		if (profiler != null) {
 			profiler.step(state.getCallStack());
@@ -1906,10 +1928,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// Stop flow if we hit a stack pop when we're unable to pop (e.g.
 		// return/done statement in knot
 		// that was diverted to rather than called as a function)
+		RTObject currentContentObj = pointer.resolve();
 		boolean isLogicOrFlowControl = performLogicAndFlowControl(currentContentObj);
 
 		// Has flow been forced to end by flow control above?
-		if (state.getCurrentContentObject() == null) {
+		if (state.getCurrentPointer().isNull()) {
 			return;
 		}
 
@@ -2114,30 +2137,30 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	void visitChangedContainersDueToDivert() {
-		RTObject previousContentObject = state.getPreviousContentObject();
-		RTObject newContentObject = state.getCurrentContentObject();
+		final Pointer previousPointer = new Pointer(state.getPreviousPointer());
+		final Pointer pointer = new Pointer(state.getCurrentPointer());
 
-		if (newContentObject == null)
+		// Unless we're pointing *directly* at a piece of content, we don't do
+		// counting here. Otherwise, the main stepping function will do the counting.
+		if (pointer.isNull() || pointer.index == -1)
 			return;
 
 		// First, find the previously open set of containers
-		if (prevContainerSet == null)
-			prevContainerSet = new HashSet<Container>();
 
-		prevContainerSet.clear();
+		prevContainers.clear();
 
-		if (previousContentObject != null) {
+		if (!previousPointer.isNull()) {
 
 			Container prevAncestor = null;
 
-			if (previousContentObject instanceof Container) {
-				prevAncestor = (Container) previousContentObject;
-			} else if (previousContentObject.getParent() instanceof Container) {
-				prevAncestor = (Container) previousContentObject.getParent();
+			if (previousPointer.resolve() instanceof Container) {
+				prevAncestor = (Container) previousPointer.resolve();
+			} else if (previousPointer.container instanceof Container) {
+				prevAncestor = (Container) previousPointer.container;
 			}
 
 			while (prevAncestor != null) {
-				prevContainerSet.add(prevAncestor);
+				prevContainers.add(prevAncestor);
 				prevAncestor = prevAncestor.getParent() instanceof Container ? (Container) prevAncestor.getParent()
 						: null;
 			}
@@ -2147,12 +2170,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// automatically at the next actual
 		// content step. However, we need to walk up the new ancestry to see if
 		// there are more new containers
-		RTObject currentChildOfContainer = newContentObject;
+		RTObject currentChildOfContainer = pointer.resolve();
 		Container currentContainerAncestor = currentChildOfContainer.getParent() instanceof Container
 				? (Container) currentChildOfContainer.getParent()
 				: null;
 
-		while (currentContainerAncestor != null && !prevContainerSet.contains(currentContainerAncestor)) {
+		while (currentContainerAncestor != null && !prevContainers.contains(currentContainerAncestor)) {
 
 			// Check whether this ancestor container is being entered at the
 			// start,
