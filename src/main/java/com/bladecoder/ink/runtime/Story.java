@@ -666,33 +666,25 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			// it wouldn't immediately be removed by glue?
 			if (stateAtLastNewline != null) {
 
-				// Cover cases that non-text generated content was evaluated last step
-				String currText = state.getCurrentText();
-				int prevTextLength = stateAtLastNewline.getCurrentText().length();
+				// Has proper text or a tag been added? Then we know that the newline
+				// that was previously added is definitely the end of the line.
+				OutputStateChange change = calculateNewlineOutputStateChange(stateAtLastNewline.getCurrentText(),
+						state.getCurrentText(), stateAtLastNewline.getCurrentTags().size(),
+						state.getCurrentTags().size());
 
-				// Take tags into account too, so that a tag following a content line:
-				// Content
-				// # tag
-				// ... doesn't cause the tag to be wrongly associated with the content above.
-				int prevTagCount = stateAtLastNewline.getCurrentTags().size();
+				// The last time we saw a newline, it was definitely the end of the line, so we
+				// want to rewind to that point.
+				if (change == OutputStateChange.ExtendedBeyondNewline) {
+					restoreStateSnapshot(stateAtLastNewline);
 
-				// Output has been extended?
-				if (!currText.equals(stateAtLastNewline.getCurrentText())
-						|| prevTagCount != state.getCurrentTags().size()) {
+					// Hit a newline for sure, we're done
+					return true;
+				}
 
-					// Original newline still exists?
-					if (currText.length() >= prevTextLength && currText.charAt(prevTextLength - 1) == '\n') {
-						restoreStateSnapshot(stateAtLastNewline);
-
-						// Hit a newline for sure, we're done
-						return true;
-					}
-
-					// Newline that previously existed is no longer valid - e.g.
-					// glue was encounted that caused it to be removed.
-					else {
-						stateAtLastNewline = null;
-					}
+				// Newline that previously existed is no longer valid - e.g.
+				// glue was encounted that caused it to be removed.
+				else {
+					stateAtLastNewline = null;
 				}
 
 			}
@@ -729,6 +721,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		// outputStreamEndsInNewline = false
 		return false;
+
 	}
 
 	/**
@@ -1445,7 +1438,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				// Consume the content that was produced for this string
-				state.popFromOutputStream (outputCountConsumed);
+				state.popFromOutputStream(outputCountConsumed);
 
 				// Build String out of the content we collected
 				StringBuilder sb = new StringBuilder();
@@ -1755,6 +1748,50 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		return false;
 	}
 
+	// Assumption: prevText is the snapshot where we saw a newline, and we're
+	// checking whether we're really done
+	// with that line. Therefore prevText will definitely end in a newline.
+	//
+	// We take tags into account too, so that a tag following a content line:
+	// Content
+	// # tag
+	// ... doesn't cause the tag to be wrongly associated with the content above.
+	enum OutputStateChange {
+		NoChange, ExtendedBeyondNewline, NewlineRemoved
+	}
+
+	OutputStateChange calculateNewlineOutputStateChange(String prevText, String currText, int prevTagCount,
+			int currTagCount) {
+		// Simple case: nothing's changed, and we still have a newline
+		// at the end of the current content
+		boolean newlineStillExists = currText.length() >= prevText.length()
+				&& currText.charAt(prevText.length() - 1) == '\n';
+		if (prevTagCount == currTagCount && prevText.length() == currText.length() && newlineStillExists)
+			return OutputStateChange.NoChange;
+
+		// Old newline has been removed, it wasn't the end of the line after all
+		if (!newlineStillExists) {
+			return OutputStateChange.NewlineRemoved;
+		}
+
+		// Tag added - definitely the start of a new line
+		if (currTagCount > prevTagCount)
+			return OutputStateChange.ExtendedBeyondNewline;
+
+		// There must be new content - check whether it's just whitespace
+		for (int i = prevText.length(); i < currText.length(); i++) {
+			char c = currText.charAt(i);
+			if (c != ' ' && c != '\t') {
+				return OutputStateChange.ExtendedBeyondNewline;
+			}
+		}
+
+		// There's new text but it's just spaces and tabs, so there's still the
+		// potential
+		// for glue to kill the newline.
+		return OutputStateChange.NoChange;
+	}
+
 	Choice processChoice(ChoicePoint choicePoint) throws Exception {
 		boolean showChoice = true;
 
@@ -1883,13 +1920,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	void step() throws Exception {
-		
+
 		boolean shouldAddToStream = true;
 
 		// Get current content
 		final Pointer pointer = new Pointer();
 		pointer.assign(state.getCurrentPointer());
-		
+
 		if (pointer.isNull()) {
 			return;
 		}
@@ -1908,7 +1945,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			if (containerToEnter.getContent().size() == 0)
 				break;
 
-			pointer.assign( Pointer.startOf(containerToEnter));
+			pointer.assign(Pointer.startOf(containerToEnter));
 
 			r = pointer.resolve();
 			containerToEnter = r instanceof Container ? (Container) r : null;
