@@ -23,6 +23,7 @@ public class VariablesState implements Iterable<String> {
 	private HashSet<String> changedVariables;
 
 	private HashMap<String, RTObject> globalVariables;
+	private HashMap<String, RTObject> defaultGlobalVariables;
 
 	private VariableChanged variableChangedEvent;
 
@@ -95,6 +96,9 @@ public class VariablesState implements Iterable<String> {
 	void copyFrom(VariablesState toCopy) {
 		globalVariables = new HashMap<String, RTObject>(toCopy.globalVariables);
 
+		// It's read-only, so no need to create a new copy
+		defaultGlobalVariables = toCopy.defaultGlobalVariables;
+
 		setVariableChangedEvent(toCopy.getVariableChangedEvent());
 
 		if (toCopy.getbatchObservingVariableChanges() != getbatchObservingVariableChanges()) {
@@ -109,9 +113,22 @@ public class VariablesState implements Iterable<String> {
 
 	}
 
+	RTObject tryGetDefaultVariableValue(String name) {
+		RTObject val = defaultGlobalVariables.get(name);
+
+		return val;
+	}
+
 	public Object get(String variableName) {
-		RTObject varContents = globalVariables.get(variableName);
-		if (varContents != null) {
+		RTObject varContents = null;
+
+		// Search main dictionary first.
+		// If it's not found, it might be because the story content has changed,
+		// and the original default value hasn't be instantiated.
+		// Should really warn somehow, but it's difficult to see how...!
+		if ((varContents = globalVariables.get(variableName)) != null) {
+			return ((Value<?>) varContents).getValue();
+		} else if ((varContents = defaultGlobalVariables.get(variableName)) != null) {
 			return ((Value<?>) varContents).getValue();
 		} else
 			return null;
@@ -153,11 +170,12 @@ public class VariablesState implements Iterable<String> {
 
 		// Temporary
 		varValue = callStack.getTemporaryVariableWithName(name, contextIndex);
-		if (varValue == null)
-			throw new Exception("RUNTIME ERROR: Variable '" + name + "' could not be found in context '" + contextIndex
-					+ "'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
 
 		return varValue;
+	}
+
+	void snapshotDefaultGlobals() {
+		defaultGlobalVariables = new HashMap<String, RTObject>(globalVariables);
 	}
 
 	public RTObject getVariableWithName(String name) throws Exception {
@@ -201,7 +219,8 @@ public class VariablesState implements Iterable<String> {
 		// create
 		// a chain of indirection by just returning the final target.
 		VariablePointerValue doubleRedirectionPointer = valueOfVariablePointedTo instanceof VariablePointerValue
-				? (VariablePointerValue) valueOfVariablePointedTo : (VariablePointerValue) null;
+				? (VariablePointerValue) valueOfVariablePointedTo
+				: (VariablePointerValue) null;
 		if (doubleRedirectionPointer != null) {
 			return doubleRedirectionPointer;
 		} else {
@@ -212,8 +231,8 @@ public class VariablesState implements Iterable<String> {
 	public void set(String variableName, Object value) throws Exception {
 
 		// This is the main
-		if (!globalVariables.containsKey(variableName)) {
-			throw new StoryException("Variable '" + variableName + "' doesn't exist, so can't be set.");
+		if (!defaultGlobalVariables.containsKey(variableName)) {
+			throw new StoryException("Cannot assign to a variable that hasn't been declared in the story");
 		}
 
 		AbstractValue val = AbstractValue.create(value);
@@ -243,8 +262,8 @@ public class VariablesState implements Iterable<String> {
 			changedVariables = null;
 		}
 	}
-	
-	void retainListOriginsForAssignment (RTObject oldValue, RTObject newValue) {
+
+	void retainListOriginsForAssignment(RTObject oldValue, RTObject newValue) {
 		ListValue oldList = null;
 
 		if (oldValue instanceof ListValue)
@@ -261,8 +280,8 @@ public class VariablesState implements Iterable<String> {
 
 	void setGlobal(String variableName, RTObject value) throws Exception {
 		RTObject oldValue = globalVariables.get(variableName);
-		
-		ListValue.retainListOriginsForAssignment (oldValue, value);
+
+		ListValue.retainListOriginsForAssignment(oldValue, value);
 
 		globalVariables.put(variableName, value);
 

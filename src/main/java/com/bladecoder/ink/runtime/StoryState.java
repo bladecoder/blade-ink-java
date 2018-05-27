@@ -29,6 +29,7 @@ public class StoryState {
 	private CallStack callStack;
 	private List<Choice> currentChoices;
 	private List<String> currentErrors;
+	private List<String> currentWarnings;
 	private int currentTurnIndex;
 	private boolean didSafeExit;
 	private final Pointer divertedPointer = new Pointer();
@@ -75,13 +76,18 @@ public class StoryState {
 		return callStack.getDepth();
 	}
 
-	void addError(String message) {
-		// TODO: Could just add to output?
-		if (currentErrors == null) {
-			currentErrors = new ArrayList<String>();
-		}
+	void addError(String message, boolean isWarning) {
+		if (!isWarning) {
+			if (currentErrors == null)
+				currentErrors = new ArrayList<String>();
 
-		currentErrors.add(message);
+			currentErrors.add(message);
+		} else {
+			if (currentWarnings == null)
+				currentWarnings = new ArrayList<String>();
+
+			currentWarnings.add(message);
+		}
 	}
 
 	// Warning: Any RTObject content referenced within the StoryState will
@@ -99,6 +105,11 @@ public class StoryState {
 		if (hasError()) {
 			copy.currentErrors = new ArrayList<String>();
 			copy.currentErrors.addAll(currentErrors);
+		}
+
+		if (hasWarning()) {
+			copy.currentWarnings = new ArrayList<String>();
+			copy.currentWarnings.addAll(currentWarnings);
 		}
 
 		copy.callStack = new CallStack(callStack);
@@ -356,6 +367,14 @@ public class StoryState {
 
 	List<String> getCurrentErrors() {
 		return currentErrors;
+	}
+
+	List<String> getCurrentWarnings() {
+		return currentWarnings;
+	}
+
+	boolean hasWarning() {
+		return currentWarnings != null && currentWarnings.size() > 0;
 	}
 
 	List<RTObject> getOutputStream() {

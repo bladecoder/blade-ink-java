@@ -141,22 +141,29 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	void addError(String message) throws Exception {
-		addError(message, false);
+		addError(message, false, false);
 	}
 
-	void addError(String message, boolean useEndLineNumber) throws Exception {
+	void warning(String message) throws Exception {
+		addError(message, true, false);
+	}
+
+	void addError(String message, boolean isWarning, boolean useEndLineNumber) throws Exception {
 		DebugMetadata dm = currentDebugMetadata();
+
+		String errorTypeStr = isWarning ? "WARNING" : "ERROR";
 
 		if (dm != null) {
 			int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
-			message = String.format("RUNTIME ERROR: '%s' line %d: %s", dm.fileName, lineNum, message);
+			message = String.format("RUNTIME %s: '%s' line %d: %s", errorTypeStr, dm.fileName, lineNum, message);
 		} else if (!state.getCurrentPointer().isNull()) {
-			message = String.format("RUNTIME ERROR: (%s): %s", state.getCurrentPointer().getPath().toString(), message);
+			message = String.format("RUNTIME %s: (%s): %s", errorTypeStr,
+					state.getCurrentPointer().getPath().toString(), message);
 		} else {
-			message = "RUNTIME ERROR: " + message;
+			message = "RUNTIME " + errorTypeStr + ": " + message;
 		}
 
-		state.addError(message);
+		state.addError(message, isWarning);
 
 		// In a broken state don't need to know about any other errors.
 		state.forceEnd();
@@ -582,7 +589,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			try {
 				outputStreamEndsInNewline = continueSingleStep();
 			} catch (StoryException e) {
-				addError(e.getMessage(), e.useEndLineNumber);
+				addError(e.getMessage(), false, e.useEndLineNumber);
 				break;
 			}
 
@@ -866,6 +873,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
+	 * Any warnings generated during evaluation of the Story.
+	 */
+	public List<String> getCurrentWarnings() {
+		return state.getCurrentWarnings();
+	}
+
+	/**
 	 * Any errors generated during evaluation of the Story.
 	 */
 	public List<String> getCurrentErrors() {
@@ -911,6 +925,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	public boolean hasError() {
 		return state.hasError();
+	}
+
+	/**
+	 * Whether the currentWarnings list contains any warnings.
+	 */
+	public boolean hasWarning() {
+		return state.hasWarning();
 	}
 
 	boolean incrementContentPointer() {
@@ -1260,7 +1281,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				RTObject varContents = state.getVariablesState().getVariableWithName(varName);
 
-				if (!(varContents instanceof DivertTargetValue)) {
+				if (varContents == null) {
+					error("Tried to divert using a target from a variable that could not be found (" + varName + ")");
+				} else if (!(varContents instanceof DivertTargetValue)) {
 
 					IntValue intContent = varContents instanceof IntValue ? (IntValue) varContents : null;
 
@@ -1724,8 +1747,22 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				foundValue = state.getVariablesState().getVariableWithName(varRef.getName());
 
 				if (foundValue == null) {
-					error("Uninitialised variable: " + varRef.getName());
-					foundValue = new IntValue(0);
+					RTObject defaultVal = state.getVariablesState().tryGetDefaultVariableValue(varRef.getName());
+
+					if (defaultVal != null) {
+						warning("Variable not found in save state: '" + varRef.getName()
+								+ "', but seems to have been newly created. Assigning value from latest ink's declaration: "
+								+ defaultVal);
+						foundValue = defaultVal;
+
+						// Save for future usage, preventing future errors
+						// Only do this for variables that are known to be globals, not those that may
+						// be missing temps.
+						state.getVariablesState().setGlobal(varRef.getName(), foundValue);
+					} else {
+						warning("Variable not found: '" + varRef.getName() + "'. Using default value of 0 (false).");
+						foundValue = new IntValue(0);
+					}
 				}
 			}
 
@@ -1859,7 +1896,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Reset the runtime error list within the state.
+	 * Reset the runtime error and warning list within the state.
 	 */
 	public void resetErrors() {
 		state.resetErrors();
@@ -1874,6 +1911,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			// Continue, but without validating external bindings,
 			// since we may be doing this reset at initialisation time.
 			continueInternal();
+
+			state.getVariablesState().snapshotDefaultGlobals();
 
 			state.setCurrentPointer(originalPointer);
 		}
