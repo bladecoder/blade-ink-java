@@ -342,7 +342,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 						+ "' which has not been bound, and fallback ink function could not be found.");
 
 				// Divert direct into fallback function and we're done
-				state.getCallStack().push(PushPopType.Function);
+				state.getCallStack().push(PushPopType.Function, 0, state.getOutputStream().size());
 				state.setDivertedPointer(Pointer.startOf(fallbackFunctionContainer));
 				return;
 
