@@ -131,7 +131,7 @@ public class ChoicePoint extends RTObject {
 			String targetString = getPathOnChoice().toString();
 
 			if (targetLineNum != null) {
-				targetString = " line " + targetLineNum;
+				targetString = " line " + targetLineNum + "("+targetString+")";
 			}
 
 			return "Choice: -> " + targetString;

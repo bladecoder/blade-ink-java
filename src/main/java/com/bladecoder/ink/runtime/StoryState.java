@@ -19,8 +19,8 @@ public class StoryState {
 	/**
 	 * The current version of the state save file JSON-based format.
 	 */
-	public static final int kInkSaveStateVersion = 7;
-	public static final int kMinCompatibleLoadVersion = 6;
+	public static final int kInkSaveStateVersion = 8;
+	public static final int kMinCompatibleLoadVersion = 8;
 
 	// REMEMBER! REMEMBER! REMEMBER!
 	// When adding state, update the Copy method and serialisation
@@ -272,7 +272,6 @@ public class StoryState {
 
 		HashMap<String, Object> choiceThreads = null;
 		for (Choice c : currentChoices) {
-			c.originalChoicePath = c.getchoicePoint().getPath().getComponentsString();
 			c.originalThreadIndex = c.getThreadAtGeneration().threadIndex;
 
 			if (callStack.getThreadWithIndex(c.originalThreadIndex) == null) {
@@ -804,8 +803,6 @@ public class StoryState {
 		HashMap<String, Object> jChoiceThreads = (HashMap<String, Object>) jChoiceThreadsObj;
 
 		for (Choice c : currentChoices) {
-			c.setChoicePoint((ChoicePoint) story.contentAtPath(new Path(c.originalChoicePath)));
-
 			Thread foundActiveThread = callStack.getThreadWithIndex(c.originalThreadIndex);
 			if (foundActiveThread != null) {
 				c.setThreadAtGeneration(foundActiveThread);

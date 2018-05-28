@@ -6,16 +6,14 @@ package com.bladecoder.ink.runtime;
  * they're separated.
  */
 public class Choice extends RTObject {
-	private ChoicePoint choicePoint;
+	Path targetPath;
+	boolean isInvisibleDefault;
 
 	/**
 	 * The original index into currentChoices list on the Story when this Choice
 	 * was generated, for convenience.
 	 */
 	private int index = 0;
-
-	// Only used temporarily for loading/saving from JSON
-	String originalChoicePath;
 
 	int originalThreadIndex = 0;
 
@@ -25,16 +23,10 @@ public class Choice extends RTObject {
 	private String text;
 
 	private CallStack.Thread threadAtGeneration;
+	
+	String sourcePath;
 
 	public Choice() throws Exception {
-	}
-
-	public Choice(ChoicePoint choice) throws Exception {
-		this.setChoicePoint(choice);
-	}
-
-	public ChoicePoint getchoicePoint() {
-		return choicePoint;
 	}
 
 	public int getIndex() {
@@ -42,19 +34,15 @@ public class Choice extends RTObject {
 	}
 
 	/**
-	 * Get the path to the original choice point - where was this choice defined
-	 * in the story? A dot separated path into the story data.
-	 */
-	public String getSourcePath() {
-		return choicePoint.getPath().getComponentsString();
-	}
-
-	/**
 	 * The target path that the Story should be diverted to if this Choice is
 	 * chosen.
 	 */
 	public String getPathStringOnChoice() throws Exception {
-		return getchoicePoint().getPathStringOnChoice();
+		return targetPath.toString ();
+	}
+	
+	public void setPathStringOnChoice(String value) throws Exception {
+		targetPath = new Path (value);
 	}
 
 	public String getText() {
@@ -63,10 +51,6 @@ public class Choice extends RTObject {
 
 	public CallStack.Thread getThreadAtGeneration() {
 		return threadAtGeneration;
-	}
-
-	public void setChoicePoint(ChoicePoint value) {
-		choicePoint = value;
 	}
 
 	public void setIndex(int value) {

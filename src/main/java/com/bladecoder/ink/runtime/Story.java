@@ -415,7 +415,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		Choice choiceToChoose = choices.get(choiceIdx);
 		state.getCallStack().setCurrentThread(choiceToChoose.getThreadAtGeneration());
 
-		choosePath(choiceToChoose.getchoicePoint().getChoiceTarget().getPath());
+		choosePath(choiceToChoose.targetPath);
 	}
 
 	void choosePath(Path p) throws Exception {
@@ -852,7 +852,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// Don't include invisible choices for external usage.
 		List<Choice> choices = new ArrayList<Choice>();
 		for (Choice c : state.getCurrentChoices()) {
-			if (!c.getchoicePoint().isInvisibleDefault()) {
+			if (!c.isInvisibleDefault) {
 				c.setIndex(choices.size());
 				choices.add(c);
 			}
@@ -1861,15 +1861,18 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			}
 		}
 
-		Choice choice = new Choice(choicePoint);
-		choice.setThreadAtGeneration(state.getCallStack().getcurrentThread().copy());
-
 		// We go through the full process of creating the choice above so
 		// that we consume the content for it, since otherwise it'll
 		// be shown on the output stream.
 		if (!showChoice) {
 			return null;
 		}
+
+		Choice choice = new Choice();
+		choice.targetPath = choicePoint.getPathOnChoice();
+		choice.sourcePath = choicePoint.getPath().toString();
+		choice.isInvisibleDefault = choicePoint.isInvisibleDefault();
+		choice.setThreadAtGeneration(state.getCallStack().getcurrentThread().copy());
 
 		// Set final text for the choice
 		choice.setText(startText + choiceOnlyText);
@@ -2097,7 +2100,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// c.choicePoint.isInvisibleDefault).ToList();
 		ArrayList<Choice> invisibleChoices = new ArrayList<Choice>();
 		for (Choice c : allChoices) {
-			if (c.getchoicePoint().isInvisibleDefault()) {
+			if (c.isInvisibleDefault) {
 				invisibleChoices.add(c);
 			}
 		}
@@ -2107,7 +2110,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		Choice choice = invisibleChoices.get(0);
 
-		choosePath(choice.getchoicePoint().getChoiceTarget().getPath());
+		choosePath(choice.targetPath);
 
 		return true;
 	}

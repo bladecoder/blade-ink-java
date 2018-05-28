@@ -617,8 +617,9 @@ public class Json {
 		Choice choice = new Choice();
 		choice.setText(jObj.get("text").toString());
 		choice.setIndex((int) jObj.get("index"));
-		choice.originalChoicePath = jObj.get("originalChoicePath").toString();
+		choice.sourcePath  = jObj.get("originalChoicePath").toString();
 		choice.originalThreadIndex = (int) jObj.get("originalThreadIndex");
+		choice.setPathStringOnChoice(jObj.get("targetPath").toString());
 		return choice;
 	}
 
@@ -626,8 +627,9 @@ public class Json {
 		HashMap<String, Object> jObj = new HashMap<String, Object>();
 		jObj.put("text", choice.getText());
 		jObj.put("index", choice.getIndex());
-		jObj.put("originalChoicePath", choice.originalChoicePath);
+		jObj.put("originalChoicePath", choice.sourcePath);
 		jObj.put("originalThreadIndex", choice.originalThreadIndex);
+		jObj.put("targetPath", choice.getPathStringOnChoice());
 
 		return jObj;
 	}
