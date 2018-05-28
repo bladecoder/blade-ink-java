@@ -57,15 +57,8 @@ public class RTObject {
 		Container root = this.getRootContentContainer();
 
 		if (root != null) {
-			RTObject targetContent = null;
-
-			// Sometimes paths can be "invalid" if they're externally defined
-			// in the game. TODO: Change ContentAtPath to return null, and
-			// only throw an exception in places that actually care!
-			try {
-				targetContent = root.contentAtPath(path);
-			} catch (Exception e) {
-			}
+			
+			RTObject targetContent = root.contentAtPath (path).obj;
 
 			if (targetContent != null) {
 				DebugMetadata dm = targetContent.debugMetadata;
@@ -113,7 +106,7 @@ public class RTObject {
 		return path;
 	}
 
-	public RTObject resolvePath(Path path) throws Exception {
+	public SearchResult  resolvePath(Path path) throws Exception {
 		if (path.isRelative()) {
 			Container nearestContainer = this instanceof Container ? (Container) this : (Container) null;
 

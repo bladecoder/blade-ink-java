@@ -72,8 +72,19 @@ class CallStack {
 				Object currentContainerPathStrToken = jElementObj.get("cPath");
 				if (currentContainerPathStrToken != null) {
 					currentContainerPathStr = currentContainerPathStrToken.toString();
-					pointer.container = (Container) storyContext.contentAtPath(new Path(currentContainerPathStr));
+					final SearchResult threadPointerResult = storyContext.contentAtPath(new Path(currentContainerPathStr));
+					pointer.container = threadPointerResult.getContainer();
 					pointer.index = (int) jElementObj.get("idx");
+
+					if (threadPointerResult.obj == null)
+						throw new Exception("When loading state, internal story location couldn't be found: "
+								+ currentContainerPathStr
+								+ ". Has the story changed since this save data was created?");
+					else if (threadPointerResult.approximate)
+						storyContext.warning("When loading state, exact internal story location couldn't be found: '"
+								+ currentContainerPathStr + "', so it was approximated to '"
+								+ pointer.container.getPath().toString()
+								+ "' to recover. Has the story changed since this save data was created?");
 				}
 
 				boolean inExpressionEvaluation = (boolean) jElementObj.get("exp");

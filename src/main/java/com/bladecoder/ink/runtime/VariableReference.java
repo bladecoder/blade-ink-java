@@ -16,8 +16,7 @@ public class VariableReference extends RTObject {
 	}
 
 	public Container getContainerForCount() throws Exception {
-		return this.resolvePath(getPathForCount()) instanceof Container
-				? (Container) this.resolvePath(getPathForCount()) : (Container) null;
+		return this.resolvePath(getPathForCount()).getContainer();
 	}
 
 	public String getName() {

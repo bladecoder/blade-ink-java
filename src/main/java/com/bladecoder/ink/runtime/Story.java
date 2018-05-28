@@ -285,7 +285,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		// Expected to be global story, knot or stitch
 		Container flowContainer = null;
-		RTObject c = contentAtPath(path);
+		RTObject c = contentAtPath(path).getContainer();
 
 		if (c instanceof Container)
 			flowContainer = (Container) c;
@@ -342,8 +342,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (func == null) {
 			if (allowExternalFunctionFallbacks) {
 
-				RTObject contentAtPath = contentAtPath(new Path(funcName));
-				fallbackFunctionContainer = contentAtPath instanceof Container ? (Container) contentAtPath : null;
+				fallbackFunctionContainer = knotContainerWithName (funcName);
 
 				Assert(fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName
 						+ "' which has not been bound, and fallback ink function could not be found.");
@@ -504,8 +503,18 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					+ ". Story is in the middle of a ContinueAsync(). Make more ContinueAsync() calls or a single Continue() call beforehand.");
 	}
 
-	RTObject contentAtPath(Path path) throws Exception {
+	SearchResult contentAtPath(Path path) throws Exception {
 		return getMainContentContainer().contentAtPath(path);
+	}
+
+	Container knotContainerWithName(String name) {
+
+		INamedContent namedContainer = mainContentContainer.getNamedContent().get(name);
+
+		if (namedContainer != null)
+			return namedContainer instanceof Container ? (Container) namedContainer : null;
+		else
+			return null;
 	}
 
 	/**
@@ -1494,15 +1503,26 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				DivertTargetValue divertTarget = target instanceof DivertTargetValue ? (DivertTargetValue) target
 						: null;
-				Container container = contentAtPath(divertTarget.getTargetPath()) instanceof Container
-						? (Container) contentAtPath(divertTarget.getTargetPath())
-						: null;
+
+				RTObject otmp = contentAtPath(divertTarget.getTargetPath()).correctObj();
+				Container container = otmp instanceof Container ? (Container) otmp : null;
 
 				int eitherCount;
-				if (evalCommand.getCommandType() == ControlCommand.CommandType.TurnsSince)
-					eitherCount = turnsSinceForContainer(container);
-				else
-					eitherCount = visitCountForContainer(container);
+
+				if (container != null) {
+					if (evalCommand.getCommandType() == ControlCommand.CommandType.TurnsSince)
+						eitherCount = turnsSinceForContainer(container);
+					else
+						eitherCount = visitCountForContainer(container);
+				} else {
+					if (evalCommand.getCommandType() == ControlCommand.CommandType.TurnsSince)
+						eitherCount = -1; // turn count, default to never/unknown
+					else
+						eitherCount = 0; // visit count, assume 0 to default to allowing entry
+
+					warning("Failed to find container for " + evalCommand.toString() + " lookup at "
+							+ divertTarget.getTargetPath().toString());
+				}
 
 				state.pushEvaluationStack(new IntValue(eitherCount));
 				break;
@@ -1946,13 +1966,27 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		final Pointer p = new Pointer();
 
+		int pathLengthToUse = path.getLength();
+		final SearchResult result;
+
 		if (path.getLastComponent().isIndex()) {
-			p.container = (Container) getMainContentContainer().contentAtPath(path, 0, path.getLength() - 1);
+			pathLengthToUse = path.getLength() - 1;
+			// WARNING: Needs review, in C# the call is
+			// result = new SearchResult(mainContentContainer.contentAtPath(path, 0, pathLengthToUse));
+			result = new SearchResult(mainContentContainer.contentAtPath(path, 0, pathLengthToUse));
+			p.container = result.getContainer();
 			p.index = path.getLastComponent().getIndex();
 		} else {
-			p.container = (Container) getMainContentContainer().contentAtPath(path);
+			result = new SearchResult(mainContentContainer.contentAtPath(path));
+			p.container = result.getContainer();
 			p.index = -1;
 		}
+
+		if (result.obj == null || result.obj == mainContentContainer && pathLengthToUse > 0)
+			error("Failed to find content at path '" + path + "', and no approximation of it was possible.");
+		else if (result.approximate)
+			warning("Failed to find content at path '" + path + "', so it was approximated to: '" + result.obj.getPath()
+					+ "'.");
 
 		return p;
 	}
@@ -2248,6 +2282,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// content step. However, we need to walk up the new ancestry to see if
 		// there are more new containers
 		RTObject currentChildOfContainer = pointer.resolve();
+
+		// Invalid pointer? May happen if attemptingto
+		if (currentChildOfContainer == null)
+			return;
+
 		Container currentContainerAncestor = currentChildOfContainer.getParent() instanceof Container
 				? (Container) currentChildOfContainer.getParent()
 				: null;
@@ -2332,7 +2371,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	public boolean hasFunction(String functionName) {
 		try {
-			return contentAtPath(new Path(functionName)) instanceof Container;
+			return knotContainerWithName (functionName) != null;
 		} catch (Exception e) {
 			return false;
 		}
@@ -2359,25 +2398,16 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public Object evaluateFunction(String functionName, StringBuffer textOutput, Object[] arguments) throws Exception {
 		ifAsyncWeCant("evaluate a function");
 
-		// Get the content that we need to run
-		Container funcContainer = null;
-
 		if (functionName == null) {
 			throw new Exception("Function is null");
 		} else if (functionName.trim().isEmpty()) {
 			throw new Exception("Function is empty or white space.");
 		}
 
-		try {
-			RTObject contentAtPath = contentAtPath(new Path(functionName));
-			if (contentAtPath instanceof Container)
-				funcContainer = (Container) contentAtPath;
-		} catch (StoryException e) {
-			if (e.getMessage().contains("not found"))
-				throw new Exception("Function doesn't exist: '" + functionName + "'");
-			else
-				throw e;
-		}
+		// Get the content that we need to run
+		 Container funcContainer = knotContainerWithName (functionName);
+         if( funcContainer == null )
+             throw new Exception ("Function doesn't exist: '" + functionName + "'");
 
 		// Snapshot the output stream
 		ArrayList<RTObject> outputStreamBefore = new ArrayList<RTObject>(state.getOutputStream());

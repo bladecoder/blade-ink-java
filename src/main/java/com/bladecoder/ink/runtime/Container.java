@@ -170,18 +170,19 @@ public class Container extends RTObject implements INamedContent {
 	Path _pathToFirstLeafContent;
 
 	Path getInternalPathToFirstLeafContent() {
-		 List<Component> components = new ArrayList<Path.Component>();
-		
+		List<Component> components = new ArrayList<Path.Component>();
+
 		Container container = this;
 		while (container != null) {
 			if (container.getContent().size() > 0) {
 				components.add(new Path.Component(0));
 				container = container.getContent().get(0) instanceof Container
-						? (Container) container.getContent().get(0) : (Container) null;
+						? (Container) container.getContent().get(0)
+						: (Container) null;
 			}
 
 		}
-		
+
 		return new Path(components);
 	}
 
@@ -260,32 +261,48 @@ public class Container extends RTObject implements INamedContent {
 			if (foundContent != null) {
 				return (RTObject) foundContent;
 			} else {
-				throw new StoryException(
-						"Content '" + component.getName() + "' not found at path: '" + getPath() + "'");
+				return null;
 			}
 		}
 	}
 
-	public RTObject contentAtPath(Path path) throws Exception {
+	public SearchResult contentAtPath(Path path) throws Exception {
 		return contentAtPath(path, 0, -1);
 	}
 
-	public RTObject contentAtPath(Path path, int partialPathStart, int partialPathLength) throws Exception {
+	public SearchResult contentAtPath(Path path, int partialPathStart, int partialPathLength) throws Exception {
 		if (partialPathLength == -1)
 			partialPathLength = path.getLength();
 
+		SearchResult result = new SearchResult();
+		result.approximate = false;
+
 		Container currentContainer = this;
 		RTObject currentObj = this;
-		
+
 		for (int i = partialPathStart; i < partialPathLength; ++i) {
 			Component comp = path.getComponent(i);
-			if (currentContainer == null)
-				throw new Exception("Path continued, but previous RTObject wasn't a container: " + currentObj);
+			// Path component was wrong type
+			if (currentContainer == null) {
+				result.approximate = true;
+				break;
+			}
 
-			currentObj = currentContainer.contentWithPathComponent(comp);
-			currentContainer = currentObj instanceof Container ? (Container) currentObj : (Container) null;
+			RTObject foundObj = currentContainer.contentWithPathComponent(comp);
+
+			// Couldn't resolve entire path?
+			if (foundObj == null) {
+				result.approximate = true;
+				break;
+			}
+
+			currentObj = foundObj;
+			currentContainer = foundObj instanceof Container ? (Container) foundObj : null;
 		}
-		return currentObj;
+
+		result.obj = currentObj;
+		
+		return result;
 	}
 
 	private final static int spacesPerIndent = 4;
@@ -349,7 +366,7 @@ public class Container extends RTObject implements INamedContent {
 				onlyNamed.put(objKV.getKey(), objKV.getValue());
 			}
 		}
-		
+
 		if (onlyNamed.size() > 0) {
 			appendIndentation(sb, indentation);
 

@@ -61,7 +61,7 @@ public class Divert extends RTObject {
 
 	public Pointer getTargetPointer() throws Exception {
 		if (targetPointer.isNull()) {
-			RTObject targetObj = resolvePath(targetPath);
+			RTObject targetObj = resolvePath(targetPath).obj;
 
 			if (targetPath.getLastComponent().isIndex()) {
 				targetPointer.container = (Container) targetObj.getParent();

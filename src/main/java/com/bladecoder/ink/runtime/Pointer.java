@@ -1,12 +1,13 @@
 package com.bladecoder.ink.runtime;
 
 /**
- * Internal structure used to point to a particular / current point in the
- * story. Where Path is a set of components that make content fully addressable,
- * this is a reference to the current container, and the index of the current
- * piece of content within that container. This scheme makes it as fast and
- * efficient as possible to increment the pointer (move the story forwards) in a
- * way that's as native to the internal engine as possible.
+ * NOTE: This is a structure in C#: all objects have to be finals. Internal
+ * structure used to point to a particular / current point in the story. Where
+ * Path is a set of components that make content fully addressable, this is a
+ * reference to the current container, and the index of the current piece of
+ * content within that container. This scheme makes it as fast and efficient as
+ * possible to increment the pointer (move the story forwards) in a way that's
+ * as native to the internal engine as possible.
  * 
  * @author rgarcia
  *
@@ -16,25 +17,31 @@ class Pointer {
 	public int index;
 
 	public Pointer() {
-		
+
 	}
-	
+
 	public Pointer(Pointer p) {
 		assign(p);
 	}
-	
+
 	public Pointer(Container container, int index) {
 		this.container = container;
 		this.index = index;
 	}
-	
+
 	public void assign(Pointer p) {
 		container = p.container;
 		index = p.index;
 	}
 
 	public RTObject resolve() {
-		return index >= 0 ? container.getContent().get(index) : container;
+		if (index < 0)
+			return container;
+		
+		if (container == null || index >= container.getContent().size())
+			return null;
+		
+		return container.getContent().get(index);
 	}
 
 	public boolean isNull() {
