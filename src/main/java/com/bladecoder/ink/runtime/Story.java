@@ -166,7 +166,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		state.addError(message, isWarning);
 
 		// In a broken state don't need to know about any other errors.
-		state.forceEnd();
+		if( !isWarning )
+			state.forceEnd();
 	}
 
 	/**
