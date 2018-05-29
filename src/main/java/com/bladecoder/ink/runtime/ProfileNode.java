@@ -153,6 +153,10 @@ public class ProfileNode {
 		for (int i = 0; i < spaces; i++)
 			sb.append("   ");
 	}
+	
+	public int getTotalMillisecs() {
+		return (int) totalMillisecs;
+	}
 
 	/**
 	 * String is a report of the sub-tree from this node, but without any of the header information

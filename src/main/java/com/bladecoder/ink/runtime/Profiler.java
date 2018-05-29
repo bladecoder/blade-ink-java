@@ -39,12 +39,12 @@ public class Profiler {
 
 	private class StepDetails {
 		public String type;
-		public String detail;
+		public RTObject obj;
 		public double time;
 
-		StepDetails(String type, String detail, double time) {
+		StepDetails(String type, RTObject obj, double time) {
 			this.type = type;
-			this.detail = detail;
+			this.obj = obj;
 			this.time = time;
 		}
 	}
@@ -52,7 +52,7 @@ public class Profiler {
 	private List<StepDetails> stepDetails = new ArrayList<StepDetails>();
 
 	/**
-	 *  The root node in the hierarchical tree of recorded ink timings.
+	 * The root node in the hierarchical tree of recorded ink timings.
 	 */
 	public ProfileNode getRootNode() {
 		return rootNode;
@@ -71,8 +71,7 @@ public class Profiler {
 		sb.append(String.format("%d CONTINUES / LINES:\n", numContinues));
 		sb.append(String.format("TOTAL TIME: %s\n", formatMillisecs(continueTotal)));
 		sb.append(String.format("SNAPSHOTTING: %s\n", formatMillisecs(snapTotal)));
-		sb.append(
-				String.format("OTHER: %s\n", formatMillisecs(continueTotal - (stepTotal + snapTotal))));
+		sb.append(String.format("OTHER: %s\n", formatMillisecs(continueTotal - (stepTotal + snapTotal))));
 		sb.append(rootNode.toString());
 
 		return sb.toString();
@@ -118,7 +117,14 @@ public class Profiler {
 
 		RTObject currObj = callstack.getCurrentElement().currentPointer.resolve();
 
-		currStepDetails = new StepDetails(currObj.getClass().getSimpleName(), currObj.toString(), 0f);
+		String stepType = null;
+		ControlCommand controlCommandStep = currObj instanceof ControlCommand ? (ControlCommand) currObj : null;
+		if (controlCommandStep != null)
+			stepType = controlCommandStep.getCommandType().toString() + " CC";
+		else
+			stepType = currObj.getClass().getSimpleName();
+
+		currStepDetails = new StepDetails(stepType, currObj, 0f);
 
 		stepWatch.start();
 	}
@@ -137,13 +143,16 @@ public class Profiler {
 
 	/**
 	 * Generate a printable report specifying the average and maximum times spent
-	 * stepping over different internal ink instruction types.
-	 * This report type is primarily used to profile the ink engine itself rather
-	 * than your own specific ink.
+	 * stepping over different internal ink instruction types. This report type is
+	 * primarily used to profile the ink engine itself rather than your own specific
+	 * ink.
 	 */
 	public String stepLengthReport() {
 		StringBuilder sb = new StringBuilder();
 
+		sb.append("TOTAL: " + rootNode.getTotalMillisecs() + "ms\n");
+
+		// AVERAGE STEP TIMES
 		HashMap<String, Double> typeToDetails = new HashMap<String, Double>();
 
 		// average group by s.type
@@ -169,7 +178,7 @@ public class Profiler {
 
 		// sort by average
 		List<Entry<String, Double>> averageStepTimes = new LinkedList<Entry<String, Double>>(typeToDetails.entrySet());
-		
+
 		Collections.sort(averageStepTimes, new Comparator<Entry<String, Double>>() {
 			public int compare(Entry<String, Double> o1, Entry<String, Double> o2) {
 				return (int) (o1.getValue() - o2.getValue());
@@ -178,39 +187,84 @@ public class Profiler {
 
 		// join times
 		sb.append("AVERAGE STEP TIMES: ");
-		for(int i = 0; i < averageStepTimes.size(); i++) {
+		for (int i = 0; i < averageStepTimes.size(); i++) {
 			sb.append(averageStepTimes.get(i).getKey());
 			sb.append(": ");
 			sb.append(averageStepTimes.get(i).getValue());
 			sb.append("ms");
-			
-			if(i != averageStepTimes.size() -1)
+
+			if (i != averageStepTimes.size() - 1)
+				sb.append(',');
+		}
+
+		sb.append('\n');
+		
+		
+		// ACCUMULATED STEP TIMES
+		typeToDetails.clear();
+
+		// average group by s.type
+		for (StepDetails sd : stepDetails) {
+			if (typeToDetails.containsKey(sd.type))
+				continue;
+
+			String type = sd.type;
+			double sum = 0f;
+
+			for (StepDetails sd2 : stepDetails) {
+				if (type.equals(sd2.type)) {
+					sum += sd2.time;
+				}
+			}
+
+			typeToDetails.put(sd.type + " (x"+typeToDetails.size()+")", sum);
+		}
+
+		// sort by average
+		List<Entry<String, Double>> accumStepTimes  = new LinkedList<Entry<String, Double>>(typeToDetails.entrySet());
+
+		Collections.sort(accumStepTimes, new Comparator<Entry<String, Double>>() {
+			public int compare(Entry<String, Double> o1, Entry<String, Double> o2) {
+				return (int) (o1.getValue() - o2.getValue());
+			}
+		});
+
+		// join times
+		sb.append("ACCUMULATED STEP TIMES: ");
+		for (int i = 0; i < accumStepTimes.size(); i++) {
+			sb.append(accumStepTimes.get(i).getKey());
+			sb.append(": ");
+			sb.append(accumStepTimes.get(i).getValue());
+
+			if (i != accumStepTimes.size() - 1)
 				sb.append(',');
 		}
 
 		sb.append('\n');
 
-		List<String> maxStepTimes = new ArrayList<String>();
+		return sb.toString();
+	}
 
-		stepDetails.sort(new Comparator<StepDetails>() {
+	/**
+	 * Create a large log of all the internal instructions that were evaluated while
+	 * profiling was active. Log is in a tab-separated format, for easy loading into
+	 * a spreadsheet application.
+	 */
+	public String megalog() {
+		StringBuilder sb = new StringBuilder();
 
-			@Override
-			public int compare(StepDetails o1, StepDetails o2) {
-				if (o1.time < o2.time)
-					return -1;
-				if (o1.time > o2.time)
-					return 1;
-				return 0;
-			}
-		});
+		sb.append("Step type\tDescription\tPath\tTime\n");
 
-		for (int i = 0; i < 100; i++) {
-			StepDetails d = stepDetails.get(i);
-			maxStepTimes.add(d.detail + ":" + d.time + "ms");
+		for (StepDetails step : stepDetails) {
+			sb.append(step.type);
+			sb.append("\t");
+			sb.append(step.obj.toString());
+			sb.append("\t");
+			sb.append(step.obj.getPath());
+			sb.append("\t");
+			sb.append(Double.toString(step.time));
+			sb.append('\n');
 		}
-
-		sb.append("MAX STEP TIMES: " + stringJoin("\n", maxStepTimes));
-		sb.append('\n');
 
 		return sb.toString();
 	}
@@ -244,18 +298,5 @@ public class Profiler {
 		} else {
 			return String.format("%.0f ms", num);
 		}
-	}
-
-	private String stringJoin(String conjunction, List<String> list) {
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for (String item : list) {
-			if (first)
-				first = false;
-			else
-				sb.append(conjunction);
-			sb.append(item);
-		}
-		return sb.toString();
 	}
 }
