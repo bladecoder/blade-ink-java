@@ -1936,10 +1936,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			// since we may be doing this reset at initialisation time.
 			continueInternal();
 
-			state.getVariablesState().snapshotDefaultGlobals();
-
 			state.setCurrentPointer(originalPointer);
 		}
+		
+		state.getVariablesState().snapshotDefaultGlobals();
 	}
 
 	/**
