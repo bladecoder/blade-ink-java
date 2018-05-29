@@ -1973,9 +1973,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		if (path.getLastComponent().isIndex()) {
 			pathLengthToUse = path.getLength() - 1;
-			// WARNING: Needs review, in C# the call is
-			// result = new SearchResult(mainContentContainer.contentAtPath(path, 0,
-			// pathLengthToUse));
 			result = new SearchResult(mainContentContainer.contentAtPath(path, 0, pathLengthToUse));
 			p.container = result.getContainer();
 			p.index = path.getLastComponent().getIndex();
