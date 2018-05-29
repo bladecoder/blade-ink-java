@@ -166,7 +166,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		state.addError(message, isWarning);
 
 		// In a broken state don't need to know about any other errors.
-		if( !isWarning )
+		if (!isWarning)
 			state.forceEnd();
 	}
 
@@ -343,7 +343,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (func == null) {
 			if (allowExternalFunctionFallbacks) {
 
-				fallbackFunctionContainer = knotContainerWithName (funcName);
+				fallbackFunctionContainer = knotContainerWithName(funcName);
 
 				Assert(fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName
 						+ "' which has not been bound, and fallback ink function could not be found.");
@@ -1781,7 +1781,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 						// be missing temps.
 						state.getVariablesState().setGlobal(varRef.getName(), foundValue);
 					} else {
-						warning("Variable not found: '" + varRef.getName() + "'. Using default value of 0 (false).");
+						warning("Variable not found: '" + varRef.getName()
+								+ "'. Using default value of 0 (false). This can happen with temporary variables if the declaration hasn't yet been hit.");
 						foundValue = new IntValue(0);
 					}
 				}
@@ -1938,7 +1939,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 			state.setCurrentPointer(originalPointer);
 		}
-		
+
 		state.getVariablesState().snapshotDefaultGlobals();
 	}
 
@@ -1973,7 +1974,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (path.getLastComponent().isIndex()) {
 			pathLengthToUse = path.getLength() - 1;
 			// WARNING: Needs review, in C# the call is
-			// result = new SearchResult(mainContentContainer.contentAtPath(path, 0, pathLengthToUse));
+			// result = new SearchResult(mainContentContainer.contentAtPath(path, 0,
+			// pathLengthToUse));
 			result = new SearchResult(mainContentContainer.contentAtPath(path, 0, pathLengthToUse));
 			p.container = result.getContainer();
 			p.index = path.getLastComponent().getIndex();
@@ -2372,7 +2374,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	public boolean hasFunction(String functionName) {
 		try {
-			return knotContainerWithName (functionName) != null;
+			return knotContainerWithName(functionName) != null;
 		} catch (Exception e) {
 			return false;
 		}
@@ -2406,9 +2408,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 
 		// Get the content that we need to run
-		 Container funcContainer = knotContainerWithName (functionName);
-         if( funcContainer == null )
-             throw new Exception ("Function doesn't exist: '" + functionName + "'");
+		Container funcContainer = knotContainerWithName(functionName);
+		if (funcContainer == null)
+			throw new Exception("Function doesn't exist: '" + functionName + "'");
 
 		// Snapshot the output stream
 		ArrayList<RTObject> outputStreamBefore = new ArrayList<RTObject>(state.getOutputStream());
