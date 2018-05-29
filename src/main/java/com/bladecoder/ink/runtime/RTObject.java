@@ -11,8 +11,8 @@ import com.bladecoder.ink.runtime.Path.Component;
 /* TODO: abstract */
 public class RTObject {
 	/**
-	 * Runtime.RTObjects can be included in the main Story as a hierarchy.
-	 * Usually parents are Container RTObjects. (TODO: Always?) The parent.
+	 * Runtime.RTObjects can be included in the main Story as a hierarchy. Usually
+	 * parents are Container RTObjects. (TODO: Always?) The parent.
 	 */
 	private RTObject parent;
 
@@ -32,6 +32,11 @@ public class RTObject {
 
 	public void setParent(RTObject value) {
 		parent = value;
+	}
+	
+
+	DebugMetadata getOwnDebugMetadata() {
+		return debugMetadata;
 	}
 
 	public DebugMetadata getDebugMetadata() {
@@ -57,8 +62,8 @@ public class RTObject {
 		Container root = this.getRootContentContainer();
 
 		if (root != null) {
-			
-			RTObject targetContent = root.contentAtPath (path).obj;
+
+			RTObject targetContent = root.contentAtPath(path).obj;
 
 			if (targetContent != null) {
 				DebugMetadata dm = targetContent.debugMetadata;
@@ -106,7 +111,7 @@ public class RTObject {
 		return path;
 	}
 
-	public SearchResult  resolvePath(Path path) throws Exception {
+	public SearchResult resolvePath(Path path) throws Exception {
 		if (path.isRelative()) {
 			Container nearestContainer = this instanceof Container ? (Container) this : (Container) null;
 
@@ -150,13 +155,13 @@ public class RTObject {
 
 		int numUpwardsMoves = (ownPath.getLength() - 1) - lastSharedPathCompIndex;
 		ArrayList<Component> newPathComps = new ArrayList<com.bladecoder.ink.runtime.Path.Component>();
-		
+
 		for (int up = 0; up < numUpwardsMoves; ++up)
 			newPathComps.add(Path.Component.toParent());
-		
+
 		for (int down = lastSharedPathCompIndex + 1; down < globalPath.getLength(); ++down)
 			newPathComps.add(globalPath.getComponent(down));
-		
+
 		Path relativePath = new Path(newPathComps, true);
 		return relativePath;
 	}
