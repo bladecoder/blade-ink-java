@@ -37,10 +37,16 @@ class Pointer {
 	public RTObject resolve() {
 		if (index < 0)
 			return container;
-		
-		if (container == null || index >= container.getContent().size())
+
+		if (container == null)
 			return null;
 		
+		if (container.getContent().size() == 0)
+			return container;
+		
+		if (index >= container.getContent().size())
+			return null;
+
 		return container.getContent().get(index);
 	}
 
