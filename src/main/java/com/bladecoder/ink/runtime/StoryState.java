@@ -155,12 +155,39 @@ public class StoryState {
 				}
 			}
 
-			currentText = sb.toString();
+			currentText = cleanOutputWhitespace(sb.toString());
 
 			outputStreamTextDirty = false;
 		}
 
 		return currentText;
+	}
+
+	String cleanOutputWhitespace(String str) {
+		StringBuilder sb = new StringBuilder(str.length());
+
+		int currentWhitespaceStart = -1;
+
+		for (int i = 0; i < str.length(); i++) {
+			char c = str.charAt(i);
+
+			boolean isInlineWhitespace = c == ' ' || c == '\t';
+
+			if (isInlineWhitespace && currentWhitespaceStart == -1)
+				currentWhitespaceStart = i;
+
+			if (!isInlineWhitespace) {
+				if (c != '\n' && currentWhitespaceStart > 0) {
+					sb.append(str.substring(currentWhitespaceStart, i));
+				}
+				currentWhitespaceStart = -1;
+			}
+
+			if (!isInlineWhitespace)
+				sb.append(c);
+		}
+
+		return sb.toString();
 	}
 
 	/**

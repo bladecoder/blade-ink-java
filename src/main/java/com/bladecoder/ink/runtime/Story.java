@@ -1897,7 +1897,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		choice.setThreadAtGeneration(state.getCallStack().getcurrentThread().copy());
 
 		// Set final text for the choice
-		choice.setText(startText + choiceOnlyText);
+		choice.setText((startText + choiceOnlyText).trim());
 
 		return choice;
 	}
