@@ -418,9 +418,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		choosePath(choiceToChoose.targetPath);
 	}
-
+	
 	void choosePath(Path p) throws Exception {
-		state.setChosenPath(p);
+		choosePath(p, true);
+	}
+
+	void choosePath(Path p, boolean incrementingTurnIndex) throws Exception {
+		state.setChosenPath(p, incrementingTurnIndex);
 
 		// Take a note of newly visited containers for read counts etc
 		visitChangedContainersDueToDivert();
@@ -1982,7 +1986,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (mainContentContainer.getNamedContent().containsKey("global decl")) {
 			final Pointer originalPointer = new Pointer(state.getCurrentPointer());
 
-			choosePathString("global decl", false);
+			choosePath (new Path ("global decl"), false);
 
 			// Continue, but without validating external bindings,
 			// since we may be doing this reset at initialisation time.
@@ -2195,7 +2199,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		Choice choice = invisibleChoices.get(0);
 
-		choosePath(choice.targetPath);
+		choosePath(choice.targetPath, false);
 
 		return true;
 	}

@@ -689,7 +689,7 @@ public class StoryState {
 
 	// Don't make public since the method need to be wrapped in Story for visit
 	// counting
-	void setChosenPath(Path path) throws Exception {
+	void setChosenPath(Path path, boolean incrementingTurnIndex) throws Exception {
 		// Changing direction, assume we need to clear current set of choices
 		currentChoices.clear();
 
@@ -699,7 +699,8 @@ public class StoryState {
 
 		setCurrentPointer(newPointer);
 
-		currentTurnIndex++;
+		if (incrementingTurnIndex)
+			currentTurnIndex++;
 	}
 
 	void startFunctionEvaluationFromGame(Container funcContainer, Object[] arguments) throws Exception {
