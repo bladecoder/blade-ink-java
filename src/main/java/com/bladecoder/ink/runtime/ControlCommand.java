@@ -5,7 +5,7 @@ import com.bladecoder.ink.runtime.RTObject;
 
 public class ControlCommand extends RTObject {
 	public enum CommandType {
-		NotSet, EvalStart, EvalOutput, EvalEnd, Duplicate, PopEvaluatedValue, PopFunction, PopTunnel, BeginString, EndString, NoOp, ChoiceCount, TurnsSince, ReadCount, Random, SeedRandom, VisitIndex, SequenceShuffleIndex, StartThread, Done, End, ListFromInt, ListRange
+		NotSet, EvalStart, EvalOutput, EvalEnd, Duplicate, PopEvaluatedValue, PopFunction, PopTunnel, BeginString, EndString, NoOp, ChoiceCount, Turns, TurnsSince, ReadCount, Random, SeedRandom, VisitIndex, SequenceShuffleIndex, StartThread, Done, End, ListFromInt, ListRange, ListRandom
 	}
 
 	private CommandType commandType = CommandType.NotSet;
@@ -86,6 +86,10 @@ public class ControlCommand extends RTObject {
 		return new ControlCommand(CommandType.ChoiceCount);
 	}
 
+	public static ControlCommand turns() {
+		return new ControlCommand(CommandType.Turns);
+	}
+	
 	public static ControlCommand turnsSince() {
 		return new ControlCommand(CommandType.TurnsSince);
 	}
@@ -128,6 +132,10 @@ public class ControlCommand extends RTObject {
 
 	public static ControlCommand listRange() {
 		return new ControlCommand(CommandType.ListRange);
+	}
+	
+	public static ControlCommand listRandom() {
+		return new ControlCommand(CommandType.ListRandom);
 	}
 
 	@Override

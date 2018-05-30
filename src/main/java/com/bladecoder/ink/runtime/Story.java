@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -1490,6 +1491,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				state.pushEvaluationStack(new IntValue(choiceCount));
 				break;
 
+			case Turns:
+				state.pushEvaluationStack(new IntValue(state.getCurrentTurnIndex() + 1));
+				break;
+
 			case TurnsSince:
 			case ReadCount:
 				RTObject target = state.popEvaluationStack();
@@ -1720,6 +1725,52 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 
 				state.pushEvaluationStack(result);
+				break;
+			}
+
+			case ListRandom: {
+
+				RTObject o = state.popEvaluationStack();
+				ListValue listVal = o instanceof ListValue ? (ListValue) o : null;
+
+				if (listVal == null)
+					throw new StoryException("Expected list for LIST_RANDOM");
+
+				InkList list = listVal.value;
+
+				InkList newList = null;
+
+				// List was empty: return empty list
+				if (list.size() == 0) {
+					newList = new InkList();
+				}
+
+				// Non-empty source list
+				else {
+					// Generate a random index for the element to take
+					int resultSeed = state.getStorySeed() + state.getPreviousRandom();
+					Random random = new Random(resultSeed);
+
+					int nextRandom = random.nextInt(Integer.MAX_VALUE);
+					int listItemIndex = nextRandom % list.size();
+
+					// Iterate through to get the random element
+					Iterator<Entry<InkListItem, Integer>> listEnumerator = list.entrySet().iterator();
+					
+					Entry<InkListItem, Integer> randomItem = null;
+					
+					for (int i = 0; i <= listItemIndex; i++) {
+						randomItem = listEnumerator.next();
+					}
+
+					// Origin list is simply the origin of the one element
+					newList = new InkList(randomItem.getKey().getOriginName(), this);
+					newList.put(randomItem.getKey(), randomItem.getValue());
+
+					state.setPreviousRandom(nextRandom);
+				}
+
+				state.pushEvaluationStack(new ListValue(newList));
 				break;
 			}
 

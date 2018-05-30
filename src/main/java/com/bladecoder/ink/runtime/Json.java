@@ -707,6 +707,7 @@ public class Json {
 		controlCommandNames[CommandType.EndString.ordinal() - 1] = "/str";
 		controlCommandNames[CommandType.NoOp.ordinal() - 1] = "nop";
 		controlCommandNames[CommandType.ChoiceCount.ordinal() - 1] = "choiceCnt";
+		controlCommandNames[CommandType.Turns.ordinal() - 1] = "turn";
 		controlCommandNames[CommandType.TurnsSince.ordinal() - 1] = "turns";
 		controlCommandNames[CommandType.ReadCount.ordinal() - 1] = "readc";
 		controlCommandNames[CommandType.Random.ordinal() - 1] = "rnd";
@@ -718,6 +719,7 @@ public class Json {
 		controlCommandNames[CommandType.End.ordinal() - 1] = "end";
 		controlCommandNames[CommandType.ListFromInt.ordinal() - 1] = "listInt";
 		controlCommandNames[CommandType.ListRange.ordinal() - 1] = "range";
+		controlCommandNames[CommandType.ListRandom.ordinal() - 1] = "lrnd";
 
 		for (int i = 0; i < CommandType.values().length - 1; ++i) {
 			if (controlCommandNames[i] == null)
