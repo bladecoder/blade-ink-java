@@ -526,8 +526,18 @@ public class NativeFunctionCall extends RTObject {
 				}
 
 			};
+			
+			BinaryOp divertTargetsNotEqual  = new BinaryOp() {
+
+				@Override
+				public Object invoke(Object left, Object right) {
+					return ((Path) left).equals((Path) left) ? (Integer) 0 : (Integer) 1;
+				}
+
+			};
 
 			addOpToNativeFunc(Equal, 2, ValueType.DivertTarget, divertTargetsEqual);
+			addOpToNativeFunc(NotEquals, 2, ValueType.DivertTarget, divertTargetsNotEqual);
 		}
 
 	}
