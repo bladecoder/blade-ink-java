@@ -363,6 +363,13 @@ public class NativeFunctionCall extends RTObject {
 					return (((String) left).contains(right.toString())) ? (Integer) 1 : (Integer) 0;
 				}
 			});
+			
+			addStringBinaryOp(Hasnt, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (((String) left).contains(right.toString())) ? (Integer) 0 : (Integer) 1;
+				}
+			});
 
 			// List operations
 			addListBinaryOp(Add, new BinaryOp() {
