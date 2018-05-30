@@ -24,6 +24,8 @@ public class NativeFunctionCall extends RTObject {
 	public static final String LessThanOrEquals = "<=";
 	public static final String Max = "MAX";
 	public static final String Min = "MIN";
+	
+	public static final String Pow = "POW";
 
 	public static final String Mod = "%";
 	public static final String Multiply = "*";
@@ -218,6 +220,12 @@ public class NativeFunctionCall extends RTObject {
 					return Math.min((Integer) left, (Integer) right);
 				}
 			});
+			addIntBinaryOp(Pow, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (float)Math.pow((Integer) left, (Integer) right);
+				}
+			});
 
 			// Float operations
 			addFloatBinaryOp(Add, new BinaryOp() {
@@ -332,6 +340,13 @@ public class NativeFunctionCall extends RTObject {
 				@Override
 				public Object invoke(Object left, Object right) {
 					return Math.min((Float) left, (Float) right);
+				}
+			});
+			
+			addFloatBinaryOp(Pow, new BinaryOp() {
+				@Override
+				public Object invoke(Object left, Object right) {
+					return (float)Math.pow((Float) left, (Float) right);
 				}
 			});
 
