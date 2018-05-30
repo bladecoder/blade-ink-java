@@ -832,7 +832,7 @@ public class StoryState {
 		for (Choice c : currentChoices) {
 			Thread foundActiveThread = callStack.getThreadWithIndex(c.originalThreadIndex);
 			if (foundActiveThread != null) {
-				c.setThreadAtGeneration(foundActiveThread);
+				c.setThreadAtGeneration(foundActiveThread.copy());
 			} else {
 				HashMap<String, Object> jSavedChoiceThread = (HashMap<String, Object>) jChoiceThreads
 						.get(Integer.toString(c.originalThreadIndex));
