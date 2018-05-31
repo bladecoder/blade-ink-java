@@ -2450,7 +2450,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *         myValue`, or null if nothing is returned.
 	 * @throws Exception
 	 */
-	public Object evaluateFunction(String functionName, StringBuffer textOutput, Object[] arguments) throws Exception {
+	public Object evaluateFunction(String functionName, StringBuilder textOutput, Object[] arguments) throws Exception {
 		ifAsyncWeCant("evaluate a function");
 
 		if (functionName == null) {

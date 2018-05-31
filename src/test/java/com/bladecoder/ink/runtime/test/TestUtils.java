@@ -91,7 +91,7 @@ public class TestUtils {
 	}
 	
 	public static final String joinText(List<String> text) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		
 		for(String s:text) {
 			sb.append(s);
