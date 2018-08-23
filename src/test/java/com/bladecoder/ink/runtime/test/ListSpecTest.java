@@ -99,7 +99,7 @@ public class ListSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/lists/list-range.ink.json");
 		Story story = new Story(json);
 
-		Assert.assertEquals("Pound, Pizza, Euro, Pasta, Dollar, Curry, Paella\nPizza, Euro, Pasta, Dollar, Curry\nTwo, Three, Four, Five, Six\nPasta\n", story.continueMaximally());
+		Assert.assertEquals("Pound, Pizza, Euro, Pasta, Dollar, Curry, Paella\nEuro, Pasta, Dollar, Curry\nTwo, Three, Four, Five, Six\nPizza, Pasta\n", story.continueMaximally());
 	}
 
 }

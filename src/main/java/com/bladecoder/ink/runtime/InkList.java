@@ -289,64 +289,39 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	 * in multi-item lists, it'll use the minimum and maximum items in those lists
 	 * respectively. WARNING: Calling this method requires a full sort of all the
 	 * elements in the list.
-	 * @throws Exception 
-	 * @throws StoryException 
+	 * 
+	 * @throws Exception
+	 * @throws StoryException
 	 */
 	public InkList listWithSubRange(Object minBound, Object maxBound) throws StoryException, Exception {
-		List<Entry<InkListItem, Integer>> ordered = getOrderedItems();
-		int minIdx = -1;
-		int maxIdx = -1;
-
-		if (minBound instanceof Integer) {
-			minIdx = (int) minBound;
-		} else {
-			if (minBound instanceof InkList) {
-				Entry<InkListItem, Integer> minBoundItem = ((InkList) minBound).getMinItem();
-				if (!minBoundItem.getKey().isNull()) {
-					minIdx = ordered.indexOf(minBoundItem);
-				}
-			}
-
-			if (minIdx == -1)
-				throw new StoryException("Invalid minimum bound for LIST_RANGE: " + minBound);
-		}
-
-		if (maxBound instanceof Integer)
-			maxIdx = (int) maxBound;
-		else {
-			if (minBound instanceof InkList) {
-				Entry<InkListItem, Integer> maxBoundItem = ((InkList) maxBound).getMaxItem();
-				if (!maxBoundItem.getKey().isNull()) {
-					maxIdx = ordered.indexOf(maxBoundItem);
-				}
-			}
-			if (maxIdx == -1)
-				throw new StoryException("Invalid minimum bound for LIST_RANGE: " + minBound);
-		}
-
 		if (this.size() == 0)
 			return new InkList();
 
-		// If out of range, silently clamp (better than crashing for a language like
-		// ink)
-		if (minIdx < 0)
-			minIdx = 0;
+		List<Entry<InkListItem, Integer>> ordered = getOrderedItems();
+		int minValue = 0;
+		int maxValue = Integer.MAX_VALUE;
 
-		if (minIdx >= this.size())
-			minIdx = this.size() - 1;
+		if (minBound instanceof Integer) {
+			minValue = (int) minBound;
+		} else {
+			if (minBound instanceof InkList && ((InkList) minBound).size() > 0)
+				minValue = ((InkList) minBound).getMinItem().getValue();
+		}
 
-		if (maxIdx < 0)
-			maxIdx = 0;
-
-		if (maxIdx >= this.size())
-			maxIdx = this.size() - 1;
+		if (maxBound instanceof Integer)
+			maxValue = (int) maxBound;
+		else {
+			if (minBound instanceof InkList && ((InkList) minBound).size() > 0)
+				maxValue = ((InkList) maxBound).getMaxItem().getValue();
+		}
 
 		InkList subList = new InkList();
 		subList.setInitialOriginNames(originNames);
 
-		for (int i = minIdx; i <= maxIdx; i++) {
-			Entry<InkListItem, Integer> el = ordered.get(i);
-			subList.put(el.getKey(), el.getValue());
+		for (Entry<InkListItem, Integer> item : ordered) {
+			if (item.getValue() >= minValue && item.getValue() <= maxValue) {
+				subList.put(item.getKey(), item.getValue());
+			}
 		}
 
 		return subList;
@@ -535,10 +510,10 @@ public class InkList extends HashMap<InkListItem, Integer> {
 		Collections.sort(ordered, new Comparator<Entry<InkListItem, Integer>>() {
 			@Override
 			public int compare(Entry<InkListItem, Integer> o1, Entry<InkListItem, Integer> o2) {
-				if(o1.getValue() == o2.getValue()) {
+				if (o1.getValue() == o2.getValue()) {
 					return o1.getKey().getOriginName().compareTo(o2.getKey().getOriginName());
 				} else {
-					return o1.getValue() - o2.getValue();	
+					return o1.getValue() - o2.getValue();
 				}
 			}
 		});
