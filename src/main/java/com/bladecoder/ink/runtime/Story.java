@@ -25,7 +25,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	// Version numbers are for engine itself and story file, rather
-	// than the story state save format (which is um, currently nonexistant)
+	// than the story state save format
 	// -- old engine, new format: always fail
 	// -- new engine, old format: possibly cope, based on this number
 	// When incrementing the version number above, the question you
@@ -46,7 +46,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * The current version of the ink story file format.
 	 */
-	public static final int inkVersionCurrent = 18;
+	public static final int inkVersionCurrent = 19;
 
 	/**
 	 * The minimum legacy version of ink that can be loaded by the current version
