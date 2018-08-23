@@ -22,15 +22,10 @@ class ListValue extends Value<InkList> {
 		return ValueType.List;
 	}
 
-	// Truthy if it contains any non-zero items
+	// Truthy if it is non-empty
 	@Override
 	public boolean isTruthy() {
-		for (Integer kv : value.values()) {
-			if (kv != 0)
-				return true;
-		}
-
-		return false;
+		return value.size() > 0;
 	}
 
 	@Override
