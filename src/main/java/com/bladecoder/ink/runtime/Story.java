@@ -116,7 +116,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		int formatFromFile = versionObj instanceof String ? Integer.parseInt((String) versionObj) : (int) versionObj;
 
 		if (formatFromFile > inkVersionCurrent) {
-			throw new Exception("Version of ink used to build story was newer than the current verison of the engine");
+			throw new Exception("Version of ink used to build story was newer than the current version of the engine");
 		} else if (formatFromFile < inkVersionMinimumCompatible) {
 			throw new Exception(
 					"Version of ink used to build story is too old to be loaded by this version of the engine");
