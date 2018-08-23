@@ -26,6 +26,10 @@ public class NativeFunctionCall extends RTObject {
 	public static final String Min = "MIN";
 	
 	public static final String Pow = "POW";
+	public static final String Floor = "FLOOR";
+	public static final String Ceiling = "CEILING";
+	public static final String Int = "INT";
+	public static final String Float = "FLOAT";
 
 	public static final String Mod = "%";
 	public static final String Multiply = "*";
@@ -226,6 +230,35 @@ public class NativeFunctionCall extends RTObject {
 					return (float)Math.pow((Integer) left, (Integer) right);
 				}
 			});
+			
+			addIntUnaryOp(Floor, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return val;
+				}
+			});
+			addIntUnaryOp(Ceiling, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return val;
+				}
+			});
+			addIntUnaryOp(Int, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return val;
+				}
+			});
+			addIntUnaryOp(Float, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return (Float)val;
+				}
+			});
 
 			// Float operations
 			addFloatBinaryOp(Add, new BinaryOp() {
@@ -347,6 +380,35 @@ public class NativeFunctionCall extends RTObject {
 				@Override
 				public Object invoke(Object left, Object right) {
 					return (float)Math.pow((Float) left, (Float) right);
+				}
+			});
+			
+			addFloatUnaryOp(Floor, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return (float)Math.floor((double)val);
+				}
+			});
+			addFloatUnaryOp(Ceiling, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return (float)Math.ceil((double)val);
+				}
+			});
+			addFloatUnaryOp(Int, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return (int) val;
+				}
+			});
+			addFloatUnaryOp(Float, new UnaryOp() {
+
+				@Override
+				public Object invoke(Object val) {
+					return val;
 				}
 			});
 
