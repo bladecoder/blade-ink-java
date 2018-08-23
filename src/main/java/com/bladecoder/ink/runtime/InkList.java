@@ -37,9 +37,9 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Create a new empty ink list that's intended to hold items from a
-	 * particular origin list definition. The origin Story is needed in order to
-	 * be able to look up that definition.
+	 * Create a new empty ink list that's intended to hold items from a particular
+	 * origin list definition. The origin Story is needed in order to be able to
+	 * look up that definition.
 	 */
 	public InkList(String singleOriginListName, Story originStory) throws Exception {
 		setInitialOriginName(singleOriginListName);
@@ -74,11 +74,11 @@ public class InkList extends HashMap<InkListItem, Integer> {
 
 		return null;
 	}
-	
+
 	public void setOrigins(List<ListDefinition> origins) {
 		this.origins = origins;
 	}
-	
+
 	public List<ListDefinition> getOrigins() {
 		return origins;
 	}
@@ -112,8 +112,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Returns a new list that is the combination of the current list and one
-	 * that's passed in. Equivalent to calling (list1 + list2) in ink.
+	 * Returns a new list that is the combination of the current list and one that's
+	 * passed in. Equivalent to calling (list1 + list2) in ink.
 	 */
 	public InkList union(InkList otherList) {
 		InkList union = new InkList(this);
@@ -124,9 +124,9 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Returns a new list that's the same as the current one, except with the
-	 * given items removed that are in the passed in list. Equivalent to calling
-	 * (list1 - list2) in ink.
+	 * Returns a new list that's the same as the current one, except with the given
+	 * items removed that are in the passed in list. Equivalent to calling (list1 -
+	 * list2) in ink.
 	 * 
 	 * @param listToRemove
 	 *            List to remove.
@@ -141,10 +141,9 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Returns a new list that is the intersection of the current list with
-	 * another list that's passed in - i.e. a list of the items that are shared
-	 * between the two other lists. Equivalent to calling (list1 ^ list2) in
-	 * ink.
+	 * Returns a new list that is the intersection of the current list with another
+	 * list that's passed in - i.e. a list of the items that are shared between the
+	 * two other lists. Equivalent to calling (list1 ^ list2) in ink.
 	 */
 	public InkList intersect(InkList otherList) {
 		InkList intersection = new InkList();
@@ -189,8 +188,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Returns true if the current list contains all the items that are in the
-	 * list that is passed in. Equivalent to calling (list1 ? list2) in ink.
+	 * Returns true if the current list contains all the items that are in the list
+	 * that is passed in. Equivalent to calling (list1 ? list2) in ink.
 	 * 
 	 * @param otherList
 	 *            Other list.
@@ -205,9 +204,9 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Returns true if all the item values in the current list are greater than
-	 * all the item values in the passed in list. Equivalent to calling (list1
-	 * &gt; list2) in ink.
+	 * Returns true if all the item values in the current list are greater than all
+	 * the item values in the passed in list. Equivalent to calling (list1 &gt;
+	 * list2) in ink.
 	 */
 	public boolean greaterThan(InkList otherList) {
 		if (size() == 0)
@@ -221,10 +220,10 @@ public class InkList extends HashMap<InkListItem, Integer> {
 
 	/**
 	 * Returns true if the item values in the current list overlap or are all
-	 * greater than the item values in the passed in list. None of the item
-	 * values in the current list must fall below the item values in the passed
-	 * in list. Equivalent to (list1 &gt;= list2) in ink, or LIST_MIN(list1)
-	 * &gt;= LIST_MIN(list2) &amp;&amp; LIST_MAX(list1) &gt;= LIST_MAX(list2).
+	 * greater than the item values in the passed in list. None of the item values
+	 * in the current list must fall below the item values in the passed in list.
+	 * Equivalent to (list1 &gt;= list2) in ink, or LIST_MIN(list1) &gt;=
+	 * LIST_MIN(list2) &amp;&amp; LIST_MAX(list1) &gt;= LIST_MAX(list2).
 	 */
 	public boolean greaterThanOrEquals(InkList otherList) {
 		if (size() == 0)
@@ -238,9 +237,9 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Returns true if all the item values in the current list are less than all
-	 * the item values in the passed in list. Equivalent to calling (list1 &lt;
-	 * list2) in ink.
+	 * Returns true if all the item values in the current list are less than all the
+	 * item values in the passed in list. Equivalent to calling (list1 &lt; list2)
+	 * in ink.
 	 */
 	public boolean lessThan(InkList otherList) {
 		if (otherList.size() == 0)
@@ -252,11 +251,11 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Returns true if the item values in the current list overlap or are all
-	 * less than the item values in the passed in list. None of the item values
-	 * in the current list must go above the item values in the passed in list.
-	 * Equivalent to (list1 &lt;= list2) in ink, or LIST_MAX(list1) &lt;=
-	 * LIST_MAX(list2) &amp;&amp; LIST_MIN(list1) &lt;= LIST_MIN(list2).
+	 * Returns true if the item values in the current list overlap or are all less
+	 * than the item values in the passed in list. None of the item values in the
+	 * current list must go above the item values in the passed in list. Equivalent
+	 * to (list1 &lt;= list2) in ink, or LIST_MAX(list1) &lt;= LIST_MAX(list2)
+	 * &amp;&amp; LIST_MIN(list1) &lt;= LIST_MIN(list2).
 	 */
 	public boolean lessThanOrEquals(InkList otherList) {
 		if (otherList.size() == 0)
@@ -280,6 +279,77 @@ public class InkList extends HashMap<InkListItem, Integer> {
 			return new InkList(getMinItem());
 		else
 			return new InkList();
+	}
+
+	/**
+	 * Returns a sublist with the elements given the minimum and maxmimum bounds.
+	 * The bounds can either be ints which are indices into the entire (sorted)
+	 * list, or they can be InkLists themselves. These are intended to be
+	 * single-item lists so you can specify the upper and lower bounds. If you pass
+	 * in multi-item lists, it'll use the minimum and maximum items in those lists
+	 * respectively. WARNING: Calling this method requires a full sort of all the
+	 * elements in the list.
+	 * @throws Exception 
+	 * @throws StoryException 
+	 */
+	public InkList listWithSubRange(Object minBound, Object maxBound) throws StoryException, Exception {
+		List<Entry<InkListItem, Integer>> ordered = getOrderedItems();
+		int minIdx = -1;
+		int maxIdx = -1;
+
+		if (minBound instanceof Integer) {
+			minIdx = (int) minBound;
+		} else {
+			if (minBound instanceof InkList) {
+				Entry<InkListItem, Integer> minBoundItem = ((InkList) minBound).getMinItem();
+				if (!minBoundItem.getKey().isNull()) {
+					minIdx = ordered.indexOf(minBoundItem);
+				}
+			}
+
+			if (minIdx == -1)
+				throw new StoryException("Invalid minimum bound for LIST_RANGE: " + minBound);
+		}
+
+		if (maxBound instanceof Integer)
+			maxIdx = (int) maxBound;
+		else {
+			if (minBound instanceof InkList) {
+				Entry<InkListItem, Integer> maxBoundItem = ((InkList) maxBound).getMaxItem();
+				if (!maxBoundItem.getKey().isNull()) {
+					maxIdx = ordered.indexOf(maxBoundItem);
+				}
+			}
+			if (maxIdx == -1)
+				throw new StoryException("Invalid minimum bound for LIST_RANGE: " + minBound);
+		}
+
+		if (this.size() == 0)
+			return new InkList();
+
+		// If out of range, silently clamp (better than crashing for a language like
+		// ink)
+		if (minIdx < 0)
+			minIdx = 0;
+
+		if (minIdx >= this.size())
+			minIdx = this.size() - 1;
+
+		if (maxIdx < 0)
+			maxIdx = 0;
+
+		if (maxIdx >= this.size())
+			maxIdx = this.size() - 1;
+
+		InkList subList = new InkList();
+		subList.setInitialOriginNames(originNames);
+
+		for (int i = minIdx; i <= maxIdx; i++) {
+			Entry<InkListItem, Integer> el = ordered.get(i);
+			subList.put(el.getKey(), el.getValue());
+		}
+
+		return subList;
 	}
 
 	// Runtime sets may reference items from different origin sets
@@ -343,12 +413,11 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Adds the given item to the ink list. Note that the item must come from a
-	 * list definition that is already "known" to this list, so that the item's
-	 * value can be looked up. By "known", we mean that it already has items in
-	 * it from that source, or it did at one point - it can't be a completely
-	 * fresh empty list, or a list that only contains items from a different
-	 * list definition.
+	 * Adds the given item to the ink list. Note that the item must come from a list
+	 * definition that is already "known" to this list, so that the item's value can
+	 * be looked up. By "known", we mean that it already has items in it from that
+	 * source, or it did at one point - it can't be a completely fresh empty list,
+	 * or a list that only contains items from a different list definition.
 	 * 
 	 * @throws Exception
 	 */
@@ -379,11 +448,10 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	/**
 	 * Adds the given item to the ink list, attempting to find the origin list
 	 * definition that it belongs to. The item must therefore come from a list
-	 * definition that is already "known" to this list, so that the item's value
-	 * can be looked up. By "known", we mean that it already has items in it
-	 * from that source, or it did at one point - it can't be a completely fresh
-	 * empty list, or a list that only contains items from a different list
-	 * definition.
+	 * definition that is already "known" to this list, so that the item's value can
+	 * be looked up. By "known", we mean that it already has items in it from that
+	 * source, or it did at one point - it can't be a completely fresh empty list,
+	 * or a list that only contains items from a different list definition.
 	 * 
 	 * @throws Exception
 	 */
@@ -424,8 +492,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Returns true if the passed object is also an ink list that contains the
-	 * same items as the current list, false otherwise.
+	 * Returns true if the passed object is also an ink list that contains the same
+	 * items as the current list, false otherwise.
 	 */
 	@Override
 	public boolean equals(Object other) {
@@ -448,8 +516,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	/**
-	 * Return the hashcode for this object, used for comparisons and inserting
-	 * into dictionaries.
+	 * Return the hashcode for this object, used for comparisons and inserting into
+	 * dictionaries.
 	 */
 	@Override
 	public int hashCode() {
@@ -461,21 +529,31 @@ public class InkList extends HashMap<InkListItem, Integer> {
 		return ownHash;
 	}
 
+	List<Entry<InkListItem, Integer>> getOrderedItems() {
+		List<Entry<InkListItem, Integer>> ordered = new ArrayList<Entry<InkListItem, Integer>>(entrySet());
+
+		Collections.sort(ordered, new Comparator<Entry<InkListItem, Integer>>() {
+			@Override
+			public int compare(Entry<InkListItem, Integer> o1, Entry<InkListItem, Integer> o2) {
+				if(o1.getValue() == o2.getValue()) {
+					return o1.getKey().getOriginName().compareTo(o2.getKey().getOriginName());
+				} else {
+					return o1.getValue() - o2.getValue();	
+				}
+			}
+		});
+
+		return ordered;
+	}
+
 	/**
 	 * Returns a string in the form "a, b, c" with the names of the items in the
-	 * list, without the origin list definition names. Equivalent to writing
-	 * {list} in ink.
+	 * list, without the origin list definition names. Equivalent to writing {list}
+	 * in ink.
 	 */
 	@Override
 	public String toString() {
-		List<InkListItem> ordered = new ArrayList<InkListItem>(keySet());
-
-		Collections.sort(ordered, new Comparator<InkListItem>() {
-			@Override
-			public int compare(InkListItem o1, InkListItem o2) {
-				return get(o1) - get(o2);
-			}
-		});
+		List<Entry<InkListItem, Integer>> ordered = getOrderedItems();
 
 		StringBuilder sb = new StringBuilder();
 
@@ -483,7 +561,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 			if (i > 0)
 				sb.append(", ");
 
-			InkListItem item = ordered.get(i);
+			InkListItem item = ordered.get(i).getKey();
 
 			sb.append(item.getItemName());
 		}

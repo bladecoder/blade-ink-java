@@ -19,19 +19,6 @@ public class ListDefinition {
 		this.itemNameToValues = items;
 	}
 
-	public ListValue listRange(int min, int max) {
-		InkList rawList = new InkList();
-		for (Entry<String, Integer> nameAndValue : itemNameToValues.entrySet()) {
-			if (nameAndValue.getValue() >= min && nameAndValue.getValue() <= max) {
-				InkListItem item = new InkListItem(name, nameAndValue.getKey());
-
-				rawList.put(item, nameAndValue.getValue());
-			}
-		}
-
-		return new ListValue(rawList);
-	}
-
 	public HashMap<InkListItem, Integer> getItems() {
 		if (items == null) {
 			items = new HashMap<InkListItem, Integer>();

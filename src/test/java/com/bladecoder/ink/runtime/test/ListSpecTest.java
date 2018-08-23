@@ -92,5 +92,14 @@ public class ListSpecTest {
 
 		Assert.assertEquals("a, b, c\n", story.continueMaximally());
 	}
+	
+	//@Test
+	public void testListRange() throws Exception {
+
+		String json = TestUtils.getJsonString("inkfiles/lists/list-range.ink.json");
+		Story story = new Story(json);
+
+		Assert.assertEquals("Pound, Pizza, Euro, Pasta, Dollar, Curry, Paella\nPizza, Euro, Pasta, Dollar, Curry\nTwo, Three, Four, Five, Six\nPasta\n", story.continueMaximally());
+	}
 
 }

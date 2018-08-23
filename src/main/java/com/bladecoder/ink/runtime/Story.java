@@ -1680,55 +1680,21 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			}
 
 			case ListRange: {
-				RTObject max = state.popEvaluationStack();
-				RTObject min = state.popEvaluationStack();
-				RTObject targetRT = state.popEvaluationStack();
-
-				ListValue targetList = null;
-
-				if (targetRT instanceof ListValue)
-					targetList = (ListValue) targetRT;
+				RTObject p = state.popEvaluationStack();
+				Value<?> max = p instanceof Value?(Value<?>)p:null;
+				
+				p = state.popEvaluationStack();
+				Value<?> min = p instanceof Value?(Value<?>)p:null;
+				
+				p = state.popEvaluationStack();
+				ListValue targetList = p instanceof ListValue?(ListValue)p:null;
 
 				if (targetList == null || min == null || max == null)
 					throw new StoryException("Expected List, minimum and maximum for LIST_RANGE");
 
-				int minVal = -1;
+				InkList result = targetList.value.listWithSubRange(min.getValueObject(), max.getValueObject());
 
-				if (min instanceof ListValue) {
-					minVal = (int) ((ListValue) min).getValue().getMaxItem().getValue();
-				} else if (min instanceof IntValue) {
-					minVal = (int) ((IntValue) min).getValue();
-				}
-
-				int maxVal = -1;
-
-				if (max instanceof ListValue) {
-					maxVal = (int) ((ListValue) min).getValue().getMaxItem().getValue();
-				} else if (min instanceof IntValue) {
-					maxVal = (int) ((IntValue) min).getValue();
-				}
-
-				if (minVal == -1)
-					throw new StoryException("Invalid min range bound passed to LIST_RANGE(): " + min);
-
-				if (maxVal == -1)
-					throw new StoryException("Invalid max range bound passed to LIST_RANGE(): " + max);
-
-				// Extract the range of items from the origin set
-				ListValue result = new ListValue();
-				List<ListDefinition> origins = targetList.value.getOrigins();
-
-				if (origins != null) {
-					for (ListDefinition origin : origins) {
-						ListValue rangeFromOrigin = origin.listRange(minVal, maxVal);
-
-						for (Entry<InkListItem, Integer> kv : rangeFromOrigin.getValue().entrySet()) {
-							result.value.put(kv.getKey(), kv.getValue());
-						}
-					}
-				}
-
-				state.pushEvaluationStack(result);
+                state.pushEvaluationStack (new ListValue(result));
 				break;
 			}
 
