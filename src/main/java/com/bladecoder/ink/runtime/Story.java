@@ -2312,7 +2312,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				? (Container) currentChildOfContainer.getParent()
 				: null;
 
-		while (currentContainerAncestor != null && (!prevContainers.contains(currentContainerAncestor) || currentContainerAncestor.getCountingAtStartOnly()))) {
+		while (currentContainerAncestor != null && (!prevContainers.contains(currentContainerAncestor) || currentContainerAncestor.getCountingAtStartOnly())) {
 
 			// Check whether this ancestor container is being entered at the
 			// start,
