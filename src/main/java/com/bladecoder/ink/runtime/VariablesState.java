@@ -232,7 +232,7 @@ public class VariablesState implements Iterable<String> {
 
 		// This is the main
 		if (!defaultGlobalVariables.containsKey(variableName)) {
-			throw new StoryException("Cannot assign to a variable that hasn't been declared in the story");
+			 throw new StoryException ("Cannot assign to a variable ("+variableName+") that hasn't been declared in the story");
 		}
 
 		AbstractValue val = AbstractValue.create(value);
