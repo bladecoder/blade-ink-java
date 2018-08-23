@@ -163,10 +163,16 @@ public class StoryState {
 		return currentText;
 	}
 
+	/**
+	 * Cleans inline whitespace in the following way: 
+	 * - Removes all whitespace from the start and end of line (including just before a \n) 
+	 * - Turns all consecutive space and tab runs into single spaces (HTML style)
+	 */
 	String cleanOutputWhitespace(String str) {
 		StringBuilder sb = new StringBuilder(str.length());
 
 		int currentWhitespaceStart = -1;
+		int startOfLine = 0;
 
 		for (int i = 0; i < str.length(); i++) {
 			char c = str.charAt(i);
@@ -177,11 +183,14 @@ public class StoryState {
 				currentWhitespaceStart = i;
 
 			if (!isInlineWhitespace) {
-				if (c != '\n' && currentWhitespaceStart > 0) {
-					sb.append(str.substring(currentWhitespaceStart, i));
+				if (c != '\n' && currentWhitespaceStart > 0 && currentWhitespaceStart != startOfLine) {
+					sb.append(' ');
 				}
 				currentWhitespaceStart = -1;
 			}
+
+			if (c == '\n')
+				startOfLine = i + 1;
 
 			if (!isInlineWhitespace)
 				sb.append(c);

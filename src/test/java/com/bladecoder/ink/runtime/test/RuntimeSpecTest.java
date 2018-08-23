@@ -283,7 +283,7 @@ public class RuntimeSpecTest {
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals(
 				"\"There is not a moment to lose!\" I declared.", text.get(1));
-		Assert.assertEquals("We hurried home to Savile Row  as fast as we could.", text.get(2));
+		Assert.assertEquals("We hurried home to Savile Row as fast as we could.", text.get(2));
 
 		// check that we are at the end
 		Assert.assertEquals(false, story.canContinue());

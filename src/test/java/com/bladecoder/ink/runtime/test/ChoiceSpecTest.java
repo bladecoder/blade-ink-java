@@ -124,7 +124,7 @@ public class ChoiceSpecTest {
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals(2, text.size());
 
-		Assert.assertEquals("Hello  right back to you!", text.get(0));
+		Assert.assertEquals("Hello right back to you!", text.get(0));
 		Assert.assertEquals("Nice to hear from you.", text.get(1));
 	}
 
@@ -319,7 +319,7 @@ public class ChoiceSpecTest {
 		text.clear();
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals(2, text.size());
-		Assert.assertEquals("You pull a face, and the soldier comes at you!  You shove the guard to one side, but he comes back swinging.", text.get(0));
+		Assert.assertEquals("You pull a face, and the soldier comes at you! You shove the guard to one side, but he comes back swinging.", text.get(0));
 		
 		Assert.assertEquals(1, story.getCurrentChoices().size());
 		Assert.assertEquals("Grapple and fight", story.getCurrentChoices().get(0).getText());
