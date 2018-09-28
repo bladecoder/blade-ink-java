@@ -134,9 +134,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			listsDefinitions = Json.jTokenToListDefinitions(listDefsObj);
 		}
 
-		mainContentContainer = Json.jTokenToRuntimeObject(rootToken) instanceof Container
-				? (Container) Json.jTokenToRuntimeObject(rootToken)
-				: null;
+		RTObject runtimeObject = Json.jTokenToRuntimeObject(rootToken);
+		mainContentContainer = runtimeObject instanceof Container ? (Container) runtimeObject : null;
 
 		resetState();
 	}
