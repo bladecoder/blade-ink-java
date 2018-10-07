@@ -140,6 +140,45 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		resetState();
 	}
 
+	/**
+	 * Construct a Story Object using a HashMap converted from a compiled inklecate JSON String
+	 *
+	 * Use this constructor when you have large stories and need to constantly construct new stories.
+	 */
+	public Story(HashMap<String, Object> rootObject) throws Exception {
+		this((Container) null);
+
+		Object versionObj = rootObject.get("inkVersion");
+		if (versionObj == null)
+			throw new Exception("ink version number not found. Are you sure it's a valid .ink.json file?");
+
+		int formatFromFile = versionObj instanceof String ? Integer.parseInt((String) versionObj) : (int) versionObj;
+
+		if (formatFromFile > inkVersionCurrent) {
+			throw new Exception("Version of ink used to build story was newer than the current version of the engine");
+		} else if (formatFromFile < inkVersionMinimumCompatible) {
+			throw new Exception(
+					"Version of ink used to build story is too old to be loaded by this version of the engine");
+		} else if (formatFromFile != inkVersionCurrent) {
+			System.out.println(
+					"WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");
+		}
+
+		Object rootToken = rootObject.get("root");
+		if (rootToken == null)
+			throw new Exception("Root node for ink not found. Are you sure it's a valid .ink.json file?");
+
+		Object listDefsObj = rootObject.get("listDefs");
+		if (listDefsObj != null) {
+			listsDefinitions = Json.jTokenToListDefinitions(listDefsObj);
+		}
+
+		RTObject runtimeObject = Json.jTokenToRuntimeObject(rootToken);
+		mainContentContainer = runtimeObject instanceof Container ? (Container) runtimeObject : null;
+
+		resetState();
+	}
+
 	void addError(String message) throws Exception {
 		addError(message, false, false);
 	}
