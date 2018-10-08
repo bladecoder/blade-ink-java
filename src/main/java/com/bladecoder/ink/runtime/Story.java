@@ -106,38 +106,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Construct a Story Object using a JSON String compiled through inklecate.
 	 */
 	public Story(String jsonString) throws Exception {
-		this((Container) null);
-		HashMap<String, Object> rootObject = SimpleJson.textToHashMap(jsonString);
-
-		Object versionObj = rootObject.get("inkVersion");
-		if (versionObj == null)
-			throw new Exception("ink version number not found. Are you sure it's a valid .ink.json file?");
-
-		int formatFromFile = versionObj instanceof String ? Integer.parseInt((String) versionObj) : (int) versionObj;
-
-		if (formatFromFile > inkVersionCurrent) {
-			throw new Exception("Version of ink used to build story was newer than the current version of the engine");
-		} else if (formatFromFile < inkVersionMinimumCompatible) {
-			throw new Exception(
-					"Version of ink used to build story is too old to be loaded by this version of the engine");
-		} else if (formatFromFile != inkVersionCurrent) {
-			System.out.println(
-					"WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");
-		}
-
-		Object rootToken = rootObject.get("root");
-		if (rootToken == null)
-			throw new Exception("Root node for ink not found. Are you sure it's a valid .ink.json file?");
-
-		Object listDefsObj = rootObject.get("listDefs");
-		if (listDefsObj != null) {
-			listsDefinitions = Json.jTokenToListDefinitions(listDefsObj);
-		}
-
-		RTObject runtimeObject = Json.jTokenToRuntimeObject(rootToken);
-		mainContentContainer = runtimeObject instanceof Container ? (Container) runtimeObject : null;
-
-		resetState();
+		this(SimpleJson.textToHashMap(jsonString));
 	}
 
 	/**
