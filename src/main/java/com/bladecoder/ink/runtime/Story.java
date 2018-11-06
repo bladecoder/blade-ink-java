@@ -1130,7 +1130,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 	}
 
-	Container getMainContentContainer() {
+	public Container getMainContentContainer() {
 		if (temporaryEvaluationContainer != null) {
 			return temporaryEvaluationContainer;
 		} else {
@@ -1138,7 +1138,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 	}
 
-	String BuildStringOfContainer(Container container) {
+	String buildStringOfContainer(Container container) {
 		StringBuilder sb = new StringBuilder();
 
 		container.buildStringOfHierarchy(sb, 0, state.getCurrentPointer().resolve());
