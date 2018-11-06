@@ -88,7 +88,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
 	// For normal use, use the constructor that takes a json string.
-	Story(Container contentContainer, List<ListDefinition> lists) {
+	public Story(Container contentContainer, List<ListDefinition> lists) {
 		mainContentContainer = contentContainer;
 
 		if (lists != null) {
@@ -98,7 +98,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		externals = new HashMap<String, ExternalFunction>();
 	}
 
-	Story(Container contentContainer) {
+	public Story(Container contentContainer) {
 		this(contentContainer, null);
 	}
 
@@ -417,7 +417,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		choosePath(choiceToChoose.targetPath);
 	}
-	
+
 	void choosePath(Path p) throws Exception {
 		choosePath(p, true);
 	}
@@ -1680,20 +1680,20 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 			case ListRange: {
 				RTObject p = state.popEvaluationStack();
-				Value<?> max = p instanceof Value?(Value<?>)p:null;
-				
+				Value<?> max = p instanceof Value ? (Value<?>) p : null;
+
 				p = state.popEvaluationStack();
-				Value<?> min = p instanceof Value?(Value<?>)p:null;
-				
+				Value<?> min = p instanceof Value ? (Value<?>) p : null;
+
 				p = state.popEvaluationStack();
-				ListValue targetList = p instanceof ListValue?(ListValue)p:null;
+				ListValue targetList = p instanceof ListValue ? (ListValue) p : null;
 
 				if (targetList == null || min == null || max == null)
 					throw new StoryException("Expected List, minimum and maximum for LIST_RANGE");
 
 				InkList result = targetList.value.listWithSubRange(min.getValueObject(), max.getValueObject());
 
-                state.pushEvaluationStack (new ListValue(result));
+				state.pushEvaluationStack(new ListValue(result));
 				break;
 			}
 
@@ -1725,9 +1725,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 					// Iterate through to get the random element
 					Iterator<Entry<InkListItem, Integer>> listEnumerator = list.entrySet().iterator();
-					
+
 					Entry<InkListItem, Integer> randomItem = null;
-					
+
 					for (int i = 0; i <= listItemIndex; i++) {
 						randomItem = listEnumerator.next();
 					}
@@ -1951,7 +1951,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (mainContentContainer.getNamedContent().containsKey("global decl")) {
 			final Pointer originalPointer = new Pointer(state.getCurrentPointer());
 
-			choosePath (new Path ("global decl"), false);
+			choosePath(new Path("global decl"), false);
 
 			// Continue, but without validating external bindings,
 			// since we may be doing this reset at initialisation time.
@@ -2287,7 +2287,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			if (previousPointer.resolve() instanceof Container) {
 				prevAncestor = (Container) previousPointer.resolve();
 			} else if (previousPointer.container instanceof Container) {
-				prevAncestor = (Container) previousPointer.container;
+				prevAncestor = previousPointer.container;
 			}
 
 			while (prevAncestor != null) {
@@ -2311,7 +2311,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				? (Container) currentChildOfContainer.getParent()
 				: null;
 
-		while (currentContainerAncestor != null && (!prevContainers.contains(currentContainerAncestor) || currentContainerAncestor.getCountingAtStartOnly())) {
+		while (currentContainerAncestor != null && (!prevContainers.contains(currentContainerAncestor)
+				|| currentContainerAncestor.getCountingAtStartOnly())) {
 
 			// Check whether this ancestor container is being entered at the
 			// start,
