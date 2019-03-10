@@ -90,3 +90,10 @@ Right-click on your project and choose `Maven->Add Dependency` and search for **
 
 First, clone this project to your computer and add it to Eclipse. Then simply click on your project, and choose `Build Path->Configure Build Path`. Then go to `Projects->Add` and add the cloned project.
 
+## Sample Projects
+
+There are several open-source sample projects for the **blade-ink** library on different platforms:
+
+* [blade-ink-template](https://github.com/bladecoder/blade-ink-template): LibGDX and Java (Android, Desktop, and IOS)
+* [storybytes-android](https://github.com/micabytes/storybytes-android): Kotlin (Android)
+* [storybytes-desktop](https://github.com/micabytes/storybytes-desktop): Kotlin and TornadoFX (Desktop)
