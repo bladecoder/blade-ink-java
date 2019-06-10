@@ -49,16 +49,16 @@ public class StoryState {
 	StoryState(Story story) {
 		this.story = story;
 
-		outputStream = new ArrayList<RTObject>();
+		outputStream = new ArrayList<>();
 		outputStreamDirty();
 
-		evaluationStack = new ArrayList<RTObject>();
+		evaluationStack = new ArrayList<>();
 
 		callStack = new CallStack(story.getRootContentContainer());
 		variablesState = new VariablesState(callStack, story.getListDefinitions());
 
-		visitCounts = new HashMap<String, Integer>();
-		turnIndices = new HashMap<String, Integer>();
+		visitCounts = new HashMap<>();
+		turnIndices = new HashMap<>();
 		currentTurnIndex = -1;
 
 		// Seed the shuffle random numbers
@@ -67,7 +67,7 @@ public class StoryState {
 		storySeed = new Random(timeSeed).nextInt() % 100;
 		previousRandom = 0;
 
-		currentChoices = new ArrayList<Choice>();
+		currentChoices = new ArrayList<>();
 
 		goToStart();
 	}
@@ -79,12 +79,12 @@ public class StoryState {
 	void addError(String message, boolean isWarning) {
 		if (!isWarning) {
 			if (currentErrors == null)
-				currentErrors = new ArrayList<String>();
+				currentErrors = new ArrayList<>();
 
 			currentErrors.add(message);
 		} else {
 			if (currentWarnings == null)
-				currentWarnings = new ArrayList<String>();
+				currentWarnings = new ArrayList<>();
 
 			currentWarnings.add(message);
 		}
@@ -103,12 +103,12 @@ public class StoryState {
 		copy.currentChoices.addAll(currentChoices);
 
 		if (hasError()) {
-			copy.currentErrors = new ArrayList<String>();
+			copy.currentErrors = new ArrayList<>();
 			copy.currentErrors.addAll(currentErrors);
 		}
 
 		if (hasWarning()) {
-			copy.currentWarnings = new ArrayList<String>();
+			copy.currentWarnings = new ArrayList<>();
 			copy.currentWarnings.addAll(currentWarnings);
 		}
 
@@ -124,8 +124,8 @@ public class StoryState {
 
 		copy.setPreviousPointer(getPreviousPointer());
 
-		copy.visitCounts = new HashMap<String, Integer>(visitCounts);
-		copy.turnIndices = new HashMap<String, Integer>(turnIndices);
+		copy.visitCounts = new HashMap<>(visitCounts);
+		copy.turnIndices = new HashMap<>(turnIndices);
 		copy.currentTurnIndex = currentTurnIndex;
 		copy.storySeed = storySeed;
 		copy.previousRandom = previousRandom;
@@ -164,9 +164,9 @@ public class StoryState {
 	}
 
 	/**
-	 * Cleans inline whitespace in the following way: 
-	 * - Removes all whitespace from the start and end of line (including just before a \n) 
-	 * - Turns all consecutive space and tab runs into single spaces (HTML style)
+	 * Cleans inline whitespace in the following way: - Removes all whitespace from
+	 * the start and end of line (including just before a \n) - Turns all
+	 * consecutive space and tab runs into single spaces (HTML style)
 	 */
 	String cleanOutputWhitespace(String str) {
 		StringBuilder sb = new StringBuilder(str.length());
@@ -275,7 +275,7 @@ public class StoryState {
 
 	List<String> getCurrentTags() {
 		if (outputStreamTagsDirty) {
-			currentTags = new ArrayList<String>();
+			currentTags = new ArrayList<>();
 
 			for (RTObject outputObj : outputStream) {
 				Tag tag = null;
@@ -304,7 +304,7 @@ public class StoryState {
 	 */
 	public HashMap<String, Object> getJsonToken() throws Exception {
 
-		HashMap<String, Object> obj = new HashMap<String, Object>();
+		HashMap<String, Object> obj = new HashMap<>();
 
 		HashMap<String, Object> choiceThreads = null;
 		for (Choice c : currentChoices) {
@@ -312,7 +312,7 @@ public class StoryState {
 
 			if (callStack.getThreadWithIndex(c.originalThreadIndex) == null) {
 				if (choiceThreads == null)
-					choiceThreads = new HashMap<String, Object>();
+					choiceThreads = new HashMap<>();
 
 				choiceThreads.put(Integer.toString(c.originalThreadIndex), c.getThreadAtGeneration().jsonToken());
 			}
@@ -378,8 +378,7 @@ public class StoryState {
 	/**
 	 * Loads a previously saved state in JSON format.
 	 * 
-	 * @param json
-	 *            The JSON String to load.
+	 * @param json The JSON String to load.
 	 */
 	public void loadJson(String json) throws Exception {
 		setJsonToken(SimpleJson.textToHashMap(json));
@@ -387,7 +386,7 @@ public class StoryState {
 
 	List<Choice> getCurrentChoices() {
 		if (canContinue())
-			return new ArrayList<Choice>();
+			return new ArrayList<>();
 
 		return currentChoices;
 	}
@@ -497,7 +496,7 @@ public class StoryState {
 			throw new Exception("trying to pop too many objects");
 		}
 
-		List<RTObject> popped = new ArrayList<RTObject>(
+		List<RTObject> popped = new ArrayList<>(
 				evaluationStack.subList(evaluationStack.size() - numberOfObjects, evaluationStack.size()));
 		evaluationStack.subList(evaluationStack.size() - numberOfObjects, evaluationStack.size()).clear();
 
@@ -702,7 +701,7 @@ public class StoryState {
 		// Changing direction, assume we need to clear current set of choices
 		currentChoices.clear();
 
-		Pointer newPointer = new Pointer(story.pointerAtPath(path));
+		final Pointer newPointer = new Pointer(story.pointerAtPath(path));
 		if (!newPointer.isNull() && newPointer.index == -1)
 			newPointer.index = 0;
 
@@ -954,7 +953,7 @@ public class StoryState {
 		if (headFirstNewlineIdx == -1 && tailLastNewlineIdx == -1)
 			return null;
 
-		List<StringValue> listTexts = new ArrayList<StringValue>();
+		List<StringValue> listTexts = new ArrayList<>();
 		int innerStrStart = 0;
 		int innerStrEnd = str.length();
 
@@ -998,8 +997,8 @@ public class StoryState {
 	 * @return The number of times the specific knot or stitch has been enountered
 	 *         by the ink engine.
 	 * 
-	 * @param pathString
-	 *            The dot-separated path String of the specific knot or stitch.
+	 * @param pathString The dot-separated path String of the specific knot or
+	 *                   stitch.
 	 *
 	 */
 	public int visitCountAtPathString(String pathString) {

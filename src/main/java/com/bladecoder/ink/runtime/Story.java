@@ -76,7 +76,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	private HashMap<String, List<VariableObserver>> variableObservers;
 
-	private List<Container> prevContainers = new ArrayList<Container>();
+	private List<Container> prevContainers = new ArrayList<>();
 
 	private Profiler profiler;
 
@@ -95,7 +95,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			listsDefinitions = new ListDefinitionsOrigin(lists);
 		}
 
-		externals = new HashMap<String, ExternalFunction>();
+		externals = new HashMap<>();
 	}
 
 	public Story(Container contentContainer) {
@@ -214,10 +214,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * array of Object parameters. The only way to bind a function with more than 3
 	 * arguments.
 	 * 
-	 * @param funcName
-	 *            EXTERNAL ink function name to bind to.
-	 * @param func
-	 *            The Java function to bind.
+	 * @param funcName EXTERNAL ink function name to bind to.
+	 * @param func     The Java function to bind.
 	 */
 	public void bindExternalFunction(String funcName, ExternalFunction func) throws Exception {
 		ifAsyncWeCant("bind an external function");
@@ -272,9 +270,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Gets any tags associated with a particular knot or knot.stitch. These are
 	 * defined as hash tags defined at the very top of a knot or stitch.
 	 * 
-	 * @param path
-	 *            The path of the knot or stitch, in the form "knot" or
-	 *            "knot.stitch".
+	 * @param path The path of the knot or stitch, in the form "knot" or
+	 *             "knot.stitch".
 	 * @throws Exception
 	 */
 	public List<String> tagsForContentAtPath(String path) throws Exception {
@@ -310,7 +307,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 			if (tag != null) {
 				if (tags == null)
-					tags = new ArrayList<String>();
+					tags = new ArrayList<>();
 				tags.add(tag.getText());
 			} else
 				break;
@@ -360,7 +357,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 
 		// Pop arguments
-		ArrayList<Object> arguments = new ArrayList<Object>();
+		ArrayList<Object> arguments = new ArrayList<>();
 		for (int i = 0; i < numberOfArguments; ++i) {
 			Value<?> poppedObj = (Value<?>) state.popEvaluationStack();
 			Object valueObj = poppedObj.getValueObject();
@@ -461,13 +458,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * ChoosePathString will throw an exception.
 	 * 
 	 *
-	 * @param path
-	 *            A dot-separted path string, as specified above.
-	 * @param resetCallstack
-	 *            Whether to reset the callstack first (see summary description).
-	 * @param arguments
-	 *            Optional set of arguments to pass, if path is to a knot that takes
-	 *            them.
+	 * @param path           A dot-separted path string, as specified above.
+	 * @param resetCallstack Whether to reset the callstack first (see summary
+	 *                       description).
+	 * @param arguments      Optional set of arguments to pass, if path is to a knot
+	 *                       that takes them.
 	 */
 	public void choosePathString(String path, boolean resetCallstack, Object[] arguments) throws Exception {
 		ifAsyncWeCant("call ChoosePathString right now");
@@ -704,7 +699,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				// Newline that previously existed is no longer valid - e.g.
 				// glue was encounted that caused it to be removed.
-				else {
+				else if (change == OutputStateChange.NewlineRemoved) {
 					stateAtLastNewline = null;
 				}
 
@@ -864,7 +859,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public List<Choice> getCurrentChoices() {
 
 		// Don't include invisible choices for external usage.
-		List<Choice> choices = new ArrayList<Choice>();
+		List<Choice> choices = new ArrayList<>();
 		for (Choice c : state.getCurrentChoices()) {
 			if (!c.isInvisibleDefault) {
 				c.setIndex(choices.size());
@@ -1029,10 +1024,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * observer will also be fired if the value of the variable is changed
 	 * externally to the ink, by directly setting a value in story.variablesState.
 	 * 
-	 * @param variableName
-	 *            The name of the global variable to observe.
-	 * @param observer
-	 *            A delegate function to call when the variable changes.
+	 * @param variableName The name of the global variable to observe.
+	 * @param observer     A delegate function to call when the variable changes.
 	 * @throws Exception
 	 * @throws StoryException
 	 */
@@ -1040,7 +1033,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		ifAsyncWeCant("observe a new variable");
 
 		if (variableObservers == null)
-			variableObservers = new HashMap<String, List<VariableObserver>>();
+			variableObservers = new HashMap<>();
 
 		if (!state.getVariablesState().globalVariableExistsWithName(variableName))
 			throw new StoryException(
@@ -1049,7 +1042,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (variableObservers.containsKey(variableName)) {
 			variableObservers.get(variableName).add(observer);
 		} else {
-			List<VariableObserver> l = new ArrayList<VariableObserver>();
+			List<VariableObserver> l = new ArrayList<>();
 			l.add(observer);
 			variableObservers.put(variableName, l);
 		}
@@ -1060,11 +1053,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * observer delegate function. See the singular ObserveVariable for details. The
 	 * observer will get one call for every variable that has changed.
 	 * 
-	 * @param variableNames
-	 *            The set of variables to observe.
-	 * @param observer
-	 *            The delegate function to call when any of the named variables
-	 *            change.
+	 * @param variableNames The set of variables to observe.
+	 * @param observer      The delegate function to call when any of the named
+	 *                      variables change.
 	 * @throws Exception
 	 * @throws StoryException
 	 */
@@ -1081,10 +1072,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * one. If you pass null (or leave it blank, since it's optional), then the
 	 * observer will be removed from all variables that it's subscribed to.
 	 * 
-	 * @param observer
-	 *            The observer to stop observing.
-	 * @param specificVariableName
-	 *            (Optional) Specific variable name to stop observing.
+	 * @param observer             The observer to stop observing.
+	 * @param specificVariableName (Optional) Specific variable name to stop
+	 *                             observing.
 	 * @throws Exception
 	 */
 	public void removeVariableObserver(VariableObserver observer, String specificVariableName) throws Exception {
@@ -1245,7 +1235,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		Random random = new Random(randomSeed);
 
-		ArrayList<Integer> unpickedIndices = new ArrayList<Integer>();
+		ArrayList<Integer> unpickedIndices = new ArrayList<>();
 		for (int i = 0; i < numElements; ++i) {
 			unpickedIndices.add(i);
 		}
@@ -1269,8 +1259,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * 
 	 * @return true if Object was logic or flow control, false if it's normal
 	 *         content.
-	 * @param contentObj
-	 *            Content Object.
+	 * @param contentObj Content Object.
 	 */
 	boolean performLogicAndFlowControl(RTObject contentObj) throws Exception {
 		if (contentObj == null) {
@@ -1419,7 +1408,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					break;
 				} else if (state.getCallStack().getCurrentElement().type != popType || !state.getCallStack().canPop()) {
 
-					HashMap<PushPopType, String> names = new HashMap<PushPopType, String>();
+					HashMap<PushPopType, String> names = new HashMap<>();
 					names.put(PushPopType.Function, "function return statement (~ return)");
 					names.put(PushPopType.Tunnel, "tunnel onwards statement (->->)");
 
@@ -1456,7 +1445,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				// Since we're iterating backward through the content,
 				// build a stack so that when we build the string,
 				// it's in the right order
-				Stack<RTObject> contentStackForString = new Stack<RTObject>();
+				Stack<RTObject> contentStackForString = new Stack<>();
 
 				int outputCountConsumed = 0;
 				for (int i = state.getOutputStream().size() - 1; i >= 0; --i) {
@@ -2139,7 +2128,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public String toJsonString() throws Exception {
 		List<?> rootContainerJsonList = (List<?>) Json.runtimeObjectToJToken(mainContentContainer);
 
-		HashMap<String, Object> rootObject = new HashMap<String, Object>();
+		HashMap<String, Object> rootObject = new HashMap<>();
 		rootObject.put("inkVersion", inkVersionCurrent);
 		rootObject.put("root", rootContainerJsonList);
 
@@ -2152,7 +2141,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// Is a default invisible choice the ONLY choice?
 		// var invisibleChoices = allChoices.Where (c =>
 		// c.choicePoint.isInvisibleDefault).ToList();
-		ArrayList<Choice> invisibleChoices = new ArrayList<Choice>();
+		ArrayList<Choice> invisibleChoices = new ArrayList<>();
 		for (Choice c : allChoices) {
 			if (c.isInvisibleDefault) {
 				invisibleChoices.add(c);
@@ -2198,7 +2187,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * that this is automatically called on the first call to Continue().
 	 */
 	public void validateExternalBindings() throws Exception {
-		HashSet<String> missingExternals = new HashSet<String>();
+		HashSet<String> missingExternals = new HashSet<>();
 
 		validateExternalBindings(mainContentContainer, missingExternals);
 		hasValidatedExternals = true;
@@ -2365,12 +2354,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Evaluates a function defined in ink.
 	 * 
-	 * @param functionName
-	 *            The name of the function as declared in ink.
-	 * @param arguments
-	 *            The arguments that the ink function takes, if any. Note that we
-	 *            don't (can't) do any validation on the number of arguments right
-	 *            now, so make sure you get it right!
+	 * @param functionName The name of the function as declared in ink.
+	 * @param arguments    The arguments that the ink function takes, if any. Note
+	 *                     that we don't (can't) do any validation on the number of
+	 *                     arguments right now, so make sure you get it right!
 	 * @return The return value as returned from the ink function with `~ return
 	 *         myValue`, or null if nothing is returned.
 	 * @throws Exception
@@ -2387,8 +2374,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Checks if a function exists.
 	 * 
 	 * @return True if the function exists, else false.
-	 * @param functionName
-	 *            The name of the function as declared in ink.
+	 * @param functionName The name of the function as declared in ink.
 	 */
 	public boolean hasFunction(String functionName) {
 		try {
@@ -2402,16 +2388,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Evaluates a function defined in ink, and gathers the possibly multi-line text
 	 * as generated by the function.
 	 * 
-	 * @param arguments
-	 *            The arguments that the ink function takes, if any. Note that we
-	 *            don't (can't) do any validation on the number of arguments right
-	 *            now, so make sure you get it right!
-	 * @param functionName
-	 *            The name of the function as declared in ink.
-	 * @param textOutput
-	 *            This text output is any text written as normal content within the
-	 *            function, as opposed to the return value, as returned with `~
-	 *            return`.
+	 * @param arguments    The arguments that the ink function takes, if any. Note
+	 *                     that we don't (can't) do any validation on the number of
+	 *                     arguments right now, so make sure you get it right!
+	 * @param functionName The name of the function as declared in ink.
+	 * @param textOutput   This text output is any text written as normal content
+	 *                     within the function, as opposed to the return value, as
+	 *                     returned with `~ return`.
 	 * @return The return value as returned from the ink function with `~ return
 	 *         myValue`, or null if nothing is returned.
 	 * @throws Exception
@@ -2431,7 +2414,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			throw new Exception("Function doesn't exist: '" + functionName + "'");
 
 		// Snapshot the output stream
-		ArrayList<RTObject> outputStreamBefore = new ArrayList<RTObject>(state.getOutputStream());
+		ArrayList<RTObject> outputStreamBefore = new ArrayList<>(state.getOutputStream());
 		state.resetOutput();
 
 		// State will temporarily replace the callstack in order to evaluate
