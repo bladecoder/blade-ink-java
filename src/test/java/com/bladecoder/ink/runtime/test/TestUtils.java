@@ -24,9 +24,9 @@ public class TestUtils {
 		try {
 			StringBuilder sb = new StringBuilder();
 			String line = br.readLine();
-			
+
 			// Replace the BOM mark
-			if(line != null)
+			if (line != null)
 				line = line.replace('\uFEFF', ' ');
 
 			while (line != null) {
@@ -40,8 +40,8 @@ public class TestUtils {
 		}
 	}
 
-	
-	public static final List<String> runStory(String filename, List<Integer> choiceList, List<String> errors) throws Exception {
+	public static final List<String> runStory(String filename, List<Integer> choiceList, List<String> errors)
+			throws Exception {
 		// 1) Load story
 		String json = getJsonString(filename);
 
@@ -49,10 +49,10 @@ public class TestUtils {
 
 		Story story = new Story(json);
 
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 //		System.out.println(story.BuildStringOfHierarchy());
-		
+
 		int choiceListIndex = 0;
 
 		while (story.canContinue() || story.getCurrentChoices().size() > 0) {
@@ -78,7 +78,7 @@ public class TestUtils {
 					text.add(c.getText() + "\n");
 				}
 
-				if(choiceList == null || choiceListIndex >= choiceList.size())
+				if (choiceList == null || choiceListIndex >= choiceList.size())
 					story.chooseChoiceIndex((int) (Math.random() * story.getCurrentChoices().size()));
 				else {
 					story.chooseChoiceIndex(choiceList.get(choiceListIndex));
@@ -89,27 +89,27 @@ public class TestUtils {
 
 		return text;
 	}
-	
+
 	public static final String joinText(List<String> text) {
 		StringBuilder sb = new StringBuilder();
-		
-		for(String s:text) {
+
+		for (String s : text) {
 			sb.append(s);
 		}
-		
+
 		return sb.toString();
 	}
-	
+
 	public static final boolean isEnded(Story story) {
 		return !story.canContinue() && story.getCurrentChoices().size() == 0;
 	}
-	
+
 	public static final void nextAll(Story story, List<String> text) throws StoryException, Exception {
 		while (story.canContinue()) {
 			String line = story.Continue();
 			System.out.print(line);
-			
-			if(!line.isEmpty())
+
+			if (!line.trim().isEmpty())
 				text.add(line.trim());
 		}
 

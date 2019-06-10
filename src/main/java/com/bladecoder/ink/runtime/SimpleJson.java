@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-
 /**
- * Simple custom JSON serialisation implementation that takes JSON-able System.Collections that
- * are produced by the ink engine and converts to and from JSON text.
+ * Simple custom JSON serialisation implementation that takes JSON-able
+ * System.Collections that are produced by the ink engine and converts to and
+ * from JSON text.
  */
 class SimpleJson {
 	static class Reader {
@@ -49,7 +49,7 @@ class SimpleJson {
 		}
 
 		List<Object> readArray() throws Exception {
-			List<Object> list = new ArrayList<Object>();
+			List<Object> list = new ArrayList<>();
 			expect("[");
 			skipWhitespace();
 			// Empty list?
@@ -69,7 +69,7 @@ class SimpleJson {
 		}
 
 		HashMap<String, Object> readHashMap() throws Exception {
-			HashMap<String, Object> dict = new HashMap<String, Object>();
+			HashMap<String, Object> dict = new HashMap<>();
 			expect("{");
 			skipWhitespace();
 			// Empty HashMap?
@@ -153,25 +153,69 @@ class SimpleJson {
 
 		String readString() throws Exception {
 			expect("\"");
-			int startOffset = offset;
+			StringBuilder sb = new StringBuilder();
+
 			for (; offset < text.length(); offset++) {
 				char c = text.charAt(offset);
-				// Escaping. Escaped character will be skipped over in next
-				// loop.
+
 				if (c == '\\') {
+					// Escaped character
 					offset++;
+					if (offset >= text.length()) {
+						throw new Exception("Unexpected EOF while reading string");
+					}
+					c = text.charAt(offset);
+					switch (c) {
+					case '"':
+					case '\\':
+					case '/': // Yes, JSON allows this to be escaped
+						sb.append(c);
+						break;
+					case 'n':
+						sb.append('\n');
+						break;
+					case 't':
+						sb.append('\t');
+						break;
+					case 'r':
+					case 'b':
+					case 'f':
+						// Ignore other control characters
+						break;
+					case 'u':
+						// 4-digit Unicode
+						if (offset + 4 >= text.length()) {
+							throw new Exception("Unexpected EOF while reading string");
+						}
+
+						// c# expr: _text.Substring(_offset + 1, 4);
+						String digits = text.substring(offset + 1, offset + 6);
+
+						int uchar;
+
+						try {
+							uchar = Integer.parseInt(digits, 16);
+							sb.append((char) uchar);
+							offset += 4;
+						} catch (NumberFormatException e) {
+							throw new Exception("Invalid Unicode escape character at offset " + (offset - 1));
+						}
+						break;
+
+					default:
+						// The escaped character is invalid per json spec
+						throw new Exception("Invalid Unicode escape character at offset " + (offset - 1));
+					}
 				} else if (c == '"') {
 					break;
+				} else {
+					sb.append(c);
 				}
 
 			}
 			expect("\"");
-			String str = text.substring(startOffset, offset - 1);
-			str = str.replace("\\\\", "\\");
-			str = str.replace("\\\"", "\"");
-			str = str.replace("\\r", "");
-			str = str.replace("\\n", "\n");
-			return str;
+
+			return sb.toString();
 		}
 
 		void skipWhitespace() throws Exception {
@@ -204,17 +248,17 @@ class SimpleJson {
 	}
 
 	static class Writer {
-		StringBuilder _sb = new StringBuilder();
+		StringBuilder sb;
 
 		public Writer(Object rootObject) throws Exception {
-			_sb = new StringBuilder();
+			sb = new StringBuilder();
 			writeObject(rootObject);
 		}
 
 		@Override
 		public String toString() {
 			try {
-				return _sb.toString();
+				return sb.toString();
 			} catch (RuntimeException __dummyCatchVar0) {
 				throw __dummyCatchVar0;
 			} catch (Exception __dummyCatchVar0) {
@@ -224,56 +268,78 @@ class SimpleJson {
 		}
 
 		void writeHashMap(HashMap<String, Object> dict) throws Exception {
-			_sb.append("{");
+			sb.append("{");
 			boolean isFirst = true;
 			for (Entry<String, Object> keyValue : dict.entrySet()) {
 				if (!isFirst)
-					_sb.append(",");
+					sb.append(",");
 
-				_sb.append("\"");
-				_sb.append(keyValue.getKey());
-				_sb.append("\":");
+				sb.append("\"");
+				sb.append(keyValue.getKey());
+				sb.append("\":");
 				writeObject(keyValue.getValue());
 				isFirst = false;
 			}
-			_sb.append("}");
+			sb.append("}");
 		}
 
 		void writeList(List<Object> list) throws Exception {
-			_sb.append("[");
+			sb.append("[");
 			boolean isFirst = true;
 			for (Object obj : list) {
 				if (!isFirst)
-					_sb.append(",");
+					sb.append(",");
 
 				writeObject(obj);
 				isFirst = false;
 			}
-			_sb.append("]");
+			sb.append("]");
 		}
 
 		@SuppressWarnings("unchecked")
 		void writeObject(Object obj) throws Exception {
 			if (obj instanceof Integer) {
-				_sb.append(obj);
+				sb.append(obj);
 			} else if (obj instanceof Float) {
 				String floatStr = obj.toString();
-				_sb.append(floatStr);
+				sb.append(floatStr);
 				if (!floatStr.contains("."))
-					_sb.append(".0");
+					sb.append(".0");
 
 			} else if (obj instanceof Boolean) {
-				_sb.append((Boolean) obj == true ? "true" : "false");
+				sb.append((Boolean) obj == true ? "true" : "false");
 			} else if (obj == null) {
-				_sb.append("null");
+				sb.append("null");
 			} else if (obj instanceof String) {
 				String str = (String) obj;
-				// Escape backslashes, quotes and newlines
-				str = str.replace("\\", "\\\\");
-				str = str.replace("\"", "\\\"");
-				str = str.replace("\n", "\\n");
-				str = str.replace("\r", "");
-				_sb.append(String.format("\"%s\"", str));
+				sb.ensureCapacity(sb.length() + str.length() + 2);
+				sb.append('"');
+
+				for (char c : str.toCharArray()) {
+					if (c < ' ') {
+						// Don't write any control characters except \n and \t
+						switch (c) {
+						case '\n':
+							sb.append("\\n");
+							break;
+						case '\t':
+							sb.append("\\t");
+							break;
+						}
+					} else {
+						switch (c) {
+						case '\\':
+						case '"':
+							sb.append('\\').append(c);
+							break;
+						default:
+							sb.append(c);
+							break;
+						}
+					}
+				}
+
+				sb.append('"');
 			} else if (obj instanceof HashMap<?, ?>) {
 				writeHashMap((HashMap<String, Object>) obj);
 			} else if (obj instanceof List<?>) {

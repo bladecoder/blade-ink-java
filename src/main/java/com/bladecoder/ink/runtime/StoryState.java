@@ -54,7 +54,7 @@ public class StoryState {
 
 		evaluationStack = new ArrayList<>();
 
-		callStack = new CallStack(story.getRootContentContainer());
+		callStack = new CallStack(story);
 		variablesState = new VariablesState(callStack, story.getListDefinitions());
 
 		visitCounts = new HashMap<>();
@@ -208,11 +208,7 @@ public class StoryState {
 	 */
 	public void forceEnd() throws Exception {
 
-		while (callStack.canPopThread())
-			callStack.popThread();
-
-		while (callStack.canPop())
-			popCallstack();
+		callStack.reset();
 
 		currentChoices.clear();
 

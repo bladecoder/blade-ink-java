@@ -640,10 +640,10 @@ public class NativeFunctionCall extends RTObject {
 	}
 
 	// Only called internally to generate prototypes
-	NativeFunctionCall(String name, int numberOfParamters) {
+	NativeFunctionCall(String name, int numberOfParameters) {
 		isPrototype = true;
 		this.setName(name);
-		this.setNumberOfParameters(numberOfParamters);
+		this.setNumberOfParameters(numberOfParameters);
 	}
 
 	void addOpFuncForType(ValueType valType, Object op) {

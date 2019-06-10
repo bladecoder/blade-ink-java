@@ -1903,7 +1903,15 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		choice.targetPath = choicePoint.getPathOnChoice();
 		choice.sourcePath = choicePoint.getPath().toString();
 		choice.isInvisibleDefault = choicePoint.isInvisibleDefault();
-		choice.setThreadAtGeneration(state.getCallStack().getcurrentThread().copy());
+
+		// We need to capture the state of the callstack at the point where
+		// the choice was generated, since after the generation of this choice
+		// we may go on to pop out from a tunnel (possible if the choice was
+		// wrapped in a conditional), or we may pop out from a thread,
+		// at which point that thread is discarded.
+		// Fork clones the thread, gives it a new ID, but without affecting
+		// the thread stack itself.
+		choice.setThreadAtGeneration(state.getCallStack().forkThread());
 
 		// Set final text for the choice
 		choice.setText((startText + choiceOnlyText).trim());
@@ -2152,6 +2160,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			return false;
 
 		Choice choice = invisibleChoices.get(0);
+
+		// Invisible choice may have been generated on a different thread,
+		// in which case we need to restore it before we continue
+		state.getCallStack().setCurrentThread(choice.getThreadAtGeneration());
 
 		choosePath(choice.targetPath, false);
 

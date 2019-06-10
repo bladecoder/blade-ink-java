@@ -31,13 +31,13 @@ class CallStack {
 			this.currentPointer.assign(pointer);
 
 			this.inExpressionEvaluation = inExpressionEvaluation;
-			this.temporaryVariables = new HashMap<String, RTObject>();
+			this.temporaryVariables = new HashMap<>();
 			this.type = type;
 		}
 
 		public Element copy() {
 			Element copy = new Element(this.type, currentPointer, this.inExpressionEvaluation);
-			copy.temporaryVariables = new HashMap<String, RTObject>(this.temporaryVariables);
+			copy.temporaryVariables = new HashMap<>(this.temporaryVariables);
 			copy.evaluationStackHeightWhenPushed = evaluationStackHeightWhenPushed;
 			copy.functionStartInOuputStream = functionStartInOuputStream;
 			return copy;
@@ -50,7 +50,7 @@ class CallStack {
 		public int threadIndex;
 
 		public Thread() {
-			callstack = new ArrayList<Element>();
+			callstack = new ArrayList<>();
 		}
 
 		@SuppressWarnings("unchecked")
@@ -72,7 +72,8 @@ class CallStack {
 				Object currentContainerPathStrToken = jElementObj.get("cPath");
 				if (currentContainerPathStrToken != null) {
 					currentContainerPathStr = currentContainerPathStrToken.toString();
-					final SearchResult threadPointerResult = storyContext.contentAtPath(new Path(currentContainerPathStr));
+					final SearchResult threadPointerResult = storyContext
+							.contentAtPath(new Path(currentContainerPathStr));
 					pointer.container = threadPointerResult.getContainer();
 					pointer.index = (int) jElementObj.get("idx");
 
@@ -115,11 +116,11 @@ class CallStack {
 		}
 
 		public HashMap<String, Object> jsonToken() throws Exception {
-			HashMap<String, Object> threadJObj = new HashMap<String, Object>();
+			HashMap<String, Object> threadJObj = new HashMap<>();
 
-			List<Object> jThreadCallstack = new ArrayList<Object>();
+			List<Object> jThreadCallstack = new ArrayList<>();
 			for (CallStack.Element el : callstack) {
-				HashMap<String, Object> jObj = new HashMap<String, Object>();
+				HashMap<String, Object> jObj = new HashMap<>();
 				if (!el.currentPointer.isNull()) {
 					jObj.put("cPath", el.currentPointer.container.getPath().getComponentsString());
 					jObj.put("idx", el.currentPointer.index);
@@ -141,21 +142,30 @@ class CallStack {
 	}
 
 	private int threadCounter;
+	final private Pointer startOfRoot = new Pointer();
 
 	private List<Thread> threads;
 
 	public CallStack(CallStack toCopy) {
-		threads = new ArrayList<Thread>();
+		threads = new ArrayList<>();
 		for (Thread otherThread : toCopy.threads) {
 			threads.add(otherThread.copy());
 		}
+
+		startOfRoot.assign(toCopy.startOfRoot);
 	}
 
-	public CallStack(Container rootContentContainer) {
-		threads = new ArrayList<Thread>();
+	public CallStack(Story storyContext) {
+		startOfRoot.assign(Pointer.startOf(storyContext.getRootContentContainer()));
+
+		reset();
+	}
+
+	public void reset() {
+		threads = new ArrayList<>();
 		threads.add(new Thread());
 
-		threads.get(0).callstack.add(new Element(PushPopType.Tunnel, Pointer.startOf(rootContentContainer)));
+		threads.get(0).callstack.add(new Element(PushPopType.Tunnel, startOfRoot));
 	}
 
 	public boolean canPop() {
@@ -228,9 +238,9 @@ class CallStack {
 	// See above for why we can't implement jsonToken
 	public HashMap<String, Object> getJsonToken() throws Exception {
 
-		HashMap<String, Object> jRTObject = new HashMap<String, Object>();
+		HashMap<String, Object> jRTObject = new HashMap<>();
 
-		ArrayList<Object> jThreads = new ArrayList<Object>();
+		ArrayList<Object> jThreads = new ArrayList<>();
 		for (CallStack.Thread thread : threads) {
 			jThreads.add(thread.jsonToken());
 		}
@@ -327,6 +337,14 @@ class CallStack {
 		}
 
 		threadCounter = (int) jRTObject.get("threadCounter");
+		startOfRoot.assign(Pointer.startOf(storyContext.getRootContentContainer()));
+	}
+
+	public Thread forkThread() {
+		Thread forkedThread = getcurrentThread().copy();
+		threadCounter++;
+		forkedThread.threadIndex = threadCounter;
+		return forkedThread;
 	}
 
 	public void setTemporaryVariable(String name, RTObject value, boolean declareNew) {
