@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
+import com.bladecoder.ink.runtime.SimpleJson.Writer;
+
 class CallStack {
 	static class Element {
 		public final Pointer currentPointer = new Pointer();
@@ -92,8 +95,12 @@ class CallStack {
 
 				Element el = new Element(pushPopType, pointer, inExpressionEvaluation);
 
-				HashMap<String, Object> jObjTemps = (HashMap<String, Object>) jElementObj.get("temp");
-				el.temporaryVariables = Json.jObjectToHashMapRuntimeObjs(jObjTemps);
+				Object temps = jElementObj.get("temp");
+				if (temps != null) {
+					el.temporaryVariables = Json.jObjectToHashMapRuntimeObjs((HashMap<String, Object>) temps);
+				} else {
+					el.temporaryVariables.clear();
+				}
 
 				callstack.add(el);
 			}
@@ -115,29 +122,41 @@ class CallStack {
 			return copy;
 		}
 
-		public HashMap<String, Object> jsonToken() throws Exception {
-			HashMap<String, Object> threadJObj = new HashMap<>();
+		public void writeJson(SimpleJson.Writer writer) throws Exception {
+			writer.writeObjectStart();
 
-			List<Object> jThreadCallstack = new ArrayList<>();
+			// callstack
+			writer.writePropertyStart("callstack");
+			writer.writeArrayStart();
 			for (CallStack.Element el : callstack) {
-				HashMap<String, Object> jObj = new HashMap<>();
+				writer.writeObjectStart();
 				if (!el.currentPointer.isNull()) {
-					jObj.put("cPath", el.currentPointer.container.getPath().getComponentsString());
-					jObj.put("idx", el.currentPointer.index);
+					writer.writeProperty("cPath", el.currentPointer.container.getPath().getComponentsString());
+					writer.writeProperty("idx", el.currentPointer.index);
 				}
-				jObj.put("exp", el.inExpressionEvaluation);
-				jObj.put("type", el.type.ordinal());
-				jObj.put("temp", Json.hashMapRuntimeObjsToJObject(el.temporaryVariables));
-				jThreadCallstack.add(jObj);
+
+				writer.writeProperty("exp", el.inExpressionEvaluation);
+				writer.writeProperty("type", el.type.ordinal());
+
+				if (el.temporaryVariables.size() > 0) {
+					writer.writePropertyStart("temp");
+					Json.writeDictionaryRuntimeObjs(writer, el.temporaryVariables);
+					writer.writePropertyEnd();
+				}
+
+				writer.writeObjectEnd();
+			}
+			writer.writeArrayEnd();
+			writer.writePropertyEnd();
+
+			// threadIndex
+			writer.writeProperty("threadIndex", threadIndex);
+
+			if (!previousPointer.isNull()) {
+				writer.writeProperty("previousContentObject", previousPointer.resolve().getPath().toString());
 			}
 
-			threadJObj.put("callstack", jThreadCallstack);
-			threadJObj.put("threadIndex", threadIndex);
-
-			if (!previousPointer.isNull())
-				threadJObj.put("previousContentObject", previousPointer.resolve().getPath().toString());
-
-			return threadJObj;
+			writer.writeObjectEnd();
 		}
 	}
 
@@ -152,6 +171,7 @@ class CallStack {
 			threads.add(otherThread.copy());
 		}
 
+		threadCounter = toCopy.threadCounter;
 		startOfRoot.assign(toCopy.startOfRoot);
 	}
 
@@ -235,20 +255,27 @@ class CallStack {
 		return getCallStack();
 	}
 
-	// See above for why we can't implement jsonToken
-	public HashMap<String, Object> getJsonToken() throws Exception {
+	public void writeJson(SimpleJson.Writer w) throws Exception {
+		w.writeObject(new InnerWriter() {
 
-		HashMap<String, Object> jRTObject = new HashMap<>();
+			@Override
+			public void write(Writer writer) throws Exception {
+				writer.writePropertyStart("threads");
+				writer.writeArrayStart();
 
-		ArrayList<Object> jThreads = new ArrayList<>();
-		for (CallStack.Thread thread : threads) {
-			jThreads.add(thread.jsonToken());
-		}
+				for (CallStack.Thread thread : threads) {
+					thread.writeJson(writer);
+				}
+				writer.writeArrayEnd();
+				writer.writePropertyEnd();
 
-		jRTObject.put("threads", jThreads);
-		jRTObject.put("threadCounter", threadCounter);
+				writer.writePropertyStart("threadCounter");
+				writer.write(threadCounter);
+				writer.writePropertyEnd();
+			}
 
-		return jRTObject;
+		});
+
 	}
 
 	public RTObject getTemporaryVariableWithName(String name) {

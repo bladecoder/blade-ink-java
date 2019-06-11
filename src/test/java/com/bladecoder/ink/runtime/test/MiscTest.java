@@ -18,7 +18,7 @@ public class MiscTest {
 		Assert.assertEquals("This is a test\n", story.Continue());
 
 		while (story.canContinue()) {
-			System.out.println(story.buildStringOfHierarchy());
+//			System.out.println(story.buildStringOfHierarchy());
 			String line = story.Continue();
 
 			if (line.startsWith("SET_X:")) {

@@ -3,6 +3,7 @@ package com.bladecoder.ink.runtime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map.Entry;
 
 /**
  * Encompasses all the global variables in an ink Story, and allows binding of a
@@ -20,7 +21,7 @@ public class VariablesState implements Iterable<String> {
 	// Used for accessing temporary variables
 	private CallStack callStack;
 
-	private HashSet<String> changedVariables;
+	private HashSet<String> changedVariablesForBatchObs;
 
 	private HashMap<String, RTObject> globalVariables;
 	private HashMap<String, RTObject> defaultGlobalVariables;
@@ -29,8 +30,10 @@ public class VariablesState implements Iterable<String> {
 
 	private ListDefinitionsOrigin listDefsOrigin;
 
+	private StatePatch patch;
+
 	VariablesState(CallStack callStack, ListDefinitionsOrigin listDefsOrigin) {
-		globalVariables = new HashMap<String, RTObject>();
+		globalVariables = new HashMap<>();
 		this.callStack = callStack;
 
 		this.listDefsOrigin = listDefsOrigin;
@@ -52,7 +55,7 @@ public class VariablesState implements Iterable<String> {
 		if (varAss.isNewDeclaration()) {
 			setGlobal = varAss.isGlobal();
 		} else {
-			setGlobal = globalVariables.containsKey(name);
+			setGlobal = globalVariableExistsWithName(name);
 		}
 
 		// Constructing new variable pointer reference
@@ -93,24 +96,80 @@ public class VariablesState implements Iterable<String> {
 		return listDefsOrigin;
 	}
 
-	void copyFrom(VariablesState toCopy) {
-		globalVariables = new HashMap<String, RTObject>(toCopy.globalVariables);
-
-		// It's read-only, so no need to create a new copy
-		defaultGlobalVariables = toCopy.defaultGlobalVariables;
-
-		setVariableChangedEvent(toCopy.getVariableChangedEvent());
-
-		if (toCopy.getbatchObservingVariableChanges() != getbatchObservingVariableChanges()) {
-			if (toCopy.getbatchObservingVariableChanges()) {
-				batchObservingVariableChanges = true;
-				changedVariables = new HashSet<String>(toCopy.changedVariables);
-			} else {
-				batchObservingVariableChanges = false;
-				changedVariables = null;
-			}
+	void applyPatch() {
+		for (Entry<String, RTObject> namedVar : getPatch().getGlobals().entrySet()) {
+			globalVariables.put(namedVar.getKey(), namedVar.getValue());
 		}
 
+		if (changedVariablesForBatchObs != null) {
+			for (String name : getPatch().getChangedVariables())
+				changedVariablesForBatchObs.add(name);
+		}
+
+		setPatch(null);
+	}
+
+	void setJsonToken(HashMap<String, Object> jToken) throws Exception {
+		globalVariables.clear();
+
+		for (Entry<String, RTObject> varVal : defaultGlobalVariables.entrySet()) {
+			Object loadedToken = jToken.get(varVal.getKey());
+
+			if (loadedToken != null) {
+				globalVariables.put(varVal.getKey(), Json.jTokenToRuntimeObject(loadedToken));
+			} else {
+				globalVariables.put(varVal.getKey(), varVal.getValue());
+			}
+		}
+	}
+
+	/// <summary>
+	/// When saving out JSON state, we can skip saving global values that
+	/// remain equal to the initial values that were declared in ink.
+	/// This makes the save file (potentially) much smaller assuming that
+	/// at least a portion of the globals haven't changed. However, it
+	/// can also take marginally longer to save in the case that the
+	/// majority HAVE changed, since it has to compare all globals.
+	/// It may also be useful to turn this off for testing worst case
+	/// save timing.
+	/// </summary>
+	public static boolean dontSaveDefaultValues = true;
+
+	void writeJson(SimpleJson.Writer writer) throws Exception {
+		writer.writeObjectStart();
+		for (Entry<String, RTObject> keyVal : globalVariables.entrySet()) {
+			String name = keyVal.getKey();
+			RTObject val = keyVal.getValue();
+
+			if (dontSaveDefaultValues) {
+				// Don't write out values that are the same as the default global values
+				RTObject defaultVal = defaultGlobalVariables.get(name);
+				if (defaultVal != null) {
+					if (runtimeObjectsEqual(val, defaultVal))
+						continue;
+				}
+			}
+
+			writer.writePropertyStart(name);
+			Json.writeRuntimeObject(writer, val);
+			writer.writePropertyEnd();
+		}
+		writer.writeObjectEnd();
+	}
+
+	boolean runtimeObjectsEqual(RTObject obj1, RTObject obj2) throws Exception {
+		if (obj1.getClass() != obj2.getClass())
+			return false;
+
+		// Other Value type (using proper Equals: list, string, divert path)
+		if (obj1 instanceof Value && obj2 instanceof Value) {
+			Value<?> val1 = (Value<?>) obj1;
+			Value<?> val2 = (Value<?>) obj2;
+
+			return val1.getValueObject().equals(val2.getValueObject());
+		}
+
+		throw new Exception("FastRoughDefinitelyEquals: Unsupported runtime object type: " + obj1.getClass());
 	}
 
 	RTObject tryGetDefaultVariableValue(String name) {
@@ -120,7 +179,10 @@ public class VariablesState implements Iterable<String> {
 	}
 
 	public Object get(String variableName) {
-		RTObject varContents = null;
+		RTObject varContents = (getPatch() != null ? getPatch().getGlobal(variableName) : null);
+
+		if (varContents != null)
+			return ((Value<?>) varContents).getValueObject();
 
 		// Search main dictionary first.
 		// If it's not found, it might be because the story content has changed,
@@ -144,14 +206,10 @@ public class VariablesState implements Iterable<String> {
 	// 0 if named variable is global
 	// 1+ if named variable is a temporary in a particular call stack element
 	int getContextIndexOfVariableNamed(String varName) {
-		if (globalVariables.containsKey(varName))
+		if (globalVariableExistsWithName(varName))
 			return 0;
 
 		return callStack.getCurrentElementIndex();
-	}
-
-	public HashMap<String, Object> getjsonToken() throws Exception {
-		return Json.hashMapRuntimeObjsToJObject(globalVariables);
 	}
 
 	RTObject getRawVariableWithName(String name, int contextIndex) throws Exception {
@@ -175,7 +233,7 @@ public class VariablesState implements Iterable<String> {
 	}
 
 	void snapshotDefaultGlobals() {
-		defaultGlobalVariables = new HashMap<String, RTObject>(globalVariables);
+		defaultGlobalVariables = new HashMap<>(globalVariables);
 	}
 
 	public RTObject getVariableWithName(String name) throws Exception {
@@ -232,7 +290,8 @@ public class VariablesState implements Iterable<String> {
 
 		// This is the main
 		if (!defaultGlobalVariables.containsKey(variableName)) {
-			 throw new StoryException ("Cannot assign to a variable ("+variableName+") that hasn't been declared in the story");
+			throw new StoryException(
+					"Cannot assign to a variable (" + variableName + ") that hasn't been declared in the story");
 		}
 
 		AbstractValue val = AbstractValue.create(value);
@@ -250,16 +309,16 @@ public class VariablesState implements Iterable<String> {
 	public void setbatchObservingVariableChanges(boolean value) throws Exception {
 		batchObservingVariableChanges = value;
 		if (value) {
-			changedVariables = new HashSet<String>();
+			changedVariablesForBatchObs = new HashSet<>();
 		} else {
-			if (changedVariables != null) {
-				for (String variableName : changedVariables) {
+			if (changedVariablesForBatchObs != null) {
+				for (String variableName : changedVariablesForBatchObs) {
 					RTObject currentValue = globalVariables.get(variableName);
 					getVariableChangedEvent().variableStateDidChangeEvent(variableName, currentValue);
 				}
 			}
 
-			changedVariables = null;
+			changedVariablesForBatchObs = null;
 		}
 	}
 
@@ -288,7 +347,7 @@ public class VariablesState implements Iterable<String> {
 		if (getVariableChangedEvent() != null && !value.equals(oldValue)) {
 
 			if (getbatchObservingVariableChanges()) {
-				changedVariables.add(variableName);
+				changedVariablesForBatchObs.add(variableName);
 			} else {
 				getVariableChangedEvent().variableStateDidChangeEvent(variableName, value);
 			}
@@ -313,6 +372,15 @@ public class VariablesState implements Iterable<String> {
 	}
 
 	boolean globalVariableExistsWithName(String name) {
-		return globalVariables.containsKey(name);
+		return globalVariables.containsKey(name)
+				|| (defaultGlobalVariables != null && defaultGlobalVariables.containsKey(name));
+	}
+
+	public StatePatch getPatch() {
+		return patch;
+	}
+
+	public void setPatch(StatePatch patch) {
+		this.patch = patch;
 	}
 }

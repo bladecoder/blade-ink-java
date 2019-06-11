@@ -8,15 +8,6 @@ import java.util.Map.Entry;
 import com.bladecoder.ink.runtime.ControlCommand.CommandType;
 
 public class Json {
-	public static <T extends RTObject> List<Object> listToJArray(List<T> serialisables) throws Exception {
-		List<Object> jArray = new ArrayList<Object>();
-
-		for (RTObject s : serialisables) {
-			jArray.add(runtimeObjectToJToken(s));
-		}
-
-		return jArray;
-	}
 
 	public static List<RTObject> jArrayToRuntimeObjList(List<Object> jArray, boolean skipLast) throws Exception {
 		int count = jArray.size();
@@ -24,7 +15,7 @@ public class Json {
 		if (skipLast)
 			count--;
 
-		List<RTObject> list = new ArrayList<RTObject>(jArray.size());
+		List<RTObject> list = new ArrayList<>(jArray.size());
 
 		for (int i = 0; i < count; i++) {
 			Object jTok = jArray.get(i);
@@ -40,22 +31,218 @@ public class Json {
 		return (List<T>) jArrayToRuntimeObjList(jArray, false);
 	}
 
-	public static HashMap<String, Object> hashMapRuntimeObjsToJObject(HashMap<String, RTObject> hashMap)
+	public static void writeDictionaryRuntimeObjs(SimpleJson.Writer writer, HashMap<String, RTObject> dictionary)
 			throws Exception {
-		HashMap<String, Object> jsonObj = new HashMap<String, Object>();
-		for (Entry<String, RTObject> keyVal : hashMap.entrySet()) {
-			RTObject runtimeObj = keyVal.getValue();
-
-			if (runtimeObj != null)
-				jsonObj.put(keyVal.getKey(), runtimeObjectToJToken(runtimeObj));
-
+		writer.writeObjectStart();
+		for (Entry<String, RTObject> keyVal : dictionary.entrySet()) {
+			writer.writePropertyStart(keyVal.getKey());
+			writeRuntimeObject(writer, keyVal.getValue());
+			writer.writePropertyEnd();
 		}
-		return jsonObj;
+		writer.writeObjectEnd();
+	}
+
+	public static void writeListRuntimeObjs(SimpleJson.Writer writer, List<RTObject> list) throws Exception {
+		writer.writeArrayStart();
+		for (RTObject val : list) {
+			writeRuntimeObject(writer, val);
+		}
+		writer.writeArrayEnd();
+	}
+
+	public static void WriteIntDictionary(SimpleJson.Writer writer, HashMap<String, Integer> dict) throws Exception {
+		writer.writeObjectStart();
+
+		for (Entry<String, Integer> keyVal : dict.entrySet())
+			writer.writeProperty(keyVal.getKey(), keyVal.getValue());
+
+		writer.writeObjectEnd();
+	}
+
+	public static void writeRuntimeObject(SimpleJson.Writer writer, RTObject obj) throws Exception {
+
+		if (obj instanceof Container) {
+			writeRuntimeContainer(writer, (Container) obj);
+			return;
+		}
+
+		if (obj instanceof Divert) {
+			Divert divert = (Divert) obj;
+			String divTypeKey = "->";
+			if (divert.isExternal())
+				divTypeKey = "x()";
+			else if (divert.getPushesToStack()) {
+				if (divert.getStackPushType() == PushPopType.Function)
+					divTypeKey = "f()";
+				else if (divert.getStackPushType() == PushPopType.Tunnel)
+					divTypeKey = "->t->";
+			}
+
+			String targetStr;
+			if (divert.hasVariableTarget())
+				targetStr = divert.getVariableDivertName();
+			else
+				targetStr = divert.getTargetPathString();
+
+			writer.writeObjectStart();
+
+			writer.writeProperty(divTypeKey, targetStr);
+
+			if (divert.hasVariableTarget())
+				writer.writeProperty("var", true);
+
+			if (divert.isConditional())
+				writer.writeProperty("c", true);
+
+			if (divert.getExternalArgs() > 0)
+				writer.writeProperty("exArgs", divert.getExternalArgs());
+
+			writer.writeObjectEnd();
+			return;
+		}
+
+		if (obj instanceof ChoicePoint) {
+			ChoicePoint choicePoint = (ChoicePoint) obj;
+			writer.writeObjectStart();
+			writer.writeProperty("*", choicePoint.getPathStringOnChoice());
+			writer.writeProperty("flg", choicePoint.getFlags());
+			writer.writeObjectEnd();
+			return;
+		}
+
+		if (obj instanceof IntValue) {
+			IntValue intVal = (IntValue) obj;
+			writer.write(intVal.value);
+			return;
+		}
+
+		if (obj instanceof FloatValue) {
+			FloatValue floatVal = (FloatValue) obj;
+
+			writer.write(floatVal.value);
+			return;
+		}
+
+		if (obj instanceof StringValue) {
+			StringValue strVal = (StringValue) obj;
+			if (strVal.isNewline())
+				writer.write("\\n", false);
+			else {
+				writer.writeStringStart();
+				writer.writeStringInner("^");
+				writer.writeStringInner(strVal.value);
+				writer.writeStringEnd();
+			}
+			return;
+		}
+
+		if (obj instanceof ListValue) {
+			writeInkList(writer, (ListValue) obj);
+			return;
+		}
+
+		if (obj instanceof DivertTargetValue) {
+			DivertTargetValue divTargetVal = (DivertTargetValue) obj;
+			writer.writeObjectStart();
+			writer.writeProperty("^->", divTargetVal.value.getComponentsString());
+			writer.writeObjectEnd();
+			return;
+		}
+
+		if (obj instanceof VariablePointerValue) {
+			VariablePointerValue varPtrVal = (VariablePointerValue) obj;
+			writer.writeObjectStart();
+			writer.writeProperty("^var", varPtrVal.value);
+			writer.writeProperty("ci", varPtrVal.getContextIndex());
+			writer.writeObjectEnd();
+			return;
+		}
+
+		if (obj instanceof Glue) {
+			writer.write("<>");
+			return;
+		}
+
+		if (obj instanceof ControlCommand) {
+			ControlCommand controlCmd = (ControlCommand) obj;
+			writer.write(controlCommandNames[controlCmd.getCommandType().ordinal()]);
+			return;
+		}
+
+		if (obj instanceof NativeFunctionCall) {
+			NativeFunctionCall nativeFunc = (NativeFunctionCall) obj;
+			String name = nativeFunc.getName();
+
+			// Avoid collision with ^ used to indicate a string
+			if (name == "^")
+				name = "L^";
+
+			writer.write(name);
+			return;
+		}
+
+		// Variable reference
+		VariableReference varRef = (VariableReference) obj;
+		if (obj instanceof VariableReference) {
+			writer.writeObjectStart();
+
+			String readCountPath = varRef.getPathStringForCount();
+			if (readCountPath != null) {
+				writer.writeProperty("CNT?", readCountPath);
+			} else {
+				writer.writeProperty("VAR?", varRef.getName());
+			}
+
+			writer.writeObjectEnd();
+			return;
+		}
+
+		// Variable assignment
+		if (obj instanceof VariableAssignment) {
+			VariableAssignment varAss = (VariableAssignment) obj;
+			writer.writeObjectStart();
+
+			String key = varAss.isGlobal() ? "VAR=" : "temp=";
+			writer.writeProperty(key, varAss.getVariableName());
+
+			// Reassignment?
+			if (!varAss.isNewDeclaration())
+				writer.writeProperty("re", true);
+
+			writer.writeObjectEnd();
+
+			return;
+		}
+
+		// Void
+		if (obj instanceof Void) {
+			writer.write("void");
+			return;
+		}
+
+		// Tag
+		if (obj instanceof Tag) {
+			Tag tag = (Tag) obj;
+			writer.writeObjectStart();
+			writer.writeProperty("#", tag.getText());
+			writer.writeObjectEnd();
+			return;
+		}
+
+		// Used when serialising save state only
+
+		if (obj instanceof Choice) {
+			Choice choice = (Choice) obj;
+			writeChoice(writer, choice);
+			return;
+		}
+
+		throw new Exception("Failed to write runtime object to JSON: " + obj);
 	}
 
 	public static HashMap<String, RTObject> jObjectToHashMapRuntimeObjs(HashMap<String, Object> jRTObject)
 			throws Exception {
-		HashMap<String, RTObject> dict = new HashMap<String, RTObject>(jRTObject.size());
+		HashMap<String, RTObject> dict = new HashMap<>(jRTObject.size());
 
 		for (Entry<String, Object> keyVal : jRTObject.entrySet()) {
 			dict.put(keyVal.getKey(), jTokenToRuntimeObject(keyVal.getValue()));
@@ -65,23 +252,13 @@ public class Json {
 	}
 
 	public static HashMap<String, Integer> jObjectToIntHashMap(HashMap<String, Object> jRTObject) throws Exception {
-		HashMap<String, Integer> dict = new HashMap<String, Integer>(jRTObject.size());
+		HashMap<String, Integer> dict = new HashMap<>(jRTObject.size());
 
 		for (Entry<String, Object> keyVal : jRTObject.entrySet()) {
 			dict.put(keyVal.getKey(), (Integer) keyVal.getValue());
 		}
 
 		return dict;
-	}
-
-	public static HashMap<String, Object> intHashMapToJObject(HashMap<String, Integer> dict) throws Exception {
-		HashMap<String, Object> jObj = new HashMap<String, Object>();
-
-		for (Entry<String, Integer> keyVal : dict.entrySet()) {
-			jObj.put(keyVal.getKey(), keyVal.getValue());
-		}
-
-		return jObj;
 	}
 
 	// ----------------------
@@ -368,217 +545,58 @@ public class Json {
 		throw new Exception("Failed to convert token to runtime RTObject: " + token);
 	}
 
-	public static Object runtimeObjectToJToken(RTObject obj) throws Exception {
-		Container container = obj instanceof Container ? (Container) obj : (Container) null;
-
-		if (container != null) {
-			return containerToJArray(container);
-		}
-
-		Divert divert = obj instanceof Divert ? (Divert) obj : (Divert) null;
-		if (divert != null) {
-			String divTypeKey = "->";
-			if (divert.isExternal())
-				divTypeKey = "x()";
-			else if (divert.getPushesToStack()) {
-				if (divert.getStackPushType() == PushPopType.Function)
-					divTypeKey = "f()";
-				else if (divert.getStackPushType() == PushPopType.Tunnel)
-					divTypeKey = "->t->";
-
-			}
-
-			String targetStr = new String();
-			if (divert.hasVariableTarget())
-				targetStr = divert.getVariableDivertName();
-			else
-				targetStr = divert.getTargetPathString();
-			HashMap<String, Object> jObj = new HashMap<String, Object>();
-			jObj.put(divTypeKey, targetStr);
-			if (divert.hasVariableTarget())
-				jObj.put("var", true);
-
-			if (divert.isConditional())
-				jObj.put("c", true);
-
-			if (divert.getExternalArgs() > 0)
-				jObj.put("exArgs", divert.getExternalArgs());
-
-			return jObj;
-		}
-
-		ChoicePoint choicePoint = obj instanceof ChoicePoint ? (ChoicePoint) obj : (ChoicePoint) null;
-		if (choicePoint != null) {
-			HashMap<String, Object> jObj = new HashMap<String, Object>();
-			jObj.put("*", choicePoint.getPathStringOnChoice());
-			jObj.put("flg", choicePoint.getFlags());
-			return jObj;
-		}
-
-		IntValue intVal = obj instanceof IntValue ? (IntValue) obj : (IntValue) null;
-		if (intVal != null)
-			return intVal.value;
-
-		FloatValue floatVal = obj instanceof FloatValue ? (FloatValue) obj : (FloatValue) null;
-		if (floatVal != null)
-			return floatVal.value;
-
-		StringValue strVal = obj instanceof StringValue ? (StringValue) obj : (StringValue) null;
-		if (strVal != null) {
-			if (strVal.isNewline())
-				return "\n";
-			else
-				return "^" + strVal.value;
-		}
-
-		ListValue listVal = null;
-
-		if (obj instanceof ListValue)
-			listVal = (ListValue) obj;
-
-		if (listVal != null) {
-			return inkListToJObject(listVal);
-		}
-
-		DivertTargetValue divTargetVal = obj instanceof DivertTargetValue ? (DivertTargetValue) obj
-				: (DivertTargetValue) null;
-		if (divTargetVal != null) {
-			HashMap<String, Object> divTargetJsonObj = new HashMap<String, Object>();
-			divTargetJsonObj.put("^->", divTargetVal.value.getComponentsString());
-			return divTargetJsonObj;
-		}
-
-		VariablePointerValue varPtrVal = obj instanceof VariablePointerValue ? (VariablePointerValue) obj
-				: (VariablePointerValue) null;
-		if (varPtrVal != null) {
-			HashMap<String, Object> varPtrJsonObj = new HashMap<String, Object>();
-			varPtrJsonObj.put("^var", varPtrVal.value);
-			varPtrJsonObj.put("ci", varPtrVal.getContextIndex());
-			return varPtrJsonObj;
-		}
-
-		Glue glue = obj instanceof Glue ? (Glue) obj : (Glue) null;
-		if (glue != null) {
-			return "<>";
-		}
-
-		ControlCommand controlCmd = obj instanceof ControlCommand ? (ControlCommand) obj : (ControlCommand) null;
-		if (controlCmd != null) {
-			return controlCommandNames[controlCmd.getCommandType().ordinal()];
-		}
-
-		NativeFunctionCall nativeFunc = obj instanceof NativeFunctionCall ? (NativeFunctionCall) obj
-				: (NativeFunctionCall) null;
-		if (nativeFunc != null) {
-			String name = nativeFunc.getName();
-
-			// Avoid collision with ^ used to indicate a string
-			if ("^".equals(name))
-				name = "L^";
-			return name;
-		}
-
-		// Variable reference
-		VariableReference varRef = obj instanceof VariableReference ? (VariableReference) obj
-				: (VariableReference) null;
-		if (varRef != null) {
-			HashMap<String, Object> jObj = new HashMap<String, Object>();
-			String readCountPath = varRef.getPathStringForCount();
-			if (readCountPath != null) {
-				jObj.put("CNT?", readCountPath);
-			} else {
-				jObj.put("VAR?", varRef.getName());
-			}
-			return jObj;
-		}
-
-		// Variable assignment
-		VariableAssignment varAss = obj instanceof VariableAssignment ? (VariableAssignment) obj
-				: (VariableAssignment) null;
-		if (varAss != null) {
-			String key = varAss.isGlobal() ? "VAR=" : "temp=";
-			HashMap<String, Object> jObj = new HashMap<String, Object>();
-			jObj.put(key, varAss.getVariableName());
-			// Reassignment?
-			if (!varAss.isNewDeclaration())
-				jObj.put("re", true);
-
-			return jObj;
-		}
-
-		// Void
-		Void voidObj = obj instanceof Void ? (Void) obj : (Void) null;
-		if (voidObj != null)
-			return "void";
-
-		// Tag
-		Tag tag = obj instanceof Tag ? (Tag) obj : (Tag) null;
-
-		if (tag != null) {
-			HashMap<String, Object> jObj = new HashMap<String, Object>();
-			jObj.put("#", tag.getText());
-			return jObj;
-		}
-
-		// Used when serialising save state only
-		Choice choice = obj instanceof Choice ? (Choice) obj : (Choice) null;
-		if (choice != null)
-			return choiceToJObject(choice);
-
-		throw new Exception("Failed to convert runtime RTObject to Json token: " + obj);
+	public static void writeRuntimeContainer(SimpleJson.Writer writer, Container container) throws Exception {
+		writeRuntimeContainer(writer, container, false);
 	}
 
-	@SuppressWarnings("unchecked")
-	static List<Object> containerToJArray(Container container) throws Exception {
-		List<Object> jArray = listToJArray(container.getContent());
+	public static void writeRuntimeContainer(SimpleJson.Writer writer, Container container, boolean withoutName)
+			throws Exception {
+		writer.writeArrayStart();
+
+		for (RTObject c : container.getContent())
+			writeRuntimeObject(writer, c);
 
 		// Container is always an array [...]
 		// But the final element is always either:
-		// - a HashMap containing the named content, as well as possibly
-		// the key "#f" with the count flags
+		// - a dictionary containing the named content, as well as possibly
+		// the key "#" with the count flags
 		// - null, if neither of the above
 		HashMap<String, RTObject> namedOnlyContent = container.getNamedOnlyContent();
 		int countFlags = container.getCountFlags();
-		if (namedOnlyContent != null && namedOnlyContent.size() > 0 || countFlags > 0 || container.getName() != null) {
-			HashMap<String, Object> terminatingObj = new HashMap<String, Object>();
-			if (namedOnlyContent != null) {
-				terminatingObj = hashMapRuntimeObjsToJObject(namedOnlyContent);
-				for (Entry<String, Object> namedContentObj : terminatingObj.entrySet()) {
-					// Strip redundant names from containers if necessary
-					List<Object> subContainerJArray = namedContentObj.getValue() instanceof List<?>
-							? (List<Object>) namedContentObj.getValue()
-							: (List<Object>) null;
+		boolean hasNameProperty = container.getName() != null && !withoutName;
 
-					if (subContainerJArray != null) {
-						HashMap<String, Object> attrJObj = subContainerJArray
-								.get(subContainerJArray.size() - 1) instanceof HashMap<?, ?>
-										? (HashMap<String, Object>) subContainerJArray
-												.get(subContainerJArray.size() - 1)
-										: (HashMap<String, Object>) null;
-						if (attrJObj != null) {
-							attrJObj.remove("#n");
-							if (attrJObj.size() == 0)
-								subContainerJArray.set(subContainerJArray.size() - 1, null);
+		boolean hasTerminator = namedOnlyContent != null || countFlags > 0 || hasNameProperty;
 
-						}
+		if (hasTerminator)
+			writer.writeObjectStart();
 
-					}
+		if (namedOnlyContent != null) {
 
-				}
-			} else
-				terminatingObj = new HashMap<String, Object>();
-			if (countFlags > 0)
-				terminatingObj.put("#f", countFlags);
+			for (Entry<String, RTObject> namedContent : namedOnlyContent.entrySet()) {
+				String name = namedContent.getKey();
+				Container namedContainer = namedContent.getValue() instanceof Container
+						? (Container) namedContent.getValue()
+						: null;
 
-			if (container.getName() != null)
-				terminatingObj.put("#n", container.getName());
-
-			jArray.add(terminatingObj);
-		} else {
-			// Add null terminator to indicate that there's no HashMap
-			jArray.add(null);
+				writer.writePropertyStart(name);
+				writeRuntimeContainer(writer, namedContainer, true);
+				writer.writePropertyEnd();
+			}
 		}
-		return jArray;
+
+		if (countFlags > 0)
+			writer.writeProperty("#f", countFlags);
+
+		if (hasNameProperty)
+			writer.writeProperty("#n", container.getName());
+
+		if (hasTerminator)
+			writer.writeObjectEnd();
+		else
+			writer.writeNull();
+
+		writer.writeArrayEnd();
+
 	}
 
 	@SuppressWarnings("unchecked")
@@ -591,7 +609,7 @@ public class Json {
 		// (if either exists at all, otherwise null)
 		HashMap<String, Object> terminatingObj = (HashMap<String, Object>) jArray.get(jArray.size() - 1);
 		if (terminatingObj != null) {
-			HashMap<String, RTObject> namedOnlyContent = new HashMap<String, RTObject>(terminatingObj.size());
+			HashMap<String, RTObject> namedOnlyContent = new HashMap<>(terminatingObj.size());
 			for (Entry<String, Object> keyVal : terminatingObj.entrySet()) {
 				if ("#f".equals(keyVal.getKey())) {
 					container.setCountFlags((int) keyVal.getValue());
@@ -617,53 +635,70 @@ public class Json {
 		Choice choice = new Choice();
 		choice.setText(jObj.get("text").toString());
 		choice.setIndex((int) jObj.get("index"));
-		choice.sourcePath  = jObj.get("originalChoicePath").toString();
+		choice.sourcePath = jObj.get("originalChoicePath").toString();
 		choice.originalThreadIndex = (int) jObj.get("originalThreadIndex");
 		choice.setPathStringOnChoice(jObj.get("targetPath").toString());
 		return choice;
 	}
 
-	static HashMap<String, Object> choiceToJObject(Choice choice) throws Exception {
-		HashMap<String, Object> jObj = new HashMap<String, Object>();
-		jObj.put("text", choice.getText());
-		jObj.put("index", choice.getIndex());
-		jObj.put("originalChoicePath", choice.sourcePath);
-		jObj.put("originalThreadIndex", choice.originalThreadIndex);
-		jObj.put("targetPath", choice.getPathStringOnChoice());
-
-		return jObj;
+	public static void writeChoice(SimpleJson.Writer writer, Choice choice) throws Exception {
+		writer.writeObjectStart();
+		writer.writeProperty("text", choice.getText());
+		writer.writeProperty("index", choice.getIndex());
+		writer.writeProperty("originalChoicePath", choice.sourcePath);
+		writer.writeProperty("originalThreadIndex", choice.originalThreadIndex);
+		writer.writeProperty("targetPath", choice.getPathStringOnChoice());
+		writer.writeObjectEnd();
 	}
 
-	static HashMap<String, Object> inkListToJObject(ListValue listVal) {
-		InkList rawList = listVal.value;
+	static void writeInkList(SimpleJson.Writer writer, ListValue listVal) throws Exception {
+		InkList rawList = listVal.getValue();
 
-		HashMap<String, Object> dict = new HashMap<String, Object>();
+		writer.writeObjectStart();
 
-		HashMap<String, Object> content = new HashMap<String, Object>();
+		writer.writePropertyStart("list");
+
+		writer.writeObjectStart();
 
 		for (Entry<InkListItem, Integer> itemAndValue : rawList.entrySet()) {
 			InkListItem item = itemAndValue.getKey();
-			int val = itemAndValue.getValue();
-			content.put(item.toString(), val);
+			int itemVal = itemAndValue.getValue();
+
+			writer.writePropertyNameStart();
+			writer.writePropertyNameInner(item.getOriginName() != null ? item.getOriginName() : "?");
+			writer.writePropertyNameInner(".");
+			writer.writePropertyNameInner(item.getItemName());
+			writer.writePropertyNameEnd();
+
+			writer.write(itemVal);
+
+			writer.writePropertyEnd();
 		}
 
-		dict.put("list", content);
+		writer.writeObjectEnd();
 
-		if (rawList.size() == 0 && rawList.getOriginNames().size() > 0) {
-			dict.put("origins", rawList.getOriginNames());
+		writer.writePropertyEnd();
+
+		if (rawList.size() == 0 && rawList.getOriginNames() != null && rawList.getOriginNames().size() > 0) {
+			writer.writePropertyStart("origins");
+			writer.writeArrayStart();
+			for (String name : rawList.getOriginNames())
+				writer.write(name);
+			writer.writeArrayEnd();
+			writer.writePropertyEnd();
 		}
 
-		return dict;
+		writer.writeObjectEnd();
 	}
 
 	public static HashMap<String, Object> listDefinitionsToJToken(ListDefinitionsOrigin origin) {
-		HashMap<String, Object> result = new HashMap<String, Object>();
+		HashMap<String, Object> result = new HashMap<>();
 		for (ListDefinition def : origin.getLists()) {
-			HashMap<String, Object> listDefJson = new HashMap<String, Object>();
+			HashMap<String, Object> listDefJson = new HashMap<>();
 			for (Entry<InkListItem, Integer> itemToVal : def.getItems().entrySet()) {
 				InkListItem item = itemToVal.getKey();
 				int val = itemToVal.getValue();
-				listDefJson.put(item.getItemName(), (Object) val);
+				listDefJson.put(item.getItemName(), val);
 			}
 			result.put(def.getName(), listDefJson);
 		}
@@ -674,14 +709,14 @@ public class Json {
 	public static ListDefinitionsOrigin jTokenToListDefinitions(Object obj) {
 		HashMap<String, Object> defsObj = (HashMap<String, Object>) obj;
 
-		List<ListDefinition> allDefs = new ArrayList<ListDefinition>();
+		List<ListDefinition> allDefs = new ArrayList<>();
 
 		for (Entry<String, Object> kv : defsObj.entrySet()) {
-			String name = (String) kv.getKey();
+			String name = kv.getKey();
 			HashMap<String, Object> listDefJson = (HashMap<String, Object>) kv.getValue();
 
 			// Cast (string, object) to (string, int) for items
-			HashMap<String, Integer> items = new HashMap<String, Integer>();
+			HashMap<String, Integer> items = new HashMap<>();
 			for (Entry<String, Object> nameValue : listDefJson.entrySet())
 				items.put(nameValue.getKey(), (int) nameValue.getValue());
 

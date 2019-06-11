@@ -1,9 +1,15 @@
 package com.bladecoder.ink.runtime;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Stack;
 
 /**
  * Simple custom JSON serialisation implementation that takes JSON-able
@@ -11,6 +17,15 @@ import java.util.Map.Entry;
  * from JSON text.
  */
 class SimpleJson {
+
+	public static HashMap<String, Object> textToDictionary(String text) throws Exception {
+		return new Reader(text).toHashMap();
+	}
+
+	public static List<Object> textToArray(String text) throws Exception {
+		return new Reader(text).toArray();
+	}
+
 	static class Reader {
 		private int offset;
 
@@ -45,7 +60,11 @@ class SimpleJson {
 		}
 
 		boolean isNumberChar(char c) throws Exception {
-			return c >= '0' && c <= '9' || c == '.' || c == '-' || c == '+';
+			return c >= '0' && c <= '9' || c == '.' || c == '-' || c == '+' || c == 'E' || c == 'e';
+		}
+
+		boolean IsFirstNumberChar(char c) {
+			return c >= '0' && c <= '9' || c == '-' || c == '+';
 		}
 
 		List<Object> readArray() throws Exception {
@@ -101,7 +120,7 @@ class SimpleJson {
 			boolean isFloat = false;
 			for (; offset < text.length(); offset++) {
 				char c = text.charAt(offset);
-				if (c == '.')
+				if (c == '.' || c == 'e' || c == 'E')
 					isFloat = true;
 
 				if (isNumberChar(c))
@@ -109,6 +128,7 @@ class SimpleJson {
 				else
 					break;
 			}
+
 			String numStr = text.substring(startOffset, offset);
 			if (isFloat) {
 				try {
@@ -127,7 +147,7 @@ class SimpleJson {
 
 			}
 
-			throw new Exception("Failed to parse number value");
+			throw new Exception("Failed to parse number value: " + numStr);
 		}
 
 		Object readObject() throws Exception {
@@ -139,7 +159,7 @@ class SimpleJson {
 				return readArray();
 			else if (currentChar == '"')
 				return readString();
-			else if (isNumberChar(currentChar))
+			else if (IsFirstNumberChar(currentChar))
 				return readNumber();
 			else if (tryRead("true"))
 				return true;
@@ -188,7 +208,7 @@ class SimpleJson {
 							throw new Exception("Unexpected EOF while reading string");
 						}
 
-						// c# expr: _text.Substring(_offset + 1, 4);
+						// c# expr: _text.SubString(_offset + 1, 4);
 						String digits = text.substring(offset + 1, offset + 6);
 
 						int uchar;
@@ -233,6 +253,11 @@ class SimpleJson {
 			return (HashMap<String, Object>) rootObject;
 		}
 
+		@SuppressWarnings("unchecked")
+		public List<Object> toArray() {
+			return (List<Object>) rootObject;
+		}
+
 		boolean tryRead(String textToRead) throws Exception {
 			if (offset + textToRead.length() > text.length())
 				return false;
@@ -247,115 +272,317 @@ class SimpleJson {
 		}
 	}
 
-	static class Writer {
-		StringBuilder sb;
+	public static class Writer {
+		Stack<StateElement> stateStack = new Stack<>();
+		java.io.Writer writer;
 
-		public Writer(Object rootObject) throws Exception {
-			sb = new StringBuilder();
-			writeObject(rootObject);
+		public Writer() {
+			writer = new StringWriter();
+		}
+
+		public Writer(OutputStream stream) throws UnsupportedEncodingException {
+			writer = new BufferedWriter(new OutputStreamWriter(stream, "UTF-8"));
+		}
+
+		public void writeObject(InnerWriter inner) throws Exception {
+			writeObjectStart();
+			inner.write(this);
+			writeObjectEnd();
+		}
+
+		public void writeObjectStart() throws Exception {
+			startNewObject(true);
+			stateStack.push(new StateElement(State.Object, 0));
+			writer.write("{");
+		}
+
+		public void writeObjectEnd() throws Exception {
+			Assert(getState() == State.Object);
+			writer.write("}");
+			stateStack.pop();
+		}
+
+		public void writeProperty(String name, InnerWriter inner) throws Exception {
+			writePropertyString(name, inner);
+		}
+
+		public void writeProperty(int id, InnerWriter inner) throws Exception {
+			writePropertyInteger(id, inner);
+		}
+
+		public void writeProperty(String name, String content) throws Exception {
+			writePropertyStart(name);
+			write(content);
+			writePropertyEnd();
+		}
+
+		public void writeProperty(String name, int content) throws Exception {
+			writePropertyStart(name);
+			write(content);
+			writePropertyEnd();
+		}
+
+		public void writeProperty(String name, boolean content) throws Exception {
+			writePropertyStart(name);
+			write(content);
+			writePropertyEnd();
+		}
+
+		public void writePropertyStart(String name) throws Exception {
+			Assert(getState() == State.Object);
+
+			if (getChildCount() > 0)
+				writer.write(",");
+
+			writer.write("\"");
+			writer.write(name);
+			writer.write("\":");
+
+			incrementChildCount();
+
+			stateStack.push(new StateElement(State.Property, 0));
+		}
+
+		public void writePropertyStart(int id) throws Exception {
+			writePropertyStart(Integer.toString(id));
+		}
+
+		public void writePropertyEnd() throws Exception {
+			Assert(getState() == State.Property);
+			Assert(getChildCount() == 1);
+			stateStack.pop();
+		}
+
+		public void writePropertyNameStart() throws Exception {
+			Assert(getState() == State.Object);
+
+			if (getChildCount() > 0)
+				writer.write(",");
+
+			writer.write("\"");
+
+			incrementChildCount();
+
+			stateStack.push(new StateElement(State.Property, 0));
+			stateStack.push(new StateElement(State.PropertyName, 0));
+		}
+
+		public void writePropertyNameEnd() throws Exception {
+			Assert(getState() == State.PropertyName);
+
+			writer.write("\":");
+
+			// Pop PropertyName, leaving Property state
+			stateStack.pop();
+		}
+
+		public void writePropertyNameInner(String str) throws Exception {
+			Assert(getState() == State.PropertyName);
+			writer.write(str);
+		}
+
+		// allow name to be String or int
+		void writePropertyString(String name, InnerWriter inner) throws Exception {
+			writePropertyStart(name);
+
+			inner.write(this);
+
+			writePropertyEnd();
+		}
+
+		void writePropertyInteger(Integer name, InnerWriter inner) throws Exception {
+			writePropertyStart(name);
+
+			inner.write(this);
+
+			writePropertyEnd();
+		}
+
+		public void writeArrayStart() throws Exception {
+			startNewObject(true);
+			stateStack.push(new StateElement(State.Array, 0));
+			writer.write("[");
+		}
+
+		public void writeArrayEnd() throws Exception {
+			Assert(getState() == State.Array);
+			writer.write("]");
+			stateStack.pop();
+		}
+
+		public void write(int i) throws Exception {
+			startNewObject(false);
+			writer.write(Integer.toString(i));
+		}
+
+		public void write(float f) throws Exception {
+			startNewObject(false);
+
+			// TODO: Find an heap-allocation-free way to do this please!
+			// writer.write(formatStr, obj (the float)) requires boxing
+			// Following implementation seems to work ok but requires creating temporary
+			// garbage String.
+			String floatStr = Float.toString(f);
+
+			if (floatStr == "Infinity") {
+				writer.write("3.4E+38"); // JSON doesn't support, do our best alternative
+			} else if (floatStr == "-Infinity") {
+				writer.write("-3.4E+38"); // JSON doesn't support, do our best alternative
+			} else if (floatStr == "NaN") {
+				writer.write("0.0"); // JSON doesn't support, not much we can do
+			} else {
+				writer.write(floatStr);
+				if (!floatStr.contains(".") && !floatStr.contains("E"))
+					writer.write(".0"); // ensure it gets read back in as a floating point value
+			}
+		}
+
+		public void write(String str) throws Exception {
+			write(str, true);
+		}
+
+		public void write(String str, boolean escape) throws Exception {
+			startNewObject(false);
+
+			writer.write("\"");
+			if (escape)
+				writeEscapedString(str);
+			else
+				writer.write(str);
+			writer.write("\"");
+		}
+
+		public void write(boolean b) throws Exception {
+			startNewObject(false);
+			writer.write(b ? "true" : "false");
+		}
+
+		public void writeNull() throws Exception {
+			startNewObject(false);
+			writer.write("null");
+		}
+
+		public void writeStringStart() throws Exception {
+			startNewObject(false);
+			stateStack.push(new StateElement(State.String, 0));
+			writer.write("\"");
+		}
+
+		public void writeStringEnd() throws Exception {
+			Assert(getState() == State.String);
+			writer.write("\"");
+			stateStack.pop();
+		}
+
+		public void writeStringInner(String str) throws Exception {
+			writeStringInner(str, true);
+		}
+
+		public void writeStringInner(String str, boolean escape) throws Exception {
+			Assert(getState() == State.String);
+			if (escape)
+				writeEscapedString(str);
+			else
+				writer.write(str);
+		}
+
+		void writeEscapedString(String str) throws IOException {
+			for (char c : str.toCharArray()) {
+				if (c < ' ') {
+					// Don't write any control characters except \n and \t
+					switch (c) {
+					case '\n':
+						writer.write("\\n");
+						break;
+					case '\t':
+						writer.write("\\t");
+						break;
+					}
+				} else {
+					switch (c) {
+					case '\\':
+					case '"':
+						writer.write("\\");
+						writer.write(c);
+						break;
+					default:
+						writer.write(c);
+						break;
+					}
+				}
+			}
+		}
+
+		void startNewObject(boolean container) throws Exception {
+
+			if (container)
+				Assert(getState() == State.None || getState() == State.Property || getState() == State.Array);
+			else
+				Assert(getState() == State.Property || getState() == State.Array);
+
+			if (getState() == State.Array && getChildCount() > 0)
+				writer.write(",");
+
+			if (getState() == State.Property)
+				Assert(getChildCount() == 0);
+
+			if (getState() == State.Array || getState() == State.Property)
+				incrementChildCount();
+		}
+
+		State getState() {
+			if (stateStack.size() > 0)
+				return stateStack.peek().type;
+			else
+				return State.None;
+		}
+
+		int getChildCount() {
+
+			if (stateStack.size() > 0)
+				return stateStack.peek().childCount;
+			else
+				return 0;
+		}
+
+		void incrementChildCount() throws Exception {
+			Assert(stateStack.size() > 0);
+			StateElement currEl = stateStack.pop();
+			currEl.childCount++;
+			stateStack.push(currEl);
+		}
+
+		// Shouldn't hit this Assert outside of initial JSON development,
+		// so it's save to make it debug-only.
+		void Assert(boolean condition) throws Exception {
+			if (!condition)
+				throw new Exception("Assert failed while writing JSON");
 		}
 
 		@Override
 		public String toString() {
-			try {
-				return sb.toString();
-			} catch (RuntimeException __dummyCatchVar0) {
-				throw __dummyCatchVar0;
-			} catch (Exception __dummyCatchVar0) {
-				throw new RuntimeException(__dummyCatchVar0);
-			}
-
+			return writer.toString();
 		}
 
-		void writeHashMap(HashMap<String, Object> dict) throws Exception {
-			sb.append("{");
-			boolean isFirst = true;
-			for (Entry<String, Object> keyValue : dict.entrySet()) {
-				if (!isFirst)
-					sb.append(",");
+		enum State {
+			None, Object, Array, Property, PropertyName, String
+		};
 
-				sb.append("\"");
-				sb.append(keyValue.getKey());
-				sb.append("\":");
-				writeObject(keyValue.getValue());
-				isFirst = false;
-			}
-			sb.append("}");
-		}
+		// Struct in C#
+		class StateElement {
+			public State type;
+			public int childCount;
 
-		void writeList(List<Object> list) throws Exception {
-			sb.append("[");
-			boolean isFirst = true;
-			for (Object obj : list) {
-				if (!isFirst)
-					sb.append(",");
-
-				writeObject(obj);
-				isFirst = false;
-			}
-			sb.append("]");
-		}
-
-		@SuppressWarnings("unchecked")
-		void writeObject(Object obj) throws Exception {
-			if (obj instanceof Integer) {
-				sb.append(obj);
-			} else if (obj instanceof Float) {
-				String floatStr = obj.toString();
-				sb.append(floatStr);
-				if (!floatStr.contains("."))
-					sb.append(".0");
-
-			} else if (obj instanceof Boolean) {
-				sb.append((Boolean) obj == true ? "true" : "false");
-			} else if (obj == null) {
-				sb.append("null");
-			} else if (obj instanceof String) {
-				String str = (String) obj;
-				sb.ensureCapacity(sb.length() + str.length() + 2);
-				sb.append('"');
-
-				for (char c : str.toCharArray()) {
-					if (c < ' ') {
-						// Don't write any control characters except \n and \t
-						switch (c) {
-						case '\n':
-							sb.append("\\n");
-							break;
-						case '\t':
-							sb.append("\\t");
-							break;
-						}
-					} else {
-						switch (c) {
-						case '\\':
-						case '"':
-							sb.append('\\').append(c);
-							break;
-						default:
-							sb.append(c);
-							break;
-						}
-					}
-				}
-
-				sb.append('"');
-			} else if (obj instanceof HashMap<?, ?>) {
-				writeHashMap((HashMap<String, Object>) obj);
-			} else if (obj instanceof List<?>) {
-				writeList((List<Object>) obj);
-			} else {
-				throw new Exception("ink's SimpleJson writer doesn't currently support this RTObject: " + obj);
+			public StateElement(State type, int childCount) {
+				this.type = type;
+				this.childCount = childCount;
 			}
 		}
+
 	}
 
-	public static String HashMapToText(HashMap<String, Object> rootObject) throws Exception {
-		return new Writer(rootObject).toString();
-	}
-
-	public static HashMap<String, Object> textToHashMap(String text) throws Exception {
-		return new Reader(text).toHashMap();
+	interface InnerWriter {
+		void write(Writer w) throws Exception;
 	}
 
 }
