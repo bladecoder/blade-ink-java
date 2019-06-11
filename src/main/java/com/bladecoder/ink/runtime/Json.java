@@ -50,7 +50,7 @@ public class Json {
 		writer.writeArrayEnd();
 	}
 
-	public static void WriteIntDictionary(SimpleJson.Writer writer, HashMap<String, Integer> dict) {
+	public static void WriteIntDictionary(SimpleJson.Writer writer, HashMap<String, Integer> dict) throws Exception {
 		writer.writeObjectStart();
 
 		for (Entry<String, Integer> keyVal : dict.entrySet())
@@ -233,7 +233,7 @@ public class Json {
 
 		if (obj instanceof Choice) {
 			Choice choice = (Choice) obj;
-			WriteChoice(writer, choice);
+			writeChoice(writer, choice);
 			return;
 		}
 
@@ -641,7 +641,7 @@ public class Json {
 		return choice;
 	}
 
-	public static void WriteChoice(SimpleJson.Writer writer, Choice choice) throws Exception {
+	public static void writeChoice(SimpleJson.Writer writer, Choice choice) throws Exception {
 		writer.writeObjectStart();
 		writer.writeProperty("text", choice.getText());
 		writer.writeProperty("index", choice.getIndex());
@@ -651,7 +651,7 @@ public class Json {
 		writer.writeObjectEnd();
 	}
 
-	static void writeInkList(SimpleJson.Writer writer, ListValue listVal) {
+	static void writeInkList(SimpleJson.Writer writer, ListValue listVal) throws Exception {
 		InkList rawList = listVal.getValue();
 
 		writer.writeObjectStart();

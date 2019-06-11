@@ -274,10 +274,10 @@ class SimpleJson {
 
 	public static class Writer {
 		Stack<StateElement> stateStack = new Stack<>();
-		BufferedWriter writer;
+		java.io.Writer writer;
 
 		public Writer() {
-			writer = new BufferedWriter(new StringWriter());
+			writer = new StringWriter();
 		}
 
 		public Writer(OutputStream stream) throws UnsupportedEncodingException {
@@ -329,11 +329,22 @@ class SimpleJson {
 		}
 
 		public void writePropertyStart(String name) throws Exception {
-			writePropertyStartString(name);
+			Assert(getState() == State.Object);
+
+			if (getChildCount() > 0)
+				writer.write(",");
+
+			writer.write("\"");
+			writer.write(name);
+			writer.write("\":");
+
+			incrementChildCount();
+
+			stateStack.push(new StateElement(State.Property, 0));
 		}
 
 		public void writePropertyStart(int id) throws Exception {
-			writePropertyStartInteger(id);
+			writePropertyStart(Integer.toString(id));
 		}
 
 		public void writePropertyEnd() throws Exception {
@@ -370,36 +381,6 @@ class SimpleJson {
 			writer.write(str);
 		}
 
-		void writePropertyStartString(String name) throws Exception {
-			Assert(getState() == State.Object);
-
-			if (getChildCount() > 0)
-				writer.write(",");
-
-			writer.write("\"");
-			writer.write(name);
-			writer.write("\":");
-
-			incrementChildCount();
-
-			stateStack.push(new StateElement(State.Property, 0));
-		}
-
-		void writePropertyStartInteger(Integer name) throws Exception {
-			Assert(getState() == State.Object);
-
-			if (getChildCount() > 0)
-				writer.write(",");
-
-			writer.write("\"");
-			writer.write(name);
-			writer.write("\":");
-
-			incrementChildCount();
-
-			stateStack.push(new StateElement(State.Property, 0));
-		}
-
 		// allow name to be String or int
 		void writePropertyString(String name, InnerWriter inner) throws Exception {
 			writePropertyStart(name);
@@ -431,7 +412,7 @@ class SimpleJson {
 
 		public void write(int i) throws Exception {
 			startNewObject(false);
-			writer.write(i);
+			writer.write(Integer.toString(i));
 		}
 
 		public void write(float f) throws Exception {

@@ -255,27 +255,22 @@ class CallStack {
 		return getCallStack();
 	}
 
-	public void WriteJson(SimpleJson.Writer w) throws Exception {
+	public void writeJson(SimpleJson.Writer w) throws Exception {
 		w.writeObject(new InnerWriter() {
 
 			@Override
 			public void write(Writer writer) throws Exception {
 				writer.writePropertyStart("threads");
-				{
-					writer.writeArrayStart();
+				writer.writeArrayStart();
 
-					for (CallStack.Thread thread : threads) {
-						thread.writeJson(writer);
-					}
-
-					writer.writeArrayEnd();
+				for (CallStack.Thread thread : threads) {
+					thread.writeJson(writer);
 				}
+				writer.writeArrayEnd();
 				writer.writePropertyEnd();
 
 				writer.writePropertyStart("threadCounter");
-				{
-					writer.write(threadCounter);
-				}
+				writer.write(threadCounter);
 				writer.writePropertyEnd();
 			}
 

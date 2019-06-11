@@ -1,5 +1,6 @@
 package com.bladecoder.ink.runtime;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,6 +10,9 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Stack;
+
+import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
+import com.bladecoder.ink.runtime.SimpleJson.Writer;
 
 /**
  * A Story is the core class that represents a complete Ink narrative, and
@@ -55,7 +59,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	public static final int inkVersionMinimumCompatible = 18;
 
 	private Container mainContentContainer;
-	private ListDefinitionsOrigin listsDefinitions;
+	private ListDefinitionsOrigin listDefinitions;
 
 	/**
 	 * An ink file can provide a fallback functions for when when an EXTERNAL has
@@ -81,9 +85,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	private Profiler profiler;
 
 	private boolean asyncContinueActive;
-	StoryState stateAtLastNewline = null;
+	private StoryState stateSnapshotAtLastNewline = null;
 
 	private int recursiveContinueCount = 0;
+
+	private boolean asyncSaving;
 
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
@@ -92,7 +98,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		mainContentContainer = contentContainer;
 
 		if (lists != null) {
-			listsDefinitions = new ListDefinitionsOrigin(lists);
+			listDefinitions = new ListDefinitionsOrigin(lists);
 		}
 
 		externals = new HashMap<>();
@@ -107,7 +113,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	public Story(String jsonString) throws Exception {
 		this((Container) null);
-		HashMap<String, Object> rootObject = SimpleJson.textToHashMap(jsonString);
+		HashMap<String, Object> rootObject = SimpleJson.textToDictionary(jsonString);
 
 		Object versionObj = rootObject.get("inkVersion");
 		if (versionObj == null)
@@ -131,7 +137,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		Object listDefsObj = rootObject.get("listDefs");
 		if (listDefsObj != null) {
-			listsDefinitions = Json.jTokenToListDefinitions(listDefsObj);
+			listDefinitions = Json.jTokenToListDefinitions(listDefsObj);
 		}
 
 		RTObject runtimeObject = Json.jTokenToRuntimeObject(rootToken);
@@ -623,10 +629,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// Successfully finished evaluation in time (or in error)
 		if (outputStreamEndsInNewline || !canContinue()) {
 			// Need to rewind, due to evaluating further than we should?
-			if (stateAtLastNewline != null) {
-				restoreStateSnapshot(stateAtLastNewline);
-				stateAtLastNewline = null;
+			if (stateSnapshotAtLastNewline != null) {
+				restoreStateSnapshot();
 			}
+
 			// Finished a section of content / reached a choice point?
 			if (!canContinue()) {
 				if (state.getCallStack().canPopThread())
@@ -680,18 +686,18 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 			// We previously found a newline, but were we just double checking that
 			// it wouldn't immediately be removed by glue?
-			if (stateAtLastNewline != null) {
+			if (stateSnapshotAtLastNewline != null) {
 
 				// Has proper text or a tag been added? Then we know that the newline
 				// that was previously added is definitely the end of the line.
-				OutputStateChange change = calculateNewlineOutputStateChange(stateAtLastNewline.getCurrentText(),
-						state.getCurrentText(), stateAtLastNewline.getCurrentTags().size(),
-						state.getCurrentTags().size());
+				OutputStateChange change = calculateNewlineOutputStateChange(
+						stateSnapshotAtLastNewline.getCurrentText(), state.getCurrentText(),
+						stateSnapshotAtLastNewline.getCurrentTags().size(), state.getCurrentTags().size());
 
 				// The last time we saw a newline, it was definitely the end of the line, so we
 				// want to rewind to that point.
 				if (change == OutputStateChange.ExtendedBeyondNewline) {
-					restoreStateSnapshot(stateAtLastNewline);
+					restoreStateSnapshot();
 
 					// Hit a newline for sure, we're done
 					return true;
@@ -700,7 +706,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				// Newline that previously existed is no longer valid - e.g.
 				// glue was encounted that caused it to be removed.
 				else if (change == OutputStateChange.NewlineRemoved) {
-					stateAtLastNewline = null;
+					stateSnapshotAtLastNewline = null;
+					discardSnapshot();
 				}
 
 			}
@@ -718,14 +725,14 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					// e.g.:
 					// Hello world\n // record state at the end of here
 					// ~ complexCalculation() // don't actually need this unless it generates text
-					if (stateAtLastNewline == null)
-						stateAtLastNewline = stateSnapshot();
+					if (stateSnapshotAtLastNewline == null)
+						stateSnapshot();
 				}
 
 				// Can't continue, so we're about to exit - make sure we
 				// don't have an old state hanging around.
 				else {
-					stateAtLastNewline = null;
+					discardSnapshot();
 				}
 
 			}
@@ -926,7 +933,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	public ListDefinitionsOrigin getListDefinitions() {
-		return listsDefinitions;
+		return listDefinitions;
 	}
 
 	/**
@@ -983,17 +990,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		state.getCallStack().getCurrentElement().currentPointer.assign(pointer);
 
 		return successfulIncrement;
-	}
-
-	void incrementVisitCountForContainer(Container container) {
-		String containerPathStr = container.getPath().toString();
-		Integer count = state.getVisitCounts().get(containerPathStr);
-
-		if (count == null)
-			count = 0;
-
-		count++;
-		state.getVisitCounts().put(containerPathStr, count);
 	}
 
 	// Does the expression result represented by this Object evaluate to true?
@@ -1509,9 +1505,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				if (container != null) {
 					if (evalCommand.getCommandType() == ControlCommand.CommandType.TurnsSince)
-						eitherCount = turnsSinceForContainer(container);
+						eitherCount = state.turnsSinceForContainer(container);
 					else
-						eitherCount = visitCountForContainer(container);
+						eitherCount = state.visitCountForContainer(container);
 				} else {
 					if (evalCommand.getCommandType() == ControlCommand.CommandType.TurnsSince)
 						eitherCount = -1; // turn count, default to never/unknown
@@ -1586,7 +1582,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				break;
 			}
 			case VisitIndex:
-				int count = visitCountForContainer(state.getCurrentPointer().container) - 1; // index
+				int count = state.visitCountForContainer(state.getCurrentPointer().container) - 1; // index
 				// not
 				// count
 				state.pushEvaluationStack(new IntValue(count));
@@ -1646,7 +1642,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				ListValue generatedListValue = null;
 
-				ListDefinition foundListDef = listsDefinitions.getListDefinition(listNameVal.value);
+				ListDefinition foundListDef = listDefinitions.getListDefinition(listNameVal.value);
 
 				if (foundListDef != null) {
 					InkListItem foundItem;
@@ -1767,7 +1763,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			if (varRef.getPathForCount() != null) {
 
 				Container container = varRef.getContainerForCount();
-				int count = visitCountForContainer(container);
+				int count = state.visitCountForContainer(container);
 				foundValue = new IntValue(count);
 			}
 
@@ -1777,23 +1773,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				foundValue = state.getVariablesState().getVariableWithName(varRef.getName());
 
 				if (foundValue == null) {
-					RTObject defaultVal = state.getVariablesState().tryGetDefaultVariableValue(varRef.getName());
-
-					if (defaultVal != null) {
-						warning("Variable not found in save state: '" + varRef.getName()
-								+ "', but seems to have been newly created. Assigning value from latest ink's declaration: "
-								+ defaultVal);
-						foundValue = defaultVal;
-
-						// Save for future usage, preventing future errors
-						// Only do this for variables that are known to be globals, not those that may
-						// be missing temps.
-						state.getVariablesState().setGlobal(varRef.getName(), foundValue);
-					} else {
-						warning("Variable not found: '" + varRef.getName()
-								+ "'. Using default value of 0 (false). This can happen with temporary variables if the declaration hasn't yet been hit.");
-						foundValue = new IntValue(0);
-					}
+					warning("Variable not found: '" + varRef.getName()
+							+ "'. Using default value of 0 (false). This can happen with temporary variables if the declaration hasn't yet been hit. Globals are always given a default value on load if a value doesn't exist in the save state.");
+					foundValue = new IntValue(0);
 				}
 			}
 
@@ -1886,7 +1868,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		// Don't create choice if player has already read this content
 		if (choicePoint.isOnceOnly()) {
-			int visitCount = visitCountForContainer(choicePoint.getChoiceTarget());
+			int visitCount = state.visitCountForContainer(choicePoint.getChoiceTarget());
 			if (visitCount > 0) {
 				showChoice = false;
 			}
@@ -1917,11 +1899,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		choice.setText((startText + choiceOnlyText).trim());
 
 		return choice;
-	}
-
-	void recordTurnIndexVisitToContainer(Container container) {
-		String containerPathStr = container.getPath().toString();
-		state.getTurnIndices().put(containerPathStr, state.getCurrentTurnIndex());
 	}
 
 	/**
@@ -1975,10 +1952,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		resetGlobals();
 	}
 
-	void restoreStateSnapshot(StoryState state) {
-		this.state = state;
-	}
-
 	Pointer pointerAtPath(Path path) throws Exception {
 		if (path.getLength() == 0)
 			return Pointer.Null;
@@ -2006,10 +1979,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 					+ "'.");
 
 		return p;
-	}
-
-	StoryState stateSnapshot() throws Exception {
-		return state.copy();
 	}
 
 	void step() throws Exception {
@@ -2132,15 +2101,65 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * The Story itself in JSON representation.
+	 * 
+	 * @throws Exception
 	 */
-	public String toJsonString() throws Exception {
-		List<?> rootContainerJsonList = (List<?>) Json.runtimeObjectToJToken(mainContentContainer);
+	public String toJson() throws Exception {
+		// return ToJsonOld();
+		SimpleJson.Writer writer = new SimpleJson.Writer();
+		toJson(writer);
+		return writer.toString();
+	}
 
-		HashMap<String, Object> rootObject = new HashMap<>();
-		rootObject.put("inkVersion", inkVersionCurrent);
-		rootObject.put("root", rootContainerJsonList);
+	/**
+	 * The Story itself in JSON representation.
+	 * 
+	 * @throws Exception
+	 */
+	public void toJson(OutputStream stream) throws Exception {
+		SimpleJson.Writer writer = new SimpleJson.Writer(stream);
+		toJson(writer);
+	}
 
-		return SimpleJson.HashMapToText(rootObject);
+	void toJson(SimpleJson.Writer writer) throws Exception {
+		writer.writeObjectStart();
+
+		writer.writeProperty("inkVersion", inkVersionCurrent);
+
+		// Main container content
+		writer.writeProperty("root", new InnerWriter() {
+
+			@Override
+			public void write(Writer w) throws Exception {
+				Json.writeRuntimeContainer(w, mainContentContainer);
+			}
+		});
+
+		// List definitions
+		if (listDefinitions != null) {
+
+			writer.writePropertyStart("listDefs");
+			writer.writeObjectStart();
+
+			for (ListDefinition def : listDefinitions.getLists()) {
+				writer.writePropertyStart(def.getName());
+				writer.writeObjectStart();
+
+				for (Entry<InkListItem, Integer> itemToVal : def.getItems().entrySet()) {
+					InkListItem item = itemToVal.getKey();
+					int val = itemToVal.getValue();
+					writer.writeProperty(item.getItemName(), val);
+				}
+
+				writer.writeObjectEnd();
+				writer.writePropertyEnd();
+			}
+
+			writer.writeObjectEnd();
+			writer.writePropertyEnd();
+		}
+
+		writer.writeObjectEnd();
 	}
 
 	boolean tryFollowDefaultInvisibleChoice() throws Exception {
@@ -2168,21 +2187,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		choosePath(choice.targetPath, false);
 
 		return true;
-	}
-
-	int turnsSinceForContainer(Container container) throws Exception {
-		if (!container.getTurnIndexShouldBeCounted()) {
-			error("TURNS_SINCE() for target (" + container.getName() + " - on " + container.getDebugMetadata()
-					+ ") unknown. The story may need to be compiled with countAllVisits flag (-c).");
-		}
-
-		String containerPathStr = container.getPath().toString();
-		Integer index = state.getTurnIndices().get(containerPathStr);
-		if (index != null) {
-			return state.getCurrentTurnIndex() - index;
-		} else {
-			return -1;
-		}
 	}
 
 	/**
@@ -2268,7 +2272,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 	}
 
-	void visitChangedContainersDueToDivert() {
+	void visitChangedContainersDueToDivert() throws Exception {
 		final Pointer previousPointer = new Pointer(state.getPreviousPointer());
 		final Pointer pointer = new Pointer(state.getCurrentPointer());
 
@@ -2333,26 +2337,14 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	// Mark a container as having been visited
-	void visitContainer(Container container, boolean atStart) {
+	void visitContainer(Container container, boolean atStart) throws Exception {
 		if (!container.getCountingAtStartOnly() || atStart) {
 			if (container.getVisitsShouldBeCounted())
-				incrementVisitCountForContainer(container);
+				state.incrementVisitCountForContainer(container);
 
 			if (container.getTurnIndexShouldBeCounted())
-				recordTurnIndexVisitToContainer(container);
+				state.recordTurnIndexVisitToContainer(container);
 		}
-	}
-
-	int visitCountForContainer(Container container) throws Exception {
-		if (!container.getVisitsShouldBeCounted()) {
-			error("Read count for target (" + container.getName() + " - on " + container.getDebugMetadata()
-					+ ") unknown. The story may need to be compiled with countAllVisits flag (-c).");
-			return 0;
-		}
-
-		String containerPathStr = container.getPath().toString();
-		Integer count = state.getVisitCounts().get(containerPathStr);
-		return count == null ? 0 : count;
 	}
 
 	public boolean allowExternalFunctionFallbacks() {
@@ -2447,5 +2439,90 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// Finish evaluation, and see whether anything was produced
 		Object result = state.completeFunctionEvaluationFromGame();
 		return result;
+	}
+
+	// Maximum snapshot stack:
+	// - stateSnapshotDuringSave -- not retained, but returned to game code
+	// - _stateSnapshotAtLastNewline (has older patch)
+	// - _state (current, being patched)
+	void stateSnapshot() {
+		stateSnapshotAtLastNewline = state;
+		state = state.copyAndStartPatching();
+	}
+
+	void restoreStateSnapshot() {
+		// Patched state had temporarily hijacked our
+		// VariablesState and set its own callstack on it,
+		// so we need to restore that.
+		// If we're in the middle of saving, we may also
+		// need to give the VariablesState the old patch.
+		stateSnapshotAtLastNewline.restoreAfterPatch();
+
+		state = stateSnapshotAtLastNewline;
+		stateSnapshotAtLastNewline = null;
+
+		// If save completed while the above snapshot was
+		// active, we need to apply any changes made since
+		// the save was started but before the snapshot was made.
+		if (!asyncSaving) {
+			state.applyAnyPatch();
+		}
+	}
+
+	void discardSnapshot() {
+		// Normally we want to integrate the patch
+		// into the main global/counts dictionaries.
+		// However, if we're in the middle of async
+		// saving, we simply stay in a "patching" state,
+		// albeit with the newer cloned patch.
+		if (!asyncSaving)
+			state.applyAnyPatch();
+
+		// No longer need the snapshot.
+		stateSnapshotAtLastNewline = null;
+	}
+
+	/**
+	 * Advanced usage! If you have a large story, and saving state to JSON takes too
+	 * long for your framerate, you can temporarily freeze a copy of the state for
+	 * saving on a separate thread. Internally, the engine maintains a "diff patch".
+	 * When you've finished saving your state, call BackgroundSaveComplete() and
+	 * that diff patch will be applied, allowing the story to continue in its usual
+	 * mode.
+	 * 
+	 * @return The state for background thread save.
+	 * @throws Exception
+	 */
+	public StoryState copyStateForBackgroundThreadSave() throws Exception {
+		ifAsyncWeCant("start saving on a background thread");
+		if (asyncSaving)
+			throw new Exception(
+					"Story is already in background saving mode, can't call CopyStateForBackgroundThreadSave again!");
+		StoryState stateToSave = state;
+		state = state.copyAndStartPatching();
+		asyncSaving = true;
+		return stateToSave;
+	}
+
+	/**
+	 * See CopyStateForBackgroundThreadSave. This method releases the "frozen" save
+	 * state, applying its patch that it was using internally.
+	 */
+	public void backgroundSaveComplete() {
+		// CopyStateForBackgroundThreadSave must be called outside
+		// of any async ink evaluation, since otherwise you'd be saving
+		// during an intermediate state.
+		// However, it's possible to *complete* the save in the middle of
+		// a glue-lookahead when there's a state stored in _stateSnapshotAtLastNewline.
+		// This state will have its own patch that is newer than the save patch.
+		// We hold off on the final apply until the glue-lookahead is finished.
+		// In that case, the apply is always done, it's just that it may
+		// apply the looked-ahead changes OR it may simply apply the changes
+		// made during the save process to the old _stateSnapshotAtLastNewline state.
+		if (stateSnapshotAtLastNewline == null) {
+			state.applyAnyPatch();
+		}
+
+		asyncSaving = false;
 	}
 }

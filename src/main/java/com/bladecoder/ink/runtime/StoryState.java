@@ -1,12 +1,16 @@
 package com.bladecoder.ink.runtime;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Random;
 
 import com.bladecoder.ink.runtime.CallStack.Element;
 import com.bladecoder.ink.runtime.CallStack.Thread;
+import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
+import com.bladecoder.ink.runtime.SimpleJson.Writer;
 
 /**
  * All story state information is included in the StoryState class, including
@@ -45,6 +49,8 @@ public class StoryState {
 	private boolean outputStreamTextDirty = true;
 	private boolean outputStreamTagsDirty = true;
 	private List<String> currentTags;
+
+	private StatePatch patch;
 
 	StoryState(Story story) {
 		this.story = story;
@@ -95,11 +101,12 @@ public class StoryState {
 	// RTObjects are treated as immutable after they've been set up.
 	// (e.g. we don't edit a Runtime.StringValue after it's been created an added.)
 	// I wonder if there's a sensible way to enforce that..??
-	StoryState copy() {
+	StoryState copyAndStartPatching() {
 		StoryState copy = new StoryState(story);
 
+		copy.patch = new StatePatch(patch);
 		copy.getOutputStream().addAll(outputStream);
-		outputStreamDirty();
+		copy.outputStreamDirty();
 		copy.currentChoices.addAll(currentChoices);
 
 		if (hasError()) {
@@ -114,8 +121,12 @@ public class StoryState {
 
 		copy.callStack = new CallStack(callStack);
 
-		copy.variablesState = new VariablesState(copy.callStack, story.getListDefinitions());
-		copy.variablesState.copyFrom(variablesState);
+		// ref copy - exactly the same variables state!
+		// we're expecting not to read it only while in patch mode
+		// (though the callstack will be modified)
+		copy.variablesState = variablesState;
+		copy.variablesState.setCallStack(copy.callStack);
+		copy.variablesState.setPatch(copy.patch);
 
 		copy.evaluationStack.addAll(evaluationStack);
 
@@ -124,8 +135,11 @@ public class StoryState {
 
 		copy.setPreviousPointer(getPreviousPointer());
 
-		copy.visitCounts = new HashMap<>(visitCounts);
-		copy.turnIndices = new HashMap<>(turnIndices);
+		// visit counts and turn indicies will be read only, not modified
+		// while in patch mode
+		copy.visitCounts = visitCounts;
+		copy.turnIndices = turnIndices;
+
 		copy.currentTurnIndex = currentTurnIndex;
 		copy.storySeed = storySeed;
 		copy.previousRandom = previousRandom;
@@ -292,62 +306,8 @@ public class StoryState {
 		return callStack.getCurrentElement().inExpressionEvaluation;
 	}
 
-	/**
-	 * Object representation of full JSON state. Usually you should use LoadJson and
-	 * ToJson since they serialise directly to String for you. But it may be useful
-	 * to get the object representation so that you can integrate it into your own
-	 * serialisation system.
-	 */
-	public HashMap<String, Object> getJsonToken() throws Exception {
-
-		HashMap<String, Object> obj = new HashMap<>();
-
-		HashMap<String, Object> choiceThreads = null;
-		for (Choice c : currentChoices) {
-			c.originalThreadIndex = c.getThreadAtGeneration().threadIndex;
-
-			if (callStack.getThreadWithIndex(c.originalThreadIndex) == null) {
-				if (choiceThreads == null)
-					choiceThreads = new HashMap<>();
-
-				choiceThreads.put(Integer.toString(c.originalThreadIndex), c.getThreadAtGeneration().jsonToken());
-			}
-		}
-		if (choiceThreads != null)
-			obj.put("choiceThreads", choiceThreads);
-
-		obj.put("callstackThreads", callStack.getJsonToken());
-		obj.put("variablesState", variablesState.getjsonToken());
-
-		obj.put("evalStack", Json.listToJArray(evaluationStack));
-
-		obj.put("outputStream", Json.listToJArray(outputStream));
-
-		obj.put("currentChoices", Json.listToJArray(currentChoices));
-
-		if (!divertedPointer.isNull())
-			obj.put("currentDivertTarget", getDivertedPointer().getPath().getComponentsString());
-
-		obj.put("visitCounts", Json.intHashMapToJObject(visitCounts));
-		obj.put("turnIndices", Json.intHashMapToJObject(turnIndices));
-		obj.put("turnIdx", currentTurnIndex);
-		obj.put("storySeed", storySeed);
-		obj.put("previousRandom", previousRandom);
-
-		obj.put("inkSaveVersion", kInkSaveStateVersion);
-
-		// Not using this right now, but could do in future.
-		obj.put("inkFormatVersion", Story.inkVersionCurrent);
-
-		return obj;
-	}
-
 	Pointer getPreviousPointer() {
 		return callStack.getcurrentThread().previousPointer;
-	}
-
-	public HashMap<String, Integer> getVisitCounts() {
-		return visitCounts;
 	}
 
 	void goToStart() {
@@ -377,7 +337,8 @@ public class StoryState {
 	 * @param json The JSON String to load.
 	 */
 	public void loadJson(String json) throws Exception {
-		setJsonToken(SimpleJson.textToHashMap(json));
+		HashMap<String, Object> jObject = SimpleJson.textToDictionary(json);
+		loadJsonObj(jObject);
 	}
 
 	List<Choice> getCurrentChoices() {
@@ -437,10 +398,6 @@ public class StoryState {
 
 	void setPreviousRandom(int i) {
 		previousRandom = i;
-	}
-
-	HashMap<String, Integer> getTurnIndices() {
-		return turnIndices;
 	}
 
 	int getCurrentTurnIndex() {
@@ -857,7 +814,21 @@ public class StoryState {
 	 * @return The save state in json format.
 	 */
 	public String toJson() throws Exception {
-		return SimpleJson.HashMapToText(getJsonToken());
+		SimpleJson.Writer writer = new SimpleJson.Writer();
+		writeJson(writer);
+
+		return writer.toString();
+	}
+
+	/**
+	 * Exports the current state to json format, in order to save the game. For this
+	 * overload you can pass in a custom stream, such as a FileStream.
+	 * 
+	 * @throws Exception
+	 */
+	public void toJson(OutputStream stream) throws Exception {
+		SimpleJson.Writer writer = new SimpleJson.Writer(stream);
+		writeJson(writer);
 	}
 
 	void trimNewlinesFromOutputStream() {
@@ -995,15 +966,97 @@ public class StoryState {
 	 * 
 	 * @param pathString The dot-separated path String of the specific knot or
 	 *                   stitch.
+	 * @throws Exception
 	 *
 	 */
-	public int visitCountAtPathString(String pathString) {
-		Integer visitCountOut = visitCounts.get(pathString);
+	public int visitCountAtPathString(String pathString) throws Exception {
+		Integer visitCountOut;
 
+		if (patch != null) {
+			Container container = story.contentAtPath(new Path(pathString)).getContainer();
+			if (container == null)
+				throw new Exception("Content at path not found: " + pathString);
+
+			visitCountOut = patch.getVisitCount(container);
+			if (visitCountOut != null)
+				return visitCountOut;
+		}
+
+		visitCountOut = visitCounts.get(pathString);
 		if (visitCountOut != null)
 			return visitCountOut;
 
 		return 0;
+	}
+
+	int visitCountForContainer(Container container) throws Exception {
+		if (!container.getVisitsShouldBeCounted()) {
+			story.error("Read count for target (" + container.getName() + " - on " + container.getDebugMetadata()
+					+ ") unknown.");
+			return 0;
+		}
+
+		if (patch != null && patch.getVisitCount(container) != null)
+			return patch.getVisitCount(container);
+
+		String containerPathStr = container.getPath().toString();
+
+		if (visitCounts.containsKey(containerPathStr))
+			return visitCounts.get(containerPathStr);
+
+		return 0;
+	}
+
+	void incrementVisitCountForContainer(Container container) throws Exception {
+		if (patch != null) {
+			int currCount = visitCountForContainer(container);
+			currCount++;
+			patch.setVisitCount(container, currCount);
+
+			return;
+		}
+
+		Integer count = 0;
+		String containerPathStr = container.getPath().toString();
+
+		if (visitCounts.containsKey(containerPathStr))
+			count = visitCounts.get(containerPathStr);
+
+		count++;
+		visitCounts.put(containerPathStr, count);
+	}
+
+	void recordTurnIndexVisitToContainer(Container container) {
+		if (patch != null) {
+			patch.setTurnIndex(container, currentTurnIndex);
+			return;
+		}
+
+		String containerPathStr = container.getPath().toString();
+		turnIndices.put(containerPathStr, currentTurnIndex);
+	}
+
+	int turnsSinceForContainer(Container container) throws Exception {
+		if (!container.getTurnIndexShouldBeCounted()) {
+			story.error("TURNS_SINCE() for target (" + container.getName() + " - on " + container.getDebugMetadata()
+					+ ") unknown.");
+		}
+
+		int index = 0;
+
+		if (patch != null && patch.getTurnIndex(container) != null) {
+			index = patch.getTurnIndex(container);
+			return currentTurnIndex - index;
+		}
+
+		String containerPathStr = container.getPath().toString();
+
+		if (turnIndices.containsKey(containerPathStr)) {
+			index = turnIndices.get(containerPathStr);
+			return currentTurnIndex - index;
+		} else {
+			return -1;
+		}
 	}
 
 	public Pointer getDivertedPointer() {
@@ -1024,5 +1077,193 @@ public class StoryState {
 
 	void setCallStack(CallStack cs) {
 		callStack = cs;
+	}
+
+	void restoreAfterPatch() {
+		// VariablesState was being borrowed by the patched
+		// state, so restore it with our own callstack.
+		// _patch will be null normally, but if you're in the
+		// middle of a save, it may contain a _patch for save purpsoes.
+		variablesState.setCallStack(callStack);
+		variablesState.setPatch(patch); // usually null
+	}
+
+	void applyAnyPatch() {
+		if (patch == null)
+			return;
+
+		variablesState.applyPatch();
+
+		for (Entry<Container, Integer> pathToCount : patch.getVisitCounts().entrySet())
+			applyCountChanges(pathToCount.getKey(), pathToCount.getValue(), true);
+
+		for (Entry<Container, Integer> pathToIndex : patch.getTurnIndices().entrySet())
+			applyCountChanges(pathToIndex.getKey(), pathToIndex.getValue(), false);
+
+		patch = null;
+	}
+
+	void applyCountChanges(Container container, int newCount, boolean isVisit) {
+		HashMap<String, Integer> counts = isVisit ? visitCounts : turnIndices;
+
+		counts.put(container.getPath().toString(), newCount);
+	}
+
+	void writeJson(SimpleJson.Writer writer) throws Exception {
+		writer.writeObjectStart();
+
+		boolean hasChoiceThreads = false;
+		for (Choice c : currentChoices) {
+			c.originalThreadIndex = c.getThreadAtGeneration().threadIndex;
+
+			if (callStack.getThreadWithIndex(c.originalThreadIndex) == null) {
+				if (!hasChoiceThreads) {
+					hasChoiceThreads = true;
+					writer.writePropertyStart("choiceThreads");
+					writer.writeObjectStart();
+				}
+
+				writer.writePropertyStart(c.originalThreadIndex);
+				c.getThreadAtGeneration().writeJson(writer);
+				writer.writePropertyEnd();
+			}
+		}
+
+		if (hasChoiceThreads) {
+			writer.writeObjectEnd();
+			writer.writePropertyEnd();
+		}
+
+		writer.writeProperty("callstackThreads", new InnerWriter() {
+
+			@Override
+			public void write(Writer w) throws Exception {
+				callStack.writeJson(w);
+			}
+
+		});
+
+		writer.writeProperty("variablesState", new InnerWriter() {
+
+			@Override
+			public void write(Writer w) throws Exception {
+				variablesState.writeJson(w);
+			}
+
+		});
+
+		writer.writeProperty("evalStack", new InnerWriter() {
+
+			@Override
+			public void write(Writer w) throws Exception {
+				Json.writeListRuntimeObjs(w, evaluationStack);
+			}
+
+		});
+
+		writer.writeProperty("outputStream", new InnerWriter() {
+
+			@Override
+			public void write(Writer w) throws Exception {
+				Json.writeListRuntimeObjs(w, outputStream);
+			}
+		});
+
+		writer.writeProperty("currentChoices", new InnerWriter() {
+
+			@Override
+			public void write(Writer w) throws Exception {
+				w.writeArrayStart();
+				for (Choice c : currentChoices)
+					Json.writeChoice(w, c);
+				w.writeArrayEnd();
+			}
+		});
+
+		if (!divertedPointer.isNull())
+			writer.writeProperty("currentDivertTarget", divertedPointer.getPath().getComponentsString());
+
+		writer.writeProperty("visitCounts", new InnerWriter() {
+
+			@Override
+			public void write(Writer w) throws Exception {
+				Json.WriteIntDictionary(w, visitCounts);
+			}
+		});
+
+		writer.writeProperty("turnIndices", new InnerWriter() {
+
+			@Override
+			public void write(Writer w) throws Exception {
+				Json.WriteIntDictionary(w, turnIndices);
+			}
+		});
+
+		writer.writeProperty("turnIdx", currentTurnIndex);
+		writer.writeProperty("storySeed", storySeed);
+		writer.writeProperty("previousRandom", previousRandom);
+
+		writer.writeProperty("inkSaveVersion", kInkSaveStateVersion);
+
+		// Not using this right now, but could do in future.
+		writer.writeProperty("inkFormatVersion", Story.inkVersionCurrent);
+
+		writer.writeObjectEnd();
+	}
+
+	@SuppressWarnings("unchecked")
+	void loadJsonObj(HashMap<String, Object> jObject) throws Exception {
+		Object jSaveVersion = jObject.get("inkSaveVersion");
+
+		if (jSaveVersion == null) {
+			throw new StoryException("ink save format incorrect, can't load.");
+		} else if ((int) jSaveVersion < kMinCompatibleLoadVersion) {
+			throw new StoryException("Ink save format isn't compatible with the current version (saw '" + jSaveVersion
+					+ "', but minimum is " + kMinCompatibleLoadVersion + "), so can't load.");
+		}
+
+		callStack.setJsonToken((HashMap<String, Object>) jObject.get("callstackThreads"), story);
+		variablesState.setJsonToken((HashMap<String, Object>) jObject.get("variablesState"));
+
+		evaluationStack = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("evalStack"));
+
+		outputStream = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("outputStream"));
+		outputStreamDirty();
+
+		currentChoices = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("currentChoices"));
+
+		Object currentDivertTargetPath = jObject.get("currentDivertTarget");
+		if (currentDivertTargetPath != null) {
+			Path divertPath = new Path(currentDivertTargetPath.toString());
+			divertedPointer.assign(story.pointerAtPath(divertPath));
+		}
+
+		visitCounts = Json.jObjectToIntHashMap((HashMap<String, Object>) jObject.get("visitCounts"));
+		turnIndices = Json.jObjectToIntHashMap((HashMap<String, Object>) jObject.get("turnIndices"));
+
+		currentTurnIndex = (int) jObject.get("turnIdx");
+		storySeed = (int) jObject.get("storySeed");
+
+		// Not optional, but bug in inkjs means it's actually missing in inkjs saves
+		Object previousRandomObj = jObject.get("previousRandom");
+		if (previousRandomObj != null) {
+			previousRandom = (int) previousRandomObj;
+		} else {
+			previousRandom = 0;
+		}
+
+		Object jChoiceThreadsObj = jObject.get("choiceThreads");
+		HashMap<String, Object> jChoiceThreads = (HashMap<String, Object>) jChoiceThreadsObj;
+
+		for (Choice c : currentChoices) {
+			Thread foundActiveThread = callStack.getThreadWithIndex(c.originalThreadIndex);
+			if (foundActiveThread != null) {
+				c.setThreadAtGeneration(foundActiveThread.copy());
+			} else {
+				HashMap<String, Object> jSavedChoiceThread = (HashMap<String, Object>) jChoiceThreads
+						.get(Integer.toString(c.originalThreadIndex));
+				c.setThreadAtGeneration(new CallStack.Thread(jSavedChoiceThread, story));
+			}
+		}
 	}
 }
