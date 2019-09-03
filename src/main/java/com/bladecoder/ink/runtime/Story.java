@@ -23,9 +23,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * General purpose delegate definition for bound EXTERNAL function definitions
 	 * from ink. Note that this version isn't necessary if you have a function with
 	 * three arguments or less - see the overloads of BindExternalFunction.
+	 *
+	 * @param <R> the type of the result of the function
 	 */
-	public interface ExternalFunction {
-		Object call(Object[] args) throws Exception;
+	public interface ExternalFunction<R> {
+		R call(Object[] args) throws Exception;
 	}
 
 	// Version numbers are for engine itself and story file, rather
@@ -70,7 +72,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	private boolean allowExternalFunctionFallbacks;
 
-	private HashMap<String, ExternalFunction> externals;
+	private HashMap<String, ExternalFunction<?>> externals;
 
 	private boolean hasValidatedExternals;
 
@@ -223,7 +225,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @param funcName EXTERNAL ink function name to bind to.
 	 * @param func     The Java function to bind.
 	 */
-	public void bindExternalFunction(String funcName, ExternalFunction func) throws Exception {
+	public void bindExternalFunction(String funcName, ExternalFunction<?> func) throws Exception {
 		ifAsyncWeCant("bind an external function");
 		Assert(!externals.containsKey(funcName), "Function '" + funcName + "' has already been bound.");
 		externals.put(funcName, func);
@@ -340,7 +342,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	void callExternalFunction(String funcName, int numberOfArguments) throws Exception {
 		Container fallbackFunctionContainer = null;
 
-		ExternalFunction func = externals.get(funcName);
+		ExternalFunction<?> func = externals.get(funcName);
 
 		// Try to use fallback function?
 		if (func == null) {
