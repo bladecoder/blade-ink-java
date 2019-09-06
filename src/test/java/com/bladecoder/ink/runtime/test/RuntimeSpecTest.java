@@ -21,7 +21,7 @@ public class RuntimeSpecTest {
 	public void externalFunction() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json");
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-2-arg.ink.json");
 		final Story story = new Story(json);
 
 		story.bindExternalFunction("externalFunction", new ExternalFunction<Integer>() {
@@ -40,13 +40,87 @@ public class RuntimeSpecTest {
 	}
 
 	/**
+	 * Test external function zero arguments call.
+	 */
+	@Test
+	public void externalFunctionZeroArguments() throws Exception {
+		List<String> text = new ArrayList<String>();
+
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-0-arg.ink.json");
+		final Story story = new Story(json);
+
+		story.bindExternalFunction("externalFunction", new ExternalFunction.ZeroArguments<String>() {
+
+			@Override
+			protected String call() {
+				return "Hello world";
+			}
+		});
+
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(1, text.size());
+		Assert.assertEquals("The value is Hello world.", text.get(0));
+	}
+
+	/**
+	 * Test external function one argument call.
+	 */
+	@Test
+	public void externalFunctionOneArgument() throws Exception {
+		List<String> text = new ArrayList<String>();
+
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-1-arg.ink.json");
+		final Story story = new Story(json);
+
+		story.bindExternalFunction("externalFunction", new ExternalFunction.OneArgument<Integer, Boolean>() {
+
+			@Override
+			protected Boolean call(Integer arg) {
+				return arg != 1;
+			}
+		});
+
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(1, text.size());
+		Assert.assertEquals("The value is 0.", text.get(0));
+	}
+
+	/**
+	 * Test external function one argument call. Overrides coerce method.
+	 */
+	@Test
+	public void externalFunctionOneArgumentCoerceOverride() throws Exception {
+		List<String> text = new ArrayList<String>();
+
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-1-arg.ink.json");
+		final Story story = new Story(json);
+
+		story.bindExternalFunction("externalFunction", new ExternalFunction.OneArgument<Boolean, Boolean>() {
+
+			@Override
+			protected Boolean coerceArg(Object arg) throws Exception {
+				return story.tryCoerce(arg, Boolean.class);
+			}
+
+			@Override
+			protected Boolean call(Boolean arg) {
+				return !arg;
+			}
+		});
+
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(1, text.size());
+		Assert.assertEquals("The value is 0.", text.get(0));
+	}
+
+	/**
 	 * Test external function two arguments call.
 	 */
 	@Test
 	public void externalFunctionTwoArguments() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json");
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-2-arg.ink.json");
 		final Story story = new Story(json);
 
 		story.bindExternalFunction("externalFunction", new ExternalFunction.TwoArguments<Integer, Float, Integer>() {
@@ -63,13 +137,13 @@ public class RuntimeSpecTest {
 	}
 
 	/**
-	 * Test external function two arguments call. Overrides the coerce methods.
+	 * Test external function two arguments call. Overrides coerce methods.
 	 */
 	@Test
 	public void externalFunctionTwoArgumentsCoerceOverride() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json");
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-2-arg.ink.json");
 		final Story story = new Story(json);
 
 		story.bindExternalFunction("externalFunction", new ExternalFunction.TwoArguments<Integer, Integer, Integer>() {
@@ -96,13 +170,74 @@ public class RuntimeSpecTest {
 	}
 
 	/**
+	 * Test external function three arguments call.
+	 */
+	@Test
+	public void externalFunctionThreeArguments() throws Exception {
+		List<String> text = new ArrayList<String>();
+
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-3-arg.ink.json");
+		final Story story = new Story(json);
+
+		story.bindExternalFunction("externalFunction", new ExternalFunction.ThreeArguments<Integer, Integer, Integer, Integer>() {
+
+			@Override
+			protected Integer call(Integer x, Integer y, Integer z) {
+				return x + y + z;
+			}
+		});
+
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(1, text.size());
+		Assert.assertEquals("The value is 6.", text.get(0));
+	}
+
+	/**
+	 * Test external function three arguments call. Overrides coerce methods.
+	 */
+	@Test
+	public void externalFunctionThreeArgumentsCoerceOverride() throws Exception {
+		List<String> text = new ArrayList<String>();
+
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-3-arg.ink.json");
+		final Story story = new Story(json);
+
+		story.bindExternalFunction("externalFunction", new ExternalFunction.ThreeArguments<Integer, Integer, Integer, Integer>() {
+
+			@Override
+			protected Integer coerceFirstArg(Object arg) throws Exception {
+				return story.tryCoerce(arg, Integer.class);
+			}
+
+			@Override
+			protected Integer coerceSecondArg(Object arg) throws Exception {
+				return story.tryCoerce(arg, Integer.class);
+			}
+
+			@Override
+			protected Integer coerceThirdArg(Object arg) throws Exception {
+				return story.tryCoerce(arg, Integer.class);
+			}
+
+			@Override
+			protected Integer call(Integer x, Integer y, Integer z) {
+				return x + y + z;
+			}
+		});
+
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(1, text.size());
+		Assert.assertEquals("The value is 6.", text.get(0));
+	}
+
+	/**
 	 * Test external function fallback.
 	 */
 	@Test
 	public void externalFunctionFallback() throws Exception {
 		List<String> text = new ArrayList<String>();
 
-		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json");
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-2-arg.ink.json");
 		Story story = new Story(json);
 
 		story.setAllowExternalFunctionFallbacks(true);
