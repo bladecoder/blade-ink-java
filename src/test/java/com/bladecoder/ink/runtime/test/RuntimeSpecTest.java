@@ -9,6 +9,10 @@ import org.junit.Test;
 import com.bladecoder.ink.runtime.Profiler;
 import com.bladecoder.ink.runtime.Story;
 import com.bladecoder.ink.runtime.Story.ExternalFunction;
+import com.bladecoder.ink.runtime.Story.ExternalFunction0;
+import com.bladecoder.ink.runtime.Story.ExternalFunction1;
+import com.bladecoder.ink.runtime.Story.ExternalFunction3;
+import com.bladecoder.ink.runtime.Story.ExternalFunction2;
 import com.bladecoder.ink.runtime.Story.VariableObserver;
 import com.bladecoder.ink.runtime.StoryException;
 
@@ -49,7 +53,7 @@ public class RuntimeSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-0-arg.ink.json");
 		final Story story = new Story(json);
 
-		story.bindExternalFunction("externalFunction", new ExternalFunction.ZeroArguments<String>() {
+		story.bindExternalFunction("externalFunction", new ExternalFunction0<String>() {
 
 			@Override
 			protected String call() {
@@ -72,7 +76,7 @@ public class RuntimeSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-1-arg.ink.json");
 		final Story story = new Story(json);
 
-		story.bindExternalFunction("externalFunction", new ExternalFunction.OneArgument<Integer, Boolean>() {
+		story.bindExternalFunction("externalFunction", new ExternalFunction1<Integer, Boolean>() {
 
 			@Override
 			protected Boolean call(Integer arg) {
@@ -95,7 +99,7 @@ public class RuntimeSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-1-arg.ink.json");
 		final Story story = new Story(json);
 
-		story.bindExternalFunction("externalFunction", new ExternalFunction.OneArgument<Boolean, Boolean>() {
+		story.bindExternalFunction("externalFunction", new ExternalFunction1<Boolean, Boolean>() {
 
 			@Override
 			protected Boolean coerceArg(Object arg) throws Exception {
@@ -123,7 +127,7 @@ public class RuntimeSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-2-arg.ink.json");
 		final Story story = new Story(json);
 
-		story.bindExternalFunction("externalFunction", new ExternalFunction.TwoArguments<Integer, Float, Integer>() {
+		story.bindExternalFunction("externalFunction", new ExternalFunction2<Integer, Float, Integer>() {
 
 			@Override
 			protected Integer call(Integer x, Float y) {
@@ -146,15 +150,15 @@ public class RuntimeSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-2-arg.ink.json");
 		final Story story = new Story(json);
 
-		story.bindExternalFunction("externalFunction", new ExternalFunction.TwoArguments<Integer, Integer, Integer>() {
+		story.bindExternalFunction("externalFunction", new ExternalFunction2<Integer, Integer, Integer>() {
 
 			@Override
-			protected Integer coerceFirstArg(Object arg) throws Exception {
+			protected Integer coerceArg0(Object arg) throws Exception {
 				return story.tryCoerce(arg, Integer.class);
 			}
 
 			@Override
-			protected Integer coerceSecondArg(Object arg) throws Exception {
+			protected Integer coerceArg1(Object arg) throws Exception {
 				return story.tryCoerce(arg, Integer.class);
 			}
 
@@ -179,7 +183,7 @@ public class RuntimeSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-3-arg.ink.json");
 		final Story story = new Story(json);
 
-		story.bindExternalFunction("externalFunction", new ExternalFunction.ThreeArguments<Integer, Integer, Integer, Integer>() {
+		story.bindExternalFunction("externalFunction", new ExternalFunction3<Integer, Integer, Integer, Integer>() {
 
 			@Override
 			protected Integer call(Integer x, Integer y, Integer z) {
@@ -202,20 +206,20 @@ public class RuntimeSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-3-arg.ink.json");
 		final Story story = new Story(json);
 
-		story.bindExternalFunction("externalFunction", new ExternalFunction.ThreeArguments<Integer, Integer, Integer, Integer>() {
+		story.bindExternalFunction("externalFunction", new ExternalFunction3<Integer, Integer, Integer, Integer>() {
 
 			@Override
-			protected Integer coerceFirstArg(Object arg) throws Exception {
+			protected Integer coerceArg0(Object arg) throws Exception {
 				return story.tryCoerce(arg, Integer.class);
 			}
 
 			@Override
-			protected Integer coerceSecondArg(Object arg) throws Exception {
+			protected Integer coerceArg1(Object arg) throws Exception {
 				return story.tryCoerce(arg, Integer.class);
 			}
 
 			@Override
-			protected Integer coerceThirdArg(Object arg) throws Exception {
+			protected Integer coerceArg2(Object arg) throws Exception {
 				return story.tryCoerce(arg, Integer.class);
 			}
 
@@ -305,7 +309,7 @@ public class RuntimeSpecTest {
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals("OK", text.get(0));
 	}
-	
+
 	/**
 	 * Test non existant variable.
 	 */
@@ -317,12 +321,12 @@ public class RuntimeSpecTest {
 		Story story = new Story(json);
 
 		TestUtils.nextAll(story, text);
-		
-		try { 
+
+		try {
 			story.getVariablesState().set("y", "earth");
 			Assert.fail("Setting non existant variable.");
 		} catch(StoryException e) {
-			
+
 		}
 
 		Assert.assertEquals(10, (int) story.getVariablesState().get("x"));
@@ -367,7 +371,7 @@ public class RuntimeSpecTest {
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals("Two", text.get(0));
 	}
-	
+
 	/**
 	 * Test the Profiler.
 	 */
@@ -377,7 +381,7 @@ public class RuntimeSpecTest {
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/jump-knot.ink.json");
 		Story story = new Story(json);
-		
+
 		Profiler profiler = story.startProfiling();
 
 		story.choosePathString("two");
@@ -391,13 +395,13 @@ public class RuntimeSpecTest {
 
 		story.choosePathString("two");
 		TestUtils.nextAll(story, text);
-		
+
 		String reportStr = profiler.report();
-		
+
 		story.endProfiling();
-		
+
 		System.out.println("PROFILER REPORT: " + reportStr);
-	}	
+	}
 
 	/**
 	 * Jump to stitch from code.
@@ -449,9 +453,9 @@ public class RuntimeSpecTest {
 	public void testLoadSave() throws Exception {
 		String json = TestUtils.getJsonString("inkfiles/runtime/load-save.ink.json");
 		Story story = new Story(json);
-				
+
 		List<String> text = new ArrayList<String>();
-		
+
 		TestUtils.nextAll(story, text);
 
 		Assert.assertEquals(1, text.size());
