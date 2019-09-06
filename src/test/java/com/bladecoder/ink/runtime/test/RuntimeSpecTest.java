@@ -24,12 +24,55 @@ public class RuntimeSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json");
 		final Story story = new Story(json);
 
-		story.bindExternalFunction("externalFunction", new ExternalFunction.TwoArguments<Integer, Integer, Integer>() {
+		story.bindExternalFunction("externalFunction", new ExternalFunction<Integer>() {
 
 			@Override
-			public Integer call(Integer x, Integer y) {
+			public Integer call(Object[] args) throws Exception {
+				int x = story.tryCoerce(args[0], Integer.class);
+				int y = story.tryCoerce(args[1], Integer.class);
 				return x - y;
 			}
+		});
+
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(1, text.size());
+		Assert.assertEquals("The value is -1.", text.get(0));
+	}
+
+	/**
+	 * Test external function two arguments call.
+	 */
+	@Test
+	public void externalFunctionTwoArguments() throws Exception {
+		List<String> text = new ArrayList<String>();
+
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json");
+		final Story story = new Story(json);
+
+		story.bindExternalFunction("externalFunction", new ExternalFunction.TwoArguments<Integer, Float, Integer>() {
+
+			@Override
+			protected Integer call(Integer x, Float y) {
+				return (int) (x - y);
+			}
+		});
+
+		TestUtils.nextAll(story, text);
+		Assert.assertEquals(1, text.size());
+		Assert.assertEquals("The value is -1.", text.get(0));
+	}
+
+	/**
+	 * Test external function two arguments call. Overrides the coerce methods.
+	 */
+	@Test
+	public void externalFunctionTwoArgumentsCoerceOverride() throws Exception {
+		List<String> text = new ArrayList<String>();
+
+		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json");
+		final Story story = new Story(json);
+
+		story.bindExternalFunction("externalFunction", new ExternalFunction.TwoArguments<Integer, Integer, Integer>() {
 
 			@Override
 			protected Integer coerceFirstArg(Object arg) throws Exception {
@@ -39,6 +82,11 @@ public class RuntimeSpecTest {
 			@Override
 			protected Integer coerceSecondArg(Object arg) throws Exception {
 				return story.tryCoerce(arg, Integer.class);
+			}
+
+			@Override
+			protected Integer call(Integer x, Integer y) {
+				return x - y;
 			}
 		});
 
