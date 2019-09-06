@@ -1,10 +1,12 @@
+apply plugin: 'java-library'
 apply plugin: 'java'
-apply plugin: 'signing'
 apply plugin: 'maven'
+apply plugin: 'signing'
 
 group = 'com.bladecoder.ink'
 
 sourceCompatibility = 1.7
+targetCompatibility=1.7
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 repositories {
@@ -49,7 +51,7 @@ task sourcesJar(type: Jar) {
 }
 
 artifacts {
-    archives jar
+    //archives jar
     archives enginedocJar
     archives sourcesJar
 }
