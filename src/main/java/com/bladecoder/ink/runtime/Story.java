@@ -22,89 +22,119 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * General purpose delegate definition for bound EXTERNAL function definitions
 	 * from ink. Note that this version isn't necessary if you have a function with
-	 * three arguments or less - see the overloads of BindExternalFunction.
+	 * three arguments or less.
 	 *
-	 * @param <R> the type of the result of the function
+	 * @param <R> the result type
+	 * @see ExternalFunction0
+	 * @see ExternalFunction1
+	 * @see ExternalFunction2
+	 * @see ExternalFunction3
 	 */
 	public interface ExternalFunction<R> {
-		R call(Object[] args) throws Exception;
+		R call(Object... args) throws Exception;
+	}
 
-		abstract class ZeroArguments<R> implements ExternalFunction<R> {
-			@Override
-			public final R call(Object[] args) throws Exception {
-				if (args.length != 0) {
-					throw new IllegalArgumentException("Expecting 0 arguments.");
-				}
-				return call();
+	/**
+	 * EXTERNAL function delegate with zero arguments.
+	 *
+	 * @param <R> the result type
+	 */
+	public abstract static class ExternalFunction0<R> implements ExternalFunction<R> {
+		@Override
+		public final R call(Object... args) throws Exception {
+			if (args.length != 0) {
+				throw new IllegalArgumentException("Expecting 0 arguments.");
 			}
-
-			protected abstract R call() throws Exception;
+			return call();
 		}
 
-		abstract class OneArgument<T, R> implements ExternalFunction<R> {
-			@Override
-			public final R call(Object[] args) throws Exception {
-				if (args.length != 1) {
-					throw new IllegalArgumentException("Expecting 1 argument.");
-				}
-				return call(coerceArg(args[0]));
-			}
+		protected abstract R call() throws Exception;
+	}
 
-			protected abstract R call(T t) throws Exception;
-
-			@SuppressWarnings("unchecked")
-			protected T coerceArg(Object arg) throws Exception {
-				return (T) arg;
+	/**
+	 * EXTERNAL function delegate with one argument.
+	 *
+	 * @param <T> the argument type
+	 * @param <R> the result type
+	 */
+	public abstract static class ExternalFunction1<T, R> implements ExternalFunction<R> {
+		@Override
+		public final R call(Object... args) throws Exception {
+			if (args.length != 1) {
+				throw new IllegalArgumentException("Expecting 1 argument.");
 			}
+			return call(coerceArg(args[0]));
 		}
 
-		abstract class TwoArguments<T1, T2, R> implements ExternalFunction<R> {
-			@Override
-			public final R call(Object[] args) throws Exception {
-				if (args.length != 2) {
-					throw new IllegalArgumentException("Expecting 2 arguments.");
-				}
-				return call(coerceFirstArg(args[0]), coerceSecondArg(args[1]));
-			}
+		protected abstract R call(T t) throws Exception;
 
-			protected abstract R call(T1 t1, T2 t2) throws Exception;
+		@SuppressWarnings("unchecked")
+		protected T coerceArg(Object arg) throws Exception {
+			return (T) arg;
+		}
+	}
 
-			@SuppressWarnings("unchecked")
-			protected T1 coerceFirstArg(Object arg) throws Exception {
-				return (T1) arg;
+	/**
+	 * EXTERNAL function delegate with two arguments.
+	 *
+	 * @param <T1> the first argument type
+	 * @param <T2> the second argument type
+	 * @param <R> the result type
+	 */
+	public abstract static class ExternalFunction2<T1, T2, R> implements ExternalFunction<R> {
+		@Override
+		public final R call(Object... args) throws Exception {
+			if (args.length != 2) {
+				throw new IllegalArgumentException("Expecting 2 arguments.");
 			}
-
-			@SuppressWarnings("unchecked")
-			protected T2 coerceSecondArg(Object arg) throws Exception {
-				return (T2) arg;
-			}
+			return call(coerceArg0(args[0]), coerceArg1(args[1]));
 		}
 
-		abstract class ThreeArguments<T1, T2, T3, R> implements ExternalFunction<R> {
-			@Override
-			public final R call(Object[] args) throws Exception {
-				if (args.length != 3) {
-					throw new IllegalArgumentException("Expecting 3 arguments.");
-				}
-				return call(coerceFirstArg(args[0]), coerceSecondArg(args[1]), coerceThirdArg(args[2]));
-			}
+		protected abstract R call(T1 t1, T2 t2) throws Exception;
 
-			protected abstract R call(T1 t1, T2 t2, T3 t3) throws Exception;
+		@SuppressWarnings("unchecked")
+		protected T1 coerceArg0(Object arg) throws Exception {
+			return (T1) arg;
+		}
 
-			@SuppressWarnings("unchecked")
-			protected T1 coerceFirstArg(Object arg) throws Exception {
-				return (T1) arg;
-			}
+		@SuppressWarnings("unchecked")
+		protected T2 coerceArg1(Object arg) throws Exception {
+			return (T2) arg;
+		}
+	}
 
-			@SuppressWarnings("unchecked")
-			protected T2 coerceSecondArg(Object arg) throws Exception {
-				return (T2) arg;
+	/**
+	 * EXTERNAL function delegate with three arguments.
+	 *
+	 * @param <T1> the first argument type
+	 * @param <T2> the second argument type
+	 * @param <T3> the third argument type
+	 * @param <R> the result type
+	 */
+	public abstract static class ExternalFunction3<T1, T2, T3, R> implements ExternalFunction<R> {
+		@Override
+		public final R call(Object... args) throws Exception {
+			if (args.length != 3) {
+				throw new IllegalArgumentException("Expecting 3 arguments.");
 			}
+			return call(coerceArg0(args[0]), coerceArg1(args[1]), coerceArg2(args[2]));
+		}
 
-			@SuppressWarnings("unchecked")
-			protected T3 coerceThirdArg(Object arg) throws Exception {
-				return (T3) arg;
-			}
+		protected abstract R call(T1 t1, T2 t2, T3 t3) throws Exception;
+
+		@SuppressWarnings("unchecked")
+		protected T1 coerceArg0(Object arg) throws Exception {
+			return (T1) arg;
+		}
+
+		@SuppressWarnings("unchecked")
+		protected T2 coerceArg1(Object arg) throws Exception {
+			return (T2) arg;
+		}
+
+		@SuppressWarnings("unchecked")
+		protected T3 coerceArg2(Object arg) throws Exception {
+			return (T3) arg;
 		}
 	}
 
@@ -260,7 +290,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Start recording ink profiling information during calls to Continue on Story.
 	 * Return a Profiler instance that you can request a report from when you're
 	 * finished.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public Profiler startProfiling() throws Exception {
@@ -283,7 +313,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	void Assert(boolean condition, String message, Object... formatParams) throws Exception {
-		if (condition == false) {
+		if (!condition) {
 			if (message == null) {
 				message = "Story assert";
 			}
@@ -296,10 +326,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Most general form of function binding that returns an Object and takes an
-	 * array of Object parameters. The only way to bind a function with more than 3
-	 * arguments.
-	 * 
+	 * Binds a Java function to an ink EXTERNAL function.
+	 *
 	 * @param funcName EXTERNAL ink function name to bind to.
 	 * @param func     The Java function to bind.
 	 */
@@ -330,7 +358,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		if (value instanceof Integer && type == Boolean.class) {
 			int intVal = (Integer) value;
-			return (T) (intVal == 0 ? new Boolean(false) : new Boolean(true));
+			return (T) (intVal == 0 ? Boolean.FALSE : Boolean.TRUE);
 		}
 
 		if (type == String.class) {
@@ -345,7 +373,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Get any global tags associated with the story. These are defined as hash tags
 	 * defined at the very top of the story.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public List<String> getGlobalTags() throws Exception {
@@ -355,7 +383,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Gets any tags associated with a particular knot or knot.stitch. These are
 	 * defined as hash tags defined at the very top of a knot or stitch.
-	 * 
+	 *
 	 * @param path The path of the knot or stitch, in the form "knot" or
 	 *             "knot.stitch".
 	 * @throws Exception
@@ -457,9 +485,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// Run the function!
 		Object funcResult = func.call(arguments.toArray());
 
-		// Convert return value (if any) to the a type that the ink engine can
-		// use
-		RTObject returnObj = null;
+		// Convert return value (if any) to the a type that the ink engine can use
+		RTObject returnObj;
 		if (funcResult != null) {
 			returnObj = AbstractValue.create(funcResult);
 			Assert(returnObj != null, "Could not create ink value from returned Object of type "
@@ -474,7 +501,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Check whether more content is available if you were to call Continue() - i.e.
 	 * are we mid story rather than at a choice point or at the end.
-	 * 
+	 *
 	 * @return true if it's possible to call Continue()
 	 */
 	public boolean canContinue() {
@@ -515,7 +542,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Change the current position of the story to the given path. From here you can
 	 * call Continue() to evaluate the next line.
-	 * 
+	 *
 	 * The path String is a dot-separated path as used ly by the engine. These
 	 * examples should work:
 	 *
@@ -526,23 +553,23 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * myKnot.myStitch.myLabelledChoice
 	 *
 	 * ...because of the way that content is nested within a weave structure.
-	 * 
+	 *
 	 * By default this will reset the callstack beforehand, which means that any
 	 * tunnels, threads or functions you were in at the time of calling will be
 	 * discarded. This is different from the behaviour of ChooseChoiceIndex, which
 	 * will always keep the callstack, since the choices are known to come from the
 	 * correct state, and known their source thread.
-	 * 
+	 *
 	 * You have the option of passing false to the resetCallstack parameter if you
 	 * don't want this behaviour, and will leave any active threads, tunnels or
 	 * function calls in-tact.
-	 * 
+	 *
 	 * This is potentially dangerous! If you're in the middle of a tunnel, it'll
 	 * redirect only the inner-most tunnel, meaning that when you tunnel-return
 	 * using '-&gt;-&gt;-&gt;', it'll return to where you were before. This may be
 	 * what you want though. However, if you're in the middle of a function,
 	 * ChoosePathString will throw an exception.
-	 * 
+	 *
 	 *
 	 * @param path           A dot-separted path string, as specified above.
 	 * @param resetCallstack Whether to reset the callstack first (see summary
@@ -608,7 +635,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * if there's more content available, for example if you want to check whether
 	 * you're at a choice point or at the end of the story, you should call
 	 * canContinue before calling this function.
-	 * 
+	 *
 	 * @return The line of text content.
 	 */
 	public String Continue() throws StoryException, Exception {
@@ -831,7 +858,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Continue the story until the next choice point or until it runs out of
 	 * content. This is as opposed to the Continue() method which only evaluates one
 	 * line of output at a time.
-	 * 
+	 *
 	 * @return The resulting text evaluated by the ink engine, concatenated
 	 *         together.
 	 */
@@ -960,7 +987,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Gets a list of tags as defined with '#' in source that were seen during the
 	 * latest Continue() call.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public List<String> getCurrentTags() throws Exception {
@@ -984,7 +1011,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * The latest line of text to be generated from a Continue() call.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public String getCurrentText() throws Exception {
@@ -1099,7 +1126,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * back again to its original value, it will still be called. Note that the
 	 * observer will also be fired if the value of the variable is changed
 	 * externally to the ink, by directly setting a value in story.variablesState.
-	 * 
+	 *
 	 * @param variableName The name of the global variable to observe.
 	 * @param observer     A delegate function to call when the variable changes.
 	 * @throws Exception
@@ -1128,7 +1155,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * Convenience function to allow multiple variables to be observed with the same
 	 * observer delegate function. See the singular ObserveVariable for details. The
 	 * observer will get one call for every variable that has changed.
-	 * 
+	 *
 	 * @param variableNames The set of variables to observe.
 	 * @param observer      The delegate function to call when any of the named
 	 *                      variables change.
@@ -1147,7 +1174,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * If you pass a specific variable name, it will stop observing that particular
 	 * one. If you pass null (or leave it blank, since it's optional), then the
 	 * observer will be removed from all variables that it's subscribed to.
-	 * 
+	 *
 	 * @param observer             The observer to stop observing.
 	 * @param specificVariableName (Optional) Specific variable name to stop
 	 *                             observing.
@@ -1332,7 +1359,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Checks whether contentObj is a control or flow Object rather than a piece of
 	 * content, and performs the required command if necessary.
-	 * 
+	 *
 	 * @return true if Object was logic or flow control, false if it's normal
 	 *         content.
 	 * @param contentObj Content Object.
@@ -2181,7 +2208,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * The Story itself in JSON representation.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public String toJson() throws Exception {
@@ -2193,7 +2220,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * The Story itself in JSON representation.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void toJson(OutputStream stream) throws Exception {
@@ -2437,7 +2464,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * Evaluates a function defined in ink.
-	 * 
+	 *
 	 * @param functionName The name of the function as declared in ink.
 	 * @param arguments    The arguments that the ink function takes, if any. Note
 	 *                     that we don't (can't) do any validation on the number of
@@ -2456,7 +2483,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 	/**
 	 * Checks if a function exists.
-	 * 
+	 *
 	 * @return True if the function exists, else false.
 	 * @param functionName The name of the function as declared in ink.
 	 */
@@ -2471,7 +2498,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Evaluates a function defined in ink, and gathers the possibly multi-line text
 	 * as generated by the function.
-	 * 
+	 *
 	 * @param arguments    The arguments that the ink function takes, if any. Note
 	 *                     that we don't (can't) do any validation on the number of
 	 *                     arguments right now, so make sure you get it right!
@@ -2569,7 +2596,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * When you've finished saving your state, call BackgroundSaveComplete() and
 	 * that diff patch will be applied, allowing the story to continue in its usual
 	 * mode.
-	 * 
+	 *
 	 * @return The state for background thread save.
 	 * @throws Exception
 	 */
