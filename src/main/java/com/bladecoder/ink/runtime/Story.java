@@ -28,6 +28,84 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	public interface ExternalFunction<R> {
 		R call(Object[] args) throws Exception;
+
+		abstract class ZeroArguments<R> implements ExternalFunction<R> {
+			@Override
+			public final R call(Object[] args) throws Exception {
+				if (args.length != 0) {
+					throw new IllegalArgumentException("Expecting 0 arguments.");
+				}
+				return call();
+			}
+
+			protected abstract R call() throws Exception;
+		}
+
+		abstract class OneArgument<T, R> implements ExternalFunction<R> {
+			@Override
+			public final R call(Object[] args) throws Exception {
+				if (args.length != 1) {
+					throw new IllegalArgumentException("Expecting 1 argument.");
+				}
+				return call(coerceArg(args[0]));
+			}
+
+			protected abstract R call(T t) throws Exception;
+
+			@SuppressWarnings("unchecked")
+			protected T coerceArg(Object arg) throws Exception {
+				return (T) arg;
+			}
+		}
+
+		abstract class TwoArguments<T1, T2, R> implements ExternalFunction<R> {
+			@Override
+			public final R call(Object[] args) throws Exception {
+				if (args.length != 2) {
+					throw new IllegalArgumentException("Expecting 2 arguments.");
+				}
+				return call(coerceFirstArg(args[0]), coerceSecondArg(args[1]));
+			}
+
+			protected abstract R call(T1 t1, T2 t2) throws Exception;
+
+			@SuppressWarnings("unchecked")
+			protected T1 coerceFirstArg(Object arg) throws Exception {
+				return (T1) arg;
+			}
+
+			@SuppressWarnings("unchecked")
+			protected T2 coerceSecondArg(Object arg) throws Exception {
+				return (T2) arg;
+			}
+		}
+
+		abstract class ThreeArguments<T1, T2, T3, R> implements ExternalFunction<R> {
+			@Override
+			public final R call(Object[] args) throws Exception {
+				if (args.length != 3) {
+					throw new IllegalArgumentException("Expecting 3 arguments.");
+				}
+				return call(coerceFirstArg(args[0]), coerceSecondArg(args[1]), coerceThirdArg(args[2]));
+			}
+
+			protected abstract R call(T1 t1, T2 t2, T3 t3) throws Exception;
+
+			@SuppressWarnings("unchecked")
+			protected T1 coerceFirstArg(Object arg) throws Exception {
+				return (T1) arg;
+			}
+
+			@SuppressWarnings("unchecked")
+			protected T2 coerceSecondArg(Object arg) throws Exception {
+				return (T2) arg;
+			}
+
+			@SuppressWarnings("unchecked")
+			protected T3 coerceThirdArg(Object arg) throws Exception {
+				return (T3) arg;
+			}
+		}
 	}
 
 	// Version numbers are for engine itself and story file, rather

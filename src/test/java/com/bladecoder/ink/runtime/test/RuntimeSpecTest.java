@@ -24,14 +24,21 @@ public class RuntimeSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function.ink.json");
 		final Story story = new Story(json);
 
-		story.bindExternalFunction("externalFunction", new ExternalFunction<Integer>() {
+		story.bindExternalFunction("externalFunction", new ExternalFunction.TwoArguments<Integer, Integer, Integer>() {
 
 			@Override
-			public Integer call(Object[] args) throws Exception {
-				int x = story.tryCoerce(args[0], Integer.class);
-				int y = story.tryCoerce(args[1], Integer.class);
-
+			public Integer call(Integer x, Integer y) {
 				return x - y;
+			}
+
+			@Override
+			protected Integer coerceFirstArg(Object arg) throws Exception {
+				return story.tryCoerce(arg, Integer.class);
+			}
+
+			@Override
+			protected Integer coerceSecondArg(Object arg) throws Exception {
+				return story.tryCoerce(arg, Integer.class);
 			}
 		});
 
