@@ -182,8 +182,8 @@ public class Json {
 		}
 
 		// Variable reference
-		VariableReference varRef = (VariableReference) obj;
 		if (obj instanceof VariableReference) {
+			VariableReference varRef = (VariableReference) obj;
 			writer.writeObjectStart();
 
 			String readCountPath = varRef.getPathStringForCount();
