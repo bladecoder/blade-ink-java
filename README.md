@@ -8,7 +8,7 @@ This is a Java port of inkle's [ink](https://github.com/inkle/ink), a scripting 
 
 ### Loading a json file
 
-First you need to turn your ink file into a json file [as described here](https://github.com/inkle/ink#using-inklecate-on-the-command-line).  Here is an example to load the ink JSON file as an String:
+First you need to turn your ink file into a json file [as described here](https://github.com/inkle/ink#using-inklecate-on-the-command-line).  Here is an example to load the ink JSON file as a String:
 
 ```java
 InputStream systemResourceAsStream = ClassLoader.getSystemResourceAsStream(filename);
@@ -40,22 +40,19 @@ Here's a taster of the code you need to get started:
 // 1) Load story
 Story story = new Story(sourceJsonString);
 
-
 // 2) Game content, line by line
 while (story.canContinue()) {
-		String line = story.Continue();
-		System.out.print(line);
+	String line = story.Continue();
+	System.out.print(line);
 }
 
 // 3) Display story.currentChoices list, allow player to choose one
 if (story.getCurrentChoices().size() > 0) {
-
-		for (Choice c : story.getCurrentChoices()) {
-			System.out.println(c.getText());
-		}
-
-		story.chooseChoiceIndex(0);
+	for (Choice c : story.getCurrentChoices()) {
+		System.out.println(c.getText());
 	}
+
+	story.chooseChoiceIndex(0);
 }
 
 // 4) Back to 2
@@ -70,7 +67,7 @@ The **blade-ink** library is available in the Maven archives.
 
 ### Using with Gradle
 
-Add the following line to your build.gradle file under the dependencies section of the core project:
+Add the following line to your `build.gradle` file under the dependencies section of the core project:
 
 ```gradle
 compile "com.bladecoder.ink:blade-ink:{version}"
