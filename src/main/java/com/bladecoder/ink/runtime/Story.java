@@ -79,7 +79,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 *
 	 * @param <T1> the first argument type
 	 * @param <T2> the second argument type
-	 * @param <R> the result type
+	 * @param <R>  the result type
 	 */
 	public abstract static class ExternalFunction2<T1, T2, R> implements ExternalFunction<R> {
 		@Override
@@ -109,7 +109,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @param <T1> the first argument type
 	 * @param <T2> the second argument type
 	 * @param <T3> the third argument type
-	 * @param <R> the result type
+	 * @param <R>  the result type
 	 */
 	public abstract static class ExternalFunction3<T1, T2, T3, R> implements ExternalFunction<R> {
 		@Override

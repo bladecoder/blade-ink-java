@@ -338,16 +338,28 @@ public class VariablesState implements Iterable<String> {
 	}
 
 	void setGlobal(String variableName, RTObject value) throws Exception {
-		RTObject oldValue = globalVariables.get(variableName);
+		RTObject oldValue = null;
+
+		if (patch != null)
+			oldValue = patch.getGlobal(variableName);
+
+		if (oldValue == null)
+			oldValue = globalVariables.get(variableName);
 
 		ListValue.retainListOriginsForAssignment(oldValue, value);
 
-		globalVariables.put(variableName, value);
+		if (patch != null)
+			patch.setGlobal(variableName, value);
+		else
+			globalVariables.put(variableName, value);
 
 		if (getVariableChangedEvent() != null && !value.equals(oldValue)) {
 
 			if (getbatchObservingVariableChanges()) {
-				changedVariablesForBatchObs.add(variableName);
+				if (patch != null)
+					patch.addChangedVariable(variableName);
+				else if (changedVariablesForBatchObs != null)
+					changedVariablesForBatchObs.add(variableName);
 			} else {
 				getVariableChangedEvent().variableStateDidChangeEvent(variableName, value);
 			}
