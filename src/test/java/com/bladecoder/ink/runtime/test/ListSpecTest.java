@@ -77,10 +77,10 @@ public class ListSpecTest {
 		story.choosePathString("elsewhere");
 		// FIXME: This is the test from the C# impl. Is it correct?
 //		Assert.assertEquals("a, x, c, z\n", story.continueMaximally());
-		
+
 		Assert.assertEquals("z\n", story.continueMaximally());
 	}
-	
+
 	/**
 	 * "- TestEmptyListOriginAfterAssignment"
 	 */
@@ -92,14 +92,35 @@ public class ListSpecTest {
 
 		Assert.assertEquals("a, b, c\n", story.continueMaximally());
 	}
-	
-	//@Test
+
+	// @Test
 	public void testListRange() throws Exception {
 
 		String json = TestUtils.getJsonString("inkfiles/lists/list-range.ink.json");
 		Story story = new Story(json);
 
-		Assert.assertEquals("Pound, Pizza, Euro, Pasta, Dollar, Curry, Paella\nEuro, Pasta, Dollar, Curry\nTwo, Three, Four, Five, Six\nPizza, Pasta\n", story.continueMaximally());
+		Assert.assertEquals(
+				"Pound, Pizza, Euro, Pasta, Dollar, Curry, Paella\nEuro, Pasta, Dollar, Curry\nTwo, Three, Four, Five, Six\nPizza, Pasta\n",
+				story.continueMaximally());
+	}
+
+	@Test
+	public void testBugAddingElement() throws Exception {
+
+		String json = TestUtils.getJsonString("inkfiles/lists/bug-adding-element.ink.json");
+		Story story = new Story(json);
+
+		String s = story.continueMaximally();
+		Assert.assertEquals("", s);
+
+		story.chooseChoiceIndex(0);
+		s = story.continueMaximally();
+		Assert.assertEquals("a\n", s);
+
+		story.chooseChoiceIndex(1);
+		s = story.continueMaximally();
+		Assert.assertEquals("OK\n", s);
+
 	}
 
 }

@@ -475,6 +475,7 @@ public class StoryState {
 
 				if (rawList.getOrigins() == null)
 					rawList.setOrigins(new ArrayList<ListDefinition>());
+
 				rawList.getOrigins().clear();
 
 				for (String n : rawList.getOriginNames()) {

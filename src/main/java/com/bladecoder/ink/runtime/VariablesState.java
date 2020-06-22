@@ -216,9 +216,22 @@ public class VariablesState implements Iterable<String> {
 		RTObject varValue = null;
 		// 0 context = global
 		if (contextIndex == 0 || contextIndex == -1) {
+			if (patch != null && patch.getGlobal(name) != null)
+				return patch.getGlobal(name);
+
 			varValue = globalVariables.get(name);
 			if (varValue != null) {
 				return varValue;
+			}
+
+			// Getting variables can actually happen during globals set up since you can do
+			// VAR x = A_LIST_ITEM
+			// So _defaultGlobalVariables may be null.
+			// We need to do this check though in case a new global is added, so we need to
+			// revert to the default globals dictionary since an initial value hasn't yet
+			// been set.
+			if (defaultGlobalVariables != null && defaultGlobalVariables.containsKey(name)) {
+				return defaultGlobalVariables.get(name);
 			}
 
 			ListValue listItemValue = listDefsOrigin.findSingleItemListWithName(name);
