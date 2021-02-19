@@ -24,7 +24,7 @@ public class NativeFunctionCall extends RTObject {
 	public static final String LessThanOrEquals = "<=";
 	public static final String Max = "MAX";
 	public static final String Min = "MIN";
-	
+
 	public static final String Pow = "POW";
 	public static final String Floor = "FLOOR";
 	public static final String Ceiling = "CEILING";
@@ -107,7 +107,7 @@ public class NativeFunctionCall extends RTObject {
 
 	static void generateNativeFunctionsIfNecessary() {
 		if (nativeFunctions == null) {
-			nativeFunctions = new HashMap<String, NativeFunctionCall>();
+			nativeFunctions = new HashMap<>();
 
 			// Int operations
 			addIntBinaryOp(Add, new BinaryOp() {
@@ -227,10 +227,10 @@ public class NativeFunctionCall extends RTObject {
 			addIntBinaryOp(Pow, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (float)Math.pow((Integer) left, (Integer) right);
+					return (float) Math.pow((Integer) left, (Integer) right);
 				}
 			});
-			
+
 			addIntUnaryOp(Floor, new UnaryOp() {
 
 				@Override
@@ -256,7 +256,7 @@ public class NativeFunctionCall extends RTObject {
 
 				@Override
 				public Object invoke(Object val) {
-					return (Float)val;
+					return val;
 				}
 			});
 
@@ -375,26 +375,26 @@ public class NativeFunctionCall extends RTObject {
 					return Math.min((Float) left, (Float) right);
 				}
 			});
-			
+
 			addFloatBinaryOp(Pow, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (float)Math.pow((Float) left, (Float) right);
+					return (float) Math.pow((Float) left, (Float) right);
 				}
 			});
-			
+
 			addFloatUnaryOp(Floor, new UnaryOp() {
 
 				@Override
 				public Object invoke(Object val) {
-					return (float)Math.floor((double)val);
+					return (float) Math.floor((double) val);
 				}
 			});
 			addFloatUnaryOp(Ceiling, new UnaryOp() {
 
 				@Override
 				public Object invoke(Object val) {
-					return (float)Math.ceil((double)val);
+					return (float) Math.ceil((double) val);
 				}
 			});
 			addFloatUnaryOp(Int, new UnaryOp() {
@@ -433,14 +433,14 @@ public class NativeFunctionCall extends RTObject {
 					return (!((String) left).equals(right)) ? (Integer) 1 : (Integer) 0;
 				}
 			});
-			
+
 			addStringBinaryOp(Has, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
 					return (((String) left).contains(right.toString())) ? (Integer) 1 : (Integer) 0;
 				}
 			});
-			
+
 			addStringBinaryOp(Hasnt, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
@@ -510,7 +510,8 @@ public class NativeFunctionCall extends RTObject {
 				@Override
 				public Object invoke(Object left, Object right) {
 					return ((InkList) left).size() > 0 && ((InkList) left).greaterThanOrEquals((InkList) right)
-							? (Integer) 1 : (Integer) 0;
+							? (Integer) 1
+							: (Integer) 0;
 				}
 			});
 
@@ -518,7 +519,8 @@ public class NativeFunctionCall extends RTObject {
 				@Override
 				public Object invoke(Object left, Object right) {
 					return ((InkList) left).size() > 0 && ((InkList) left).lessThanOrEquals((InkList) right)
-							? (Integer) 1 : (Integer) 0;
+							? (Integer) 1
+							: (Integer) 0;
 				}
 			});
 
@@ -528,18 +530,18 @@ public class NativeFunctionCall extends RTObject {
 					return (!((InkList) left).equals(right) ? (Integer) 1 : (Integer) 0);
 				}
 			});
-			
+
 			addListBinaryOp(And, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (((InkList) left).size() > 0 && ((InkList) right).size() > 0? (Integer) 1 : (Integer) 0);
+					return (((InkList) left).size() > 0 && ((InkList) right).size() > 0 ? (Integer) 1 : (Integer) 0);
 				}
 			});
-			
+
 			addListBinaryOp(Or, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (((InkList) left).size() > 0 || ((InkList) right).size() > 0? (Integer) 1 : (Integer) 0);
+					return (((InkList) left).size() > 0 || ((InkList) right).size() > 0 ? (Integer) 1 : (Integer) 0);
 				}
 			});
 
@@ -599,16 +601,16 @@ public class NativeFunctionCall extends RTObject {
 
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((Path) left).equals((Path) left) ? (Integer) 1 : (Integer) 0;
+					return ((Path) left).equals((Path) right) ? (Integer) 1 : (Integer) 0;
 				}
 
 			};
-			
-			BinaryOp divertTargetsNotEqual  = new BinaryOp() {
+
+			BinaryOp divertTargetsNotEqual = new BinaryOp() {
 
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((Path) left).equals((Path) left) ? (Integer) 0 : (Integer) 1;
+					return ((Path) left).equals((Path) right) ? (Integer) 0 : (Integer) 1;
 				}
 
 			};
@@ -648,7 +650,7 @@ public class NativeFunctionCall extends RTObject {
 
 	void addOpFuncForType(ValueType valType, Object op) {
 		if (operationFuncs == null) {
-			operationFuncs = new HashMap<ValueType, Object>();
+			operationFuncs = new HashMap<>();
 		}
 
 		operationFuncs.put(valType, op);
@@ -722,7 +724,7 @@ public class NativeFunctionCall extends RTObject {
 
 		// Normal (list • list) operation
 		if (v1.getValueType() == ValueType.List && v2.getValueType() == ValueType.List) {
-			List<Value<?>> p = new ArrayList<Value<?>>();
+			List<Value<?>> p = new ArrayList<>();
 			p.add(v1);
 			p.add(v2);
 
@@ -830,11 +832,7 @@ public class NativeFunctionCall extends RTObject {
 		}
 
 		// // Coerce to this chosen type
-		ArrayList<Value<?>> parametersOut = new ArrayList<Value<?>>();
-		// for (RTObject p : parametersIn) {
-		// Value<?> val = (Value<?>) p;
-		// Value<?> castedValue = (Value<?>) val.cast(valType);
-		// parametersOut.add(castedValue);
+		ArrayList<Value<?>> parametersOut = new ArrayList<>();
 
 		// Special case: Coercing to Ints to Lists
 		// We have to do it early when we have both parameters
