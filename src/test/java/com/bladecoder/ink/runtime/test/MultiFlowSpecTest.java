@@ -1,8 +1,5 @@
 package com.bladecoder.ink.runtime.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -12,7 +9,6 @@ public class MultiFlowSpecTest {
 
 	@Test
 	public void basics() throws Exception {
-		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/multiflow-basics.ink.json");
 		Story story = new Story(json);
@@ -34,7 +30,6 @@ public class MultiFlowSpecTest {
 
 	@Test
 	public void testMultiFlowSaveLoadThreads() throws Exception {
-		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/multiflow-saveloadthreads.ink.json");
 		Story story = new Story(json);
