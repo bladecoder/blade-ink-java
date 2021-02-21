@@ -11,8 +11,8 @@ import com.bladecoder.ink.runtime.Story;
 import com.bladecoder.ink.runtime.Story.ExternalFunction;
 import com.bladecoder.ink.runtime.Story.ExternalFunction0;
 import com.bladecoder.ink.runtime.Story.ExternalFunction1;
-import com.bladecoder.ink.runtime.Story.ExternalFunction3;
 import com.bladecoder.ink.runtime.Story.ExternalFunction2;
+import com.bladecoder.ink.runtime.Story.ExternalFunction3;
 import com.bladecoder.ink.runtime.Story.VariableObserver;
 import com.bladecoder.ink.runtime.StoryException;
 
@@ -23,7 +23,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void externalFunction() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-2-arg.ink.json");
 		final Story story = new Story(json);
@@ -48,7 +48,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void externalFunctionZeroArguments() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-0-arg.ink.json");
 		final Story story = new Story(json);
@@ -71,7 +71,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void externalFunctionOneArgument() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-1-arg.ink.json");
 		final Story story = new Story(json);
@@ -86,7 +86,7 @@ public class RuntimeSpecTest {
 
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals(1, text.size());
-		Assert.assertEquals("The value is 0.", text.get(0));
+		Assert.assertEquals("The value is false.", text.get(0));
 	}
 
 	/**
@@ -94,7 +94,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void externalFunctionOneArgumentCoerceOverride() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-1-arg.ink.json");
 		final Story story = new Story(json);
@@ -114,7 +114,7 @@ public class RuntimeSpecTest {
 
 		TestUtils.nextAll(story, text);
 		Assert.assertEquals(1, text.size());
-		Assert.assertEquals("The value is 0.", text.get(0));
+		Assert.assertEquals("The value is false.", text.get(0));
 	}
 
 	/**
@@ -122,7 +122,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void externalFunctionTwoArguments() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-2-arg.ink.json");
 		final Story story = new Story(json);
@@ -145,7 +145,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void externalFunctionTwoArgumentsCoerceOverride() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-2-arg.ink.json");
 		final Story story = new Story(json);
@@ -178,7 +178,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void externalFunctionThreeArguments() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-3-arg.ink.json");
 		final Story story = new Story(json);
@@ -201,7 +201,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void externalFunctionThreeArgumentsCoerceOverride() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-3-arg.ink.json");
 		final Story story = new Story(json);
@@ -239,7 +239,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void externalFunctionFallback() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/external-function-2-arg.ink.json");
 		Story story = new Story(json);
@@ -258,7 +258,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void variableObservers() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/variable-observers.ink.json");
 		Story story = new Story(json);
@@ -290,7 +290,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void setAndGetVariable() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/set-get-variables.ink.json");
 		Story story = new Story(json);
@@ -315,7 +315,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void testSetNonExistantVariable() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/set-get-variables.ink.json");
 		Story story = new Story(json);
@@ -325,7 +325,7 @@ public class RuntimeSpecTest {
 		try {
 			story.getVariablesState().set("y", "earth");
 			Assert.fail("Setting non existant variable.");
-		} catch(StoryException e) {
+		} catch (StoryException e) {
 
 		}
 
@@ -347,7 +347,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void jumpKnot() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/jump-knot.ink.json");
 		Story story = new Story(json);
@@ -377,7 +377,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void profiler() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/jump-knot.ink.json");
 		Story story = new Story(json);
@@ -408,7 +408,7 @@ public class RuntimeSpecTest {
 	 */
 	@Test
 	public void jumpStitch() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/jump-stitch.ink.json");
 		Story story = new Story(json);
@@ -435,11 +435,12 @@ public class RuntimeSpecTest {
 	}
 
 	/**
-	 * Read the visit counts from code.
+	 * Read the visit counts from code. The .ink file must be compiled with the '-c'
+	 * flag in inklecate.
 	 */
 	@Test
 	public void readVisitCounts() throws Exception {
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		String json = TestUtils.getJsonString("inkfiles/runtime/read-visit-counts.ink.json");
 		Story story = new Story(json);
@@ -454,7 +455,7 @@ public class RuntimeSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/runtime/load-save.ink.json");
 		Story story = new Story(json);
 
-		List<String> text = new ArrayList<String>();
+		List<String> text = new ArrayList<>();
 
 		TestUtils.nextAll(story, text);
 
@@ -475,8 +476,7 @@ public class RuntimeSpecTest {
 		story.chooseChoiceIndex(0);
 
 		TestUtils.nextAll(story, text);
-		Assert.assertEquals(
-				"\"There is not a moment to lose!\" I declared.", text.get(1));
+		Assert.assertEquals("\"There is not a moment to lose!\" I declared.", text.get(1));
 		Assert.assertEquals("We hurried home to Savile Row as fast as we could.", text.get(2));
 
 		// check that we are at the end

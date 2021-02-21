@@ -160,7 +160,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * The current version of the ink story file format.
 	 */
-	public static final int inkVersionCurrent = 19;
+	public static final int inkVersionCurrent = 20;
 
 	/**
 	 * The minimum legacy version of ink that can be loaded by the current version
@@ -359,6 +359,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (value instanceof Integer && type == Boolean.class) {
 			int intVal = (Integer) value;
 			return (T) (intVal == 0 ? Boolean.FALSE : Boolean.TRUE);
+		}
+
+		if (value instanceof Boolean && type == Integer.class) {
+			boolean val = (Boolean) value;
+			return (T) (val ? (Integer) 1 : (Integer) 0);
 		}
 
 		if (type == String.class) {
@@ -628,6 +633,30 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			return namedContainer instanceof Container ? (Container) namedContainer : null;
 		else
 			return null;
+	}
+
+	/**
+	 * The current flow name if using multi-flow funtionality - see SwitchFlow
+	 */
+	public String getCurrentFlowName() {
+		return state.getCurrentFlowName();
+	}
+
+	public void switchFlow(String flowName) throws Exception {
+		ifAsyncWeCant("switch flow");
+
+		if (asyncSaving)
+			throw new Exception("Story is already in background saving mode, can't switch flow to " + flowName);
+
+		state.switchFlowInternal(flowName);
+	}
+
+	public void removeFlow(String flowName) throws Exception {
+		state.removeFlowInternal(flowName);
+	}
+
+	public void switchToDefaultFlow() throws Exception {
+		state.switchToDefaultFlowInternal();
 	}
 
 	/**
@@ -2423,6 +2452,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				? (Container) currentChildOfContainer.getParent()
 				: null;
 
+		boolean allChildrenEnteredAtStart = true;
 		while (currentContainerAncestor != null && (!prevContainers.contains(currentContainerAncestor)
 				|| currentContainerAncestor.getCountingAtStartOnly())) {
 
@@ -2430,7 +2460,15 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			// start,
 			// by checking whether the child Object is the first.
 			boolean enteringAtStart = currentContainerAncestor.getContent().size() > 0
-					&& currentChildOfContainer == currentContainerAncestor.getContent().get(0);
+					&& currentChildOfContainer == currentContainerAncestor.getContent().get(0)
+					&& allChildrenEnteredAtStart;
+
+			// Don't count it as entering at start if we're entering random somewhere within
+			// a container B that happens to be nested at index 0 of container A. It only
+			// counts
+			// if we're diverting directly to the first leaf node.
+			if (!enteringAtStart)
+				allChildrenEnteredAtStart = false;
 
 			// Mark a visit to this container
 			visitContainer(currentContainerAncestor, enteringAtStart);

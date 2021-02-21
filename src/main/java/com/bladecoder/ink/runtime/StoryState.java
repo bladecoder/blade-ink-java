@@ -4,11 +4,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
 import com.bladecoder.ink.runtime.CallStack.Element;
-import com.bladecoder.ink.runtime.CallStack.Thread;
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
 
@@ -23,15 +23,13 @@ public class StoryState {
 	/**
 	 * The current version of the state save file JSON-based format.
 	 */
-	public static final int kInkSaveStateVersion = 8;
+	public static final int kInkSaveStateVersion = 9;
 	public static final int kMinCompatibleLoadVersion = 8;
+	public static final String kDefaultFlowName = "DEFAULT_FLOW";
 
 	// REMEMBER! REMEMBER! REMEMBER!
 	// When adding state, update the Copy method and serialisation
 	// REMEMBER! REMEMBER! REMEMBER!
-	private List<RTObject> outputStream;
-	private CallStack callStack;
-	private List<Choice> currentChoices;
 	private List<String> currentErrors;
 	private List<String> currentWarnings;
 	private int currentTurnIndex;
@@ -52,16 +50,18 @@ public class StoryState {
 
 	private StatePatch patch;
 
+	private HashMap<String, Flow> namedFlows;
+	private Flow currentFlow;
+
 	StoryState(Story story) {
 		this.story = story;
 
-		outputStream = new ArrayList<>();
+		currentFlow = new Flow(kDefaultFlowName, story);
 		outputStreamDirty();
 
 		evaluationStack = new ArrayList<>();
 
-		callStack = new CallStack(story);
-		variablesState = new VariablesState(callStack, story.getListDefinitions());
+		variablesState = new VariablesState(getCallStack(), story.getListDefinitions());
 
 		visitCounts = new HashMap<>();
 		turnIndices = new HashMap<>();
@@ -73,13 +73,11 @@ public class StoryState {
 		storySeed = new Random(timeSeed).nextInt() % 100;
 		previousRandom = 0;
 
-		currentChoices = new ArrayList<>();
-
 		goToStart();
 	}
 
 	int getCallStackDepth() {
-		return callStack.getDepth();
+		return getCallStack().getDepth();
 	}
 
 	void addError(String message, boolean isWarning) {
@@ -105,9 +103,26 @@ public class StoryState {
 		StoryState copy = new StoryState(story);
 
 		copy.patch = new StatePatch(patch);
-		copy.getOutputStream().addAll(outputStream);
+
+		// Hijack the new default flow to become a copy of our current one
+		// If the patch is applied, then this new flow will replace the old one in
+		// _namedFlows
+		copy.currentFlow.name = currentFlow.name;
+		copy.currentFlow.callStack = new CallStack(currentFlow.callStack);
+		copy.currentFlow.currentChoices.addAll(currentFlow.currentChoices);
+		copy.currentFlow.outputStream.addAll(currentFlow.outputStream);
 		copy.outputStreamDirty();
-		copy.currentChoices.addAll(currentChoices);
+
+		// The copy of the state has its own copy of the named flows dictionary,
+		// except with the current flow replaced with the copy above
+		// (Assuming we're in multi-flow mode at all. If we're not then
+		// the above copy is simply the default flow copy and we're done)
+		if (namedFlows != null) {
+			copy.namedFlows = new HashMap<>();
+			for (Map.Entry<String, Flow> namedFlow : namedFlows.entrySet())
+				copy.namedFlows.put(namedFlow.getKey(), namedFlow.getValue());
+			copy.namedFlows.put(currentFlow.name, copy.currentFlow);
+		}
 
 		if (hasError()) {
 			copy.currentErrors = new ArrayList<>();
@@ -119,13 +134,11 @@ public class StoryState {
 			copy.currentWarnings.addAll(currentWarnings);
 		}
 
-		copy.callStack = new CallStack(callStack);
-
 		// ref copy - exactly the same variables state!
 		// we're expecting not to read it only while in patch mode
 		// (though the callstack will be modified)
 		copy.variablesState = variablesState;
-		copy.variablesState.setCallStack(copy.callStack);
+		copy.variablesState.setCallStack(copy.getCallStack());
 		copy.variablesState.setPatch(copy.patch);
 
 		copy.evaluationStack.addAll(evaluationStack);
@@ -150,7 +163,7 @@ public class StoryState {
 	}
 
 	void popFromOutputStream(int count) {
-		outputStream.subList(outputStream.size() - count, outputStream.size()).clear();
+		getOutputStream().subList(getOutputStream().size() - count, getOutputStream().size()).clear();
 
 		outputStreamDirty();
 	}
@@ -159,7 +172,7 @@ public class StoryState {
 		if (outputStreamTextDirty) {
 			StringBuilder sb = new StringBuilder();
 
-			for (RTObject outputObj : outputStream) {
+			for (RTObject outputObj : getOutputStream()) {
 				StringValue textContent = null;
 				if (outputObj instanceof StringValue)
 					textContent = (StringValue) outputObj;
@@ -222,9 +235,9 @@ public class StoryState {
 	 */
 	public void forceEnd() throws Exception {
 
-		callStack.reset();
+		getCallStack().reset();
 
-		currentChoices.clear();
+		currentFlow.currentChoices.clear();
 
 		setCurrentPointer(Pointer.Null);
 		setPreviousPointer(Pointer.Null);
@@ -237,9 +250,9 @@ public class StoryState {
 	// The start whitespace is discard as it is generated, and the end
 	// whitespace is trimmed in one go here when we pop the function.
 	void trimWhitespaceFromFunctionEnd() {
-		assert (callStack.getCurrentElement().type == PushPopType.Function);
+		assert (getCallStack().getCurrentElement().type == PushPopType.Function);
 
-		int functionStartPoint = callStack.getCurrentElement().functionStartInOuputStream;
+		int functionStartPoint = getCallStack().getCurrentElement().functionStartInOuputStream;
 
 		// If the start point has become -1, it means that some non-whitespace
 		// text has been pushed, so it's safe to go as far back as we're able.
@@ -248,8 +261,8 @@ public class StoryState {
 		}
 
 		// Trim whitespace from END of function call
-		for (int i = outputStream.size() - 1; i >= functionStartPoint; i--) {
-			RTObject obj = outputStream.get(i);
+		for (int i = getOutputStream().size() - 1; i >= functionStartPoint; i--) {
+			RTObject obj = getOutputStream().get(i);
 
 			if (!(obj instanceof StringValue))
 				continue;
@@ -259,7 +272,7 @@ public class StoryState {
 				break;
 
 			if (txt.isNewline() || txt.isInlineWhitespace()) {
-				outputStream.remove(i);
+				getOutputStream().remove(i);
 				outputStreamDirty();
 			} else {
 				break;
@@ -273,21 +286,21 @@ public class StoryState {
 
 	void popCallstack(PushPopType popType) throws Exception {
 		// Add the end of a function call, trim any whitespace from the end.
-		if (callStack.getCurrentElement().type == PushPopType.Function)
+		if (getCallStack().getCurrentElement().type == PushPopType.Function)
 			trimWhitespaceFromFunctionEnd();
 
-		callStack.pop(popType);
+		getCallStack().pop(popType);
 	}
 
 	Pointer getCurrentPointer() {
-		return callStack.getCurrentElement().currentPointer;
+		return getCallStack().getCurrentElement().currentPointer;
 	}
 
 	List<String> getCurrentTags() {
 		if (outputStreamTagsDirty) {
 			currentTags = new ArrayList<>();
 
-			for (RTObject outputObj : outputStream) {
+			for (RTObject outputObj : getOutputStream()) {
 				Tag tag = null;
 				if (outputObj instanceof Tag)
 					tag = (Tag) outputObj;
@@ -302,16 +315,67 @@ public class StoryState {
 		return currentTags;
 	}
 
+	public String getCurrentFlowName() {
+		return currentFlow.name;
+	}
+
 	boolean getInExpressionEvaluation() {
-		return callStack.getCurrentElement().inExpressionEvaluation;
+		return getCallStack().getCurrentElement().inExpressionEvaluation;
 	}
 
 	Pointer getPreviousPointer() {
-		return callStack.getcurrentThread().previousPointer;
+		return getCallStack().getcurrentThread().previousPointer;
 	}
 
 	void goToStart() {
-		callStack.getCurrentElement().currentPointer.assign(Pointer.startOf(story.getMainContentContainer()));
+		getCallStack().getCurrentElement().currentPointer.assign(Pointer.startOf(story.getMainContentContainer()));
+	}
+
+	void switchFlowInternal(String flowName) throws Exception {
+		if (flowName == null)
+			throw new Exception("Must pass a non-null string to Story.SwitchFlow");
+
+		if (namedFlows == null) {
+			namedFlows = new HashMap<>();
+			namedFlows.put(kDefaultFlowName, currentFlow);
+		}
+
+		if (flowName.equals(currentFlow.name)) {
+			return;
+		}
+
+		Flow flow = namedFlows.get(flowName);
+		if (flow == null) {
+			flow = new Flow(flowName, story);
+			namedFlows.put(flowName, flow);
+		}
+
+		currentFlow = flow;
+		variablesState.setCallStack(currentFlow.callStack);
+
+		// Cause text to be regenerated from output stream if necessary
+		outputStreamDirty();
+	}
+
+	void switchToDefaultFlowInternal() throws Exception {
+		if (namedFlows == null)
+			return;
+
+		switchFlowInternal(kDefaultFlowName);
+	}
+
+	void removeFlowInternal(String flowName) throws Exception {
+		if (flowName == null)
+			throw new Exception("Must pass a non-null string to Story.DestroyFlow");
+		if (flowName.equals(kDefaultFlowName))
+			throw new Exception("Cannot destroy default flow");
+
+		// If we're currently in the flow that's being removed, switch back to default
+		if (currentFlow.name.equals(flowName)) {
+			switchToDefaultFlowInternal();
+		}
+
+		namedFlows.remove(flowName);
 	}
 
 	boolean hasError() {
@@ -319,8 +383,9 @@ public class StoryState {
 	}
 
 	boolean inStringEvaluation() {
-		for (int i = outputStream.size() - 1; i >= 0; i--) {
-			ControlCommand cmd = outputStream.get(i) instanceof ControlCommand ? (ControlCommand) outputStream.get(i)
+		for (int i = getOutputStream().size() - 1; i >= 0; i--) {
+			ControlCommand cmd = getOutputStream().get(i) instanceof ControlCommand
+					? (ControlCommand) getOutputStream().get(i)
 					: null;
 
 			if (cmd != null && cmd.getCommandType() == ControlCommand.CommandType.BeginString) {
@@ -342,14 +407,17 @@ public class StoryState {
 	}
 
 	List<Choice> getCurrentChoices() {
+		// If we can continue generating text content rather than choices,
+		// then we reflect the choice list as being empty, since choices
+		// should always come at the end.
 		if (canContinue())
 			return new ArrayList<>();
 
-		return currentChoices;
+		return currentFlow.currentChoices;
 	}
 
 	List<Choice> getGeneratedChoices() {
-		return currentChoices;
+		return currentFlow.currentChoices;
 	}
 
 	boolean canContinue() {
@@ -369,11 +437,11 @@ public class StoryState {
 	}
 
 	List<RTObject> getOutputStream() {
-		return outputStream;
+		return currentFlow.outputStream;
 	}
 
 	CallStack getCallStack() {
-		return callStack;
+		return currentFlow.callStack;
 	}
 
 	VariablesState getVariablesState() {
@@ -405,7 +473,7 @@ public class StoryState {
 	}
 
 	boolean outputStreamContainsContent() {
-		for (RTObject content : outputStream) {
+		for (RTObject content : getOutputStream()) {
 			if (content instanceof StringValue)
 				return true;
 		}
@@ -413,13 +481,14 @@ public class StoryState {
 	}
 
 	boolean outputStreamEndsInNewline() {
-		if (outputStream.size() > 0) {
+		if (getOutputStream().size() > 0) {
 
-			for (int i = outputStream.size() - 1; i >= 0; i--) {
-				RTObject obj = outputStream.get(i);
+			for (int i = getOutputStream().size() - 1; i >= 0; i--) {
+				RTObject obj = getOutputStream().get(i);
 				if (obj instanceof ControlCommand) // e.g. BeginString
 					break;
-				StringValue text = outputStream.get(i) instanceof StringValue ? (StringValue) outputStream.get(i)
+				StringValue text = getOutputStream().get(i) instanceof StringValue
+						? (StringValue) getOutputStream().get(i)
 						: null;
 
 				if (text != null) {
@@ -529,7 +598,7 @@ public class StoryState {
 
 			// Where does the current function call begin?
 			int functionTrimIndex = -1;
-			Element currEl = callStack.getCurrentElement();
+			Element currEl = getCallStack().getCurrentElement();
 			if (currEl.type == PushPopType.Function) {
 				functionTrimIndex = currEl.functionStartInOuputStream;
 			}
@@ -540,8 +609,8 @@ public class StoryState {
 			// If we're in string eval within the current function, we
 			// don't want to trim back further than the length of the current string.
 			int glueTrimIndex = -1;
-			for (int i = outputStream.size() - 1; i >= 0; i--) {
-				RTObject o = outputStream.get(i);
+			for (int i = getOutputStream().size() - 1; i >= 0; i--) {
+				RTObject o = getOutputStream().get(i);
 				ControlCommand c = o instanceof ControlCommand ? (ControlCommand) o : null;
 				Glue g = o instanceof Glue ? (Glue) o : null;
 
@@ -587,7 +656,7 @@ public class StoryState {
 					// Tell all functions in callstack that we have seen proper text,
 					// so trimming whitespace at the start is done.
 					if (functionTrimIndex > -1) {
-						List<Element> callstackElements = callStack.getElements();
+						List<Element> callstackElements = getCallStack().getElements();
 						for (int i = callstackElements.size() - 1; i >= 0; i--) {
 							Element el = callstackElements.get(i);
 							if (el.type == PushPopType.Function) {
@@ -608,7 +677,7 @@ public class StoryState {
 		}
 
 		if (includeInOutput) {
-			outputStream.add(obj);
+			getOutputStream().add(obj);
 			outputStreamDirty();
 		}
 
@@ -616,10 +685,10 @@ public class StoryState {
 
 	// Only called when non-whitespace is appended
 	void removeExistingGlue() {
-		for (int i = outputStream.size() - 1; i >= 0; i--) {
-			RTObject c = outputStream.get(i);
+		for (int i = getOutputStream().size() - 1; i >= 0; i--) {
+			RTObject c = getOutputStream().get(i);
 			if (c instanceof Glue) {
-				outputStream.remove(i);
+				getOutputStream().remove(i);
 			} else if (c instanceof ControlCommand) { // e.g.
 														// BeginString
 				break;
@@ -639,9 +708,9 @@ public class StoryState {
 	}
 
 	void resetOutput(List<RTObject> objs) {
-		outputStream.clear();
+		getOutputStream().clear();
 		if (objs != null)
-			outputStream.addAll(objs);
+			getOutputStream().addAll(objs);
 		outputStreamDirty();
 	}
 
@@ -653,7 +722,7 @@ public class StoryState {
 	// counting
 	void setChosenPath(Path path, boolean incrementingTurnIndex) throws Exception {
 		// Changing direction, assume we need to clear current set of choices
-		currentChoices.clear();
+		currentFlow.currentChoices.clear();
 
 		final Pointer newPointer = new Pointer(story.pointerAtPath(path));
 		if (!newPointer.isNull() && newPointer.index == -1)
@@ -666,8 +735,8 @@ public class StoryState {
 	}
 
 	void startFunctionEvaluationFromGame(Container funcContainer, Object[] arguments) throws Exception {
-		callStack.push(PushPopType.FunctionEvaluationFromGame, evaluationStack.size());
-		callStack.getCurrentElement().currentPointer.assign(Pointer.startOf(funcContainer));
+		getCallStack().push(PushPopType.FunctionEvaluationFromGame, evaluationStack.size());
+		getCallStack().getCurrentElement().currentPointer.assign(Pointer.startOf(funcContainer));
 
 		passArgumentsToEvaluationStack(arguments);
 	}
@@ -688,7 +757,7 @@ public class StoryState {
 	}
 
 	boolean tryExitFunctionEvaluationFromGame() {
-		if (callStack.getCurrentElement().type == PushPopType.FunctionEvaluationFromGame) {
+		if (getCallStack().getCurrentElement().type == PushPopType.FunctionEvaluationFromGame) {
 			setCurrentPointer(Pointer.Null);
 			didSafeExit = true;
 			return true;
@@ -698,12 +767,12 @@ public class StoryState {
 	}
 
 	Object completeFunctionEvaluationFromGame() throws StoryException, Exception {
-		if (callStack.getCurrentElement().type != PushPopType.FunctionEvaluationFromGame) {
+		if (getCallStack().getCurrentElement().type != PushPopType.FunctionEvaluationFromGame) {
 			throw new StoryException("Expected external function evaluation to be complete. Stack trace: "
-					+ callStack.getCallStackTrace());
+					+ getCallStack().getCallStackTrace());
 		}
 
-		int originalEvaluationStackHeight = callStack.getCurrentElement().evaluationStackHeightWhenPushed;
+		int originalEvaluationStackHeight = getCallStack().getCurrentElement().evaluationStackHeightWhenPushed;
 
 		// Do we have a returned value?
 		// Potentially pop multiple values off the stack, in case we need
@@ -718,7 +787,7 @@ public class StoryState {
 		}
 
 		// Finally, pop the external function evaluation
-		callStack.pop(PushPopType.FunctionEvaluationFromGame);
+		getCallStack().pop(PushPopType.FunctionEvaluationFromGame);
 
 		// What did we get back?
 		if (returnedObj != null) {
@@ -746,67 +815,15 @@ public class StoryState {
 	}
 
 	void setCurrentPointer(Pointer value) {
-		callStack.getCurrentElement().currentPointer.assign(value);
+		getCallStack().getCurrentElement().currentPointer.assign(value);
 	}
 
 	void setInExpressionEvaluation(boolean value) {
-		callStack.getCurrentElement().inExpressionEvaluation = value;
-	}
-
-	@SuppressWarnings("unchecked")
-	public void setJsonToken(HashMap<String, Object> value) throws StoryException, Exception {
-
-		HashMap<String, Object> jObject = value;
-
-		Object jSaveVersion = jObject.get("inkSaveVersion");
-
-		if (jSaveVersion == null) {
-			throw new StoryException("ink save format incorrect, can't load.");
-		} else if ((int) jSaveVersion < kMinCompatibleLoadVersion) {
-			throw new StoryException("Ink save format isn't compatible with the current version (saw '" + jSaveVersion
-					+ "', but minimum is " + kMinCompatibleLoadVersion + "), so can't load.");
-		}
-
-		callStack.setJsonToken((HashMap<String, Object>) jObject.get("callstackThreads"), story);
-		variablesState.setjsonToken((HashMap<String, Object>) jObject.get("variablesState"));
-
-		evaluationStack = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("evalStack"));
-
-		outputStream = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("outputStream"));
-		outputStreamDirty();
-
-		currentChoices = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("currentChoices"));
-
-		Object currentDivertTargetPath = jObject.get("currentDivertTarget");
-		if (currentDivertTargetPath != null) {
-			Path divertPath = new Path(currentDivertTargetPath.toString());
-			setDivertedPointer(story.pointerAtPath(divertPath));
-		}
-
-		visitCounts = Json.jObjectToIntHashMap((HashMap<String, Object>) jObject.get("visitCounts"));
-		turnIndices = Json.jObjectToIntHashMap((HashMap<String, Object>) jObject.get("turnIndices"));
-		currentTurnIndex = (int) jObject.get("turnIdx");
-		storySeed = (int) jObject.get("storySeed");
-		previousRandom = (int) jObject.get("previousRandom");
-
-		Object jChoiceThreadsObj = jObject.get("choiceThreads");
-		HashMap<String, Object> jChoiceThreads = (HashMap<String, Object>) jChoiceThreadsObj;
-
-		for (Choice c : currentChoices) {
-			Thread foundActiveThread = callStack.getThreadWithIndex(c.originalThreadIndex);
-			if (foundActiveThread != null) {
-				c.setThreadAtGeneration(foundActiveThread.copy());
-			} else {
-				HashMap<String, Object> jSavedChoiceThread = (HashMap<String, Object>) jChoiceThreads
-						.get(Integer.toString(c.originalThreadIndex));
-				c.setThreadAtGeneration(new CallStack.Thread(jSavedChoiceThread, story));
-			}
-		}
-
+		getCallStack().getCurrentElement().inExpressionEvaluation = value;
 	}
 
 	void setPreviousPointer(Pointer value) {
-		callStack.getcurrentThread().previousPointer.assign(value);
+		getCallStack().getcurrentThread().previousPointer.assign(value);
 	}
 
 	/**
@@ -842,9 +859,9 @@ public class StoryState {
 		// e.g. This is the content \n \n\n
 		// ^---------^ whitespace to remove
 		// ^--- first while loop stops here
-		int i = outputStream.size() - 1;
+		int i = getOutputStream().size() - 1;
 		while (i >= 0) {
-			RTObject obj = outputStream.get(i);
+			RTObject obj = getOutputStream().get(i);
 			ControlCommand cmd = obj instanceof ControlCommand ? (ControlCommand) obj : null;
 			StringValue txt = obj instanceof StringValue ? (StringValue) obj : null;
 
@@ -859,11 +876,12 @@ public class StoryState {
 		// Remove the whitespace
 		if (removeWhitespaceFrom >= 0) {
 			i = removeWhitespaceFrom;
-			while (i < outputStream.size()) {
-				StringValue text = outputStream.get(i) instanceof StringValue ? (StringValue) outputStream.get(i)
+			while (i < getOutputStream().size()) {
+				StringValue text = getOutputStream().get(i) instanceof StringValue
+						? (StringValue) getOutputStream().get(i)
 						: null;
 				if (text != null) {
-					outputStream.remove(i);
+					getOutputStream().remove(i);
 				} else {
 					i++;
 				}
@@ -1076,16 +1094,12 @@ public class StoryState {
 		this.didSafeExit = didSafeExit;
 	}
 
-	void setCallStack(CallStack cs) {
-		callStack = cs;
-	}
-
 	void restoreAfterPatch() {
 		// VariablesState was being borrowed by the patched
 		// state, so restore it with our own callstack.
 		// _patch will be null normally, but if you're in the
 		// middle of a save, it may contain a _patch for save purpsoes.
-		variablesState.setCallStack(callStack);
+		variablesState.setCallStack(getCallStack());
 		variablesState.setPatch(patch); // usually null
 	}
 
@@ -1113,71 +1127,51 @@ public class StoryState {
 	void writeJson(SimpleJson.Writer writer) throws Exception {
 		writer.writeObjectStart();
 
-		boolean hasChoiceThreads = false;
-		for (Choice c : currentChoices) {
-			c.originalThreadIndex = c.getThreadAtGeneration().threadIndex;
+		// Flows
+		writer.writePropertyStart("flows");
+		writer.writeObjectStart();
 
-			if (callStack.getThreadWithIndex(c.originalThreadIndex) == null) {
-				if (!hasChoiceThreads) {
-					hasChoiceThreads = true;
-					writer.writePropertyStart("choiceThreads");
-					writer.writeObjectStart();
+		// Multi-flow
+		if (namedFlows != null) {
+			for (Entry<String, Flow> namedFlow : namedFlows.entrySet()) {
+				final Flow flow = namedFlow.getValue();
+
+				writer.writeProperty(namedFlow.getKey(), new InnerWriter() {
+
+					@Override
+					public void write(Writer w) throws Exception {
+						flow.writeJson(w);
+					}
+				});
+			}
+		}
+
+		// Single flow
+		else {
+			writer.writeProperty(currentFlow.name, new InnerWriter() {
+				@Override
+				public void write(Writer w) throws Exception {
+					currentFlow.writeJson(w);
 				}
-
-				writer.writePropertyStart(c.originalThreadIndex);
-				c.getThreadAtGeneration().writeJson(writer);
-				writer.writePropertyEnd();
-			}
+			});
 		}
 
-		if (hasChoiceThreads) {
-			writer.writeObjectEnd();
-			writer.writePropertyEnd();
-		}
+		writer.writeObjectEnd();
+		writer.writePropertyEnd(); // end of flows
 
-		writer.writeProperty("callstackThreads", new InnerWriter() {
-
-			@Override
-			public void write(Writer w) throws Exception {
-				callStack.writeJson(w);
-			}
-
-		});
+		writer.writeProperty("currentFlowName", currentFlow.name);
 
 		writer.writeProperty("variablesState", new InnerWriter() {
-
 			@Override
 			public void write(Writer w) throws Exception {
 				variablesState.writeJson(w);
 			}
-
 		});
 
 		writer.writeProperty("evalStack", new InnerWriter() {
-
 			@Override
 			public void write(Writer w) throws Exception {
 				Json.writeListRuntimeObjs(w, evaluationStack);
-			}
-
-		});
-
-		writer.writeProperty("outputStream", new InnerWriter() {
-
-			@Override
-			public void write(Writer w) throws Exception {
-				Json.writeListRuntimeObjs(w, outputStream);
-			}
-		});
-
-		writer.writeProperty("currentChoices", new InnerWriter() {
-
-			@Override
-			public void write(Writer w) throws Exception {
-				w.writeArrayStart();
-				for (Choice c : currentChoices)
-					Json.writeChoice(w, c);
-				w.writeArrayEnd();
 			}
 		});
 
@@ -1185,18 +1179,16 @@ public class StoryState {
 			writer.writeProperty("currentDivertTarget", divertedPointer.getPath().getComponentsString());
 
 		writer.writeProperty("visitCounts", new InnerWriter() {
-
 			@Override
 			public void write(Writer w) throws Exception {
-				Json.WriteIntDictionary(w, visitCounts);
+				Json.writeIntDictionary(w, visitCounts);
 			}
 		});
 
 		writer.writeProperty("turnIndices", new InnerWriter() {
-
 			@Override
 			public void write(Writer w) throws Exception {
-				Json.WriteIntDictionary(w, turnIndices);
+				Json.writeIntDictionary(w, turnIndices);
 			}
 		});
 
@@ -1223,15 +1215,65 @@ public class StoryState {
 					+ "', but minimum is " + kMinCompatibleLoadVersion + "), so can't load.");
 		}
 
-		callStack.setJsonToken((HashMap<String, Object>) jObject.get("callstackThreads"), story);
-		variablesState.setJsonToken((HashMap<String, Object>) jObject.get("variablesState"));
+		// Flows: Always exists in latest format (even if there's just one default)
+		// but this dictionary doesn't exist in prev format
+		Object flowsObj = jObject.get("flows");
+		if (flowsObj != null) {
+			HashMap<String, Object> flowsObjDict = (HashMap<String, Object>) flowsObj;
 
-		evaluationStack = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("evalStack"));
+			// Single default flow
+			if (flowsObjDict.size() == 1)
+				namedFlows = null;
 
-		outputStream = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("outputStream"));
+			// Multi-flow, need to create flows dict
+			else if (namedFlows == null)
+				namedFlows = new HashMap<>();
+
+			// Multi-flow, already have a flows dict
+			else
+				namedFlows.clear();
+
+			// Load up each flow (there may only be one)
+			for (Entry<String, Object> namedFlowObj : flowsObjDict.entrySet()) {
+				String name = namedFlowObj.getKey();
+				HashMap<String, Object> flowObj = (HashMap<String, Object>) namedFlowObj.getValue();
+
+				// Load up this flow using JSON data
+				Flow flow = new Flow(name, story, flowObj);
+
+				if (flowsObjDict.size() == 1) {
+					currentFlow = new Flow(name, story, flowObj);
+				} else {
+					namedFlows.put(name, flow);
+				}
+			}
+
+			if (namedFlows != null && namedFlows.size() > 1) {
+				String currFlowName = (String) jObject.get("currentFlowName");
+				currentFlow = namedFlows.get(currFlowName);
+			}
+		}
+
+		// Old format: individually load up callstack, output stream, choices in
+		// current/default flow
+		else {
+			namedFlows = null;
+			currentFlow.name = kDefaultFlowName;
+			currentFlow.callStack.setJsonToken((HashMap<String, Object>) jObject.get("callstackThreads"), story);
+			currentFlow.outputStream = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("outputStream"));
+			currentFlow.currentChoices = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("currentChoices"));
+
+			Object jChoiceThreadsObj = jObject.get("choiceThreads");
+
+			currentFlow.loadFlowChoiceThreads((HashMap<String, Object>) jChoiceThreadsObj, story);
+		}
+
 		outputStreamDirty();
 
-		currentChoices = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("currentChoices"));
+		variablesState.setJsonToken((HashMap<String, Object>) jObject.get("variablesState"));
+		variablesState.setCallStack(currentFlow.callStack);
+
+		evaluationStack = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("evalStack"));
 
 		Object currentDivertTargetPath = jObject.get("currentDivertTarget");
 		if (currentDivertTargetPath != null) {
@@ -1253,18 +1295,5 @@ public class StoryState {
 			previousRandom = 0;
 		}
 
-		Object jChoiceThreadsObj = jObject.get("choiceThreads");
-		HashMap<String, Object> jChoiceThreads = (HashMap<String, Object>) jChoiceThreadsObj;
-
-		for (Choice c : currentChoices) {
-			Thread foundActiveThread = callStack.getThreadWithIndex(c.originalThreadIndex);
-			if (foundActiveThread != null) {
-				c.setThreadAtGeneration(foundActiveThread.copy());
-			} else {
-				HashMap<String, Object> jSavedChoiceThread = (HashMap<String, Object>) jChoiceThreads
-						.get(Integer.toString(c.originalThreadIndex));
-				c.setThreadAtGeneration(new CallStack.Thread(jSavedChoiceThread, story));
-			}
-		}
 	}
 }

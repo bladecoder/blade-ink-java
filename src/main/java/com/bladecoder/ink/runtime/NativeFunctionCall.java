@@ -109,6 +109,14 @@ public class NativeFunctionCall extends RTObject {
 		if (nativeFunctions == null) {
 			nativeFunctions = new HashMap<>();
 
+			// Why no bool operations?
+			// Before evaluation, all bools are coerced to ints in
+			// CoerceValuesToSingleType (see default value for valType at top).
+			// So, no operations are ever directly done in bools themselves.
+			// This also means that 1 == true works, since true is always converted
+			// to 1 first.
+			// However, many operations return a "native" bool (equals, etc).
+
 			// Int operations
 			addIntBinaryOp(Add, new BinaryOp() {
 				@Override
@@ -156,39 +164,39 @@ public class NativeFunctionCall extends RTObject {
 			addIntBinaryOp(Equal, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Integer) left == (Integer) right ? 1 : 0;
+					return (Integer) left == (Integer) right;
 				}
 			});
 
 			addIntBinaryOp(Greater, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Integer) left > (Integer) right ? 1 : 0;
+					return (Integer) left > (Integer) right;
 				}
 			});
 
 			addIntBinaryOp(Less, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Integer) left < (Integer) right ? 1 : 0;
+					return (Integer) left < (Integer) right;
 				}
 			});
 			addIntBinaryOp(GreaterThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Integer) left >= (Integer) right ? 1 : 0;
+					return (Integer) left >= (Integer) right;
 				}
 			});
 			addIntBinaryOp(LessThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Integer) left <= (Integer) right ? 1 : 0;
+					return (Integer) left <= (Integer) right;
 				}
 			});
 			addIntBinaryOp(NotEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Integer) left != (Integer) right ? 1 : 0;
+					return (Integer) left != (Integer) right;
 				}
 			});
 
@@ -196,20 +204,20 @@ public class NativeFunctionCall extends RTObject {
 
 				@Override
 				public Object invoke(Object val) {
-					return (Integer) val == 0 ? 1 : 0;
+					return (Integer) val == 0;
 				}
 			});
 
 			addIntBinaryOp(And, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Integer) left != 0 && (Integer) right != 0 ? 1 : 0;
+					return (Integer) left != 0 && (Integer) right != 0;
 				}
 			});
 			addIntBinaryOp(Or, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Integer) left != 0 || (Integer) right != 0 ? 1 : 0;
+					return (Integer) left != 0 || (Integer) right != 0;
 				}
 			});
 			addIntBinaryOp(Max, new BinaryOp() {
@@ -307,39 +315,39 @@ public class NativeFunctionCall extends RTObject {
 			addFloatBinaryOp(Equal, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Float) left == (Float) right ? (Integer) 1 : (Integer) 0;
+					return (Float) left == (Float) right;
 				}
 			});
 
 			addFloatBinaryOp(Greater, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Float) left > (Float) right ? (Integer) 1 : (Integer) 0;
+					return (Float) left > (Float) right;
 				}
 			});
 
 			addFloatBinaryOp(Less, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Float) left < (Float) right ? (Integer) 1 : (Integer) 0;
+					return (Float) left < (Float) right;
 				}
 			});
 			addFloatBinaryOp(GreaterThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Float) left >= (Float) right ? (Integer) 1 : (Integer) 0;
+					return (Float) left >= (Float) right;
 				}
 			});
 			addFloatBinaryOp(LessThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Float) left <= (Float) right ? (Integer) 1 : (Integer) 0;
+					return (Float) left <= (Float) right;
 				}
 			});
 			addFloatBinaryOp(NotEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Float) left != (Float) right ? (Integer) 1 : (Integer) 0;
+					return (Float) left != (Float) right;
 				}
 			});
 
@@ -347,20 +355,20 @@ public class NativeFunctionCall extends RTObject {
 
 				@Override
 				public Object invoke(Object val) {
-					return (Float) val == 0 ? (Integer) 1 : (Integer) 0;
+					return (Float) val == 0;
 				}
 			});
 
 			addFloatBinaryOp(And, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Float) left != 0 && (Float) right != 0 ? (Integer) 1 : (Integer) 0;
+					return (Float) left != 0 && (Float) right != 0;
 				}
 			});
 			addFloatBinaryOp(Or, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (Float) left != 0 || (Float) right != 0 ? (Integer) 1 : (Integer) 0;
+					return (Float) left != 0 || (Float) right != 0;
 				}
 			});
 			addFloatBinaryOp(Max, new BinaryOp() {
@@ -423,28 +431,28 @@ public class NativeFunctionCall extends RTObject {
 			addStringBinaryOp(Equal, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((String) left).equals(right) ? (Integer) 1 : (Integer) 0;
+					return ((String) left).equals(right);
 				}
 			});
 
 			addStringBinaryOp(NotEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (!((String) left).equals(right)) ? (Integer) 1 : (Integer) 0;
+					return (!((String) left).equals(right));
 				}
 			});
 
 			addStringBinaryOp(Has, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (((String) left).contains(right.toString())) ? (Integer) 1 : (Integer) 0;
+					return (((String) left).contains(right.toString()));
 				}
 			});
 
 			addStringBinaryOp(Hasnt, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (((String) left).contains(right.toString())) ? (Integer) 0 : (Integer) 1;
+					return (((String) left).contains(right.toString()));
 				}
 			});
 
@@ -466,14 +474,14 @@ public class NativeFunctionCall extends RTObject {
 			addListBinaryOp(Has, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((InkList) left).contains((InkList) right) ? (Integer) 1 : (Integer) 0;
+					return ((InkList) left).contains((InkList) right);
 				}
 			});
 
 			addListBinaryOp(Hasnt, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((InkList) left).contains((InkList) right) ? (Integer) 0 : (Integer) 1;
+					return !((InkList) left).contains((InkList) right);
 				}
 			});
 
@@ -487,68 +495,63 @@ public class NativeFunctionCall extends RTObject {
 			addListBinaryOp(Equal, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((InkList) left).equals(right) ? (Integer) 1 : (Integer) 0;
+					return ((InkList) left).equals(right);
 				}
 			});
 
 			addListBinaryOp(Greater, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((InkList) left).size() > 0 && ((InkList) left).greaterThan((InkList) right) ? (Integer) 1
-							: (Integer) 0;
+					return ((InkList) left).size() > 0 && ((InkList) left).greaterThan((InkList) right);
 				}
 			});
 
 			addListBinaryOp(Less, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((InkList) left).lessThan((InkList) right) ? (Integer) 1 : (Integer) 0;
+					return ((InkList) left).lessThan((InkList) right);
 				}
 			});
 
 			addListBinaryOp(GreaterThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((InkList) left).size() > 0 && ((InkList) left).greaterThanOrEquals((InkList) right)
-							? (Integer) 1
-							: (Integer) 0;
+					return ((InkList) left).size() > 0 && ((InkList) left).greaterThanOrEquals((InkList) right);
 				}
 			});
 
 			addListBinaryOp(LessThanOrEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((InkList) left).size() > 0 && ((InkList) left).lessThanOrEquals((InkList) right)
-							? (Integer) 1
-							: (Integer) 0;
+					return ((InkList) left).size() > 0 && ((InkList) left).lessThanOrEquals((InkList) right);
 				}
 			});
 
 			addListBinaryOp(NotEquals, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (!((InkList) left).equals(right) ? (Integer) 1 : (Integer) 0);
+					return (!((InkList) left).equals(right));
 				}
 			});
 
 			addListBinaryOp(And, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (((InkList) left).size() > 0 && ((InkList) right).size() > 0 ? (Integer) 1 : (Integer) 0);
+					return (((InkList) left).size() > 0 && ((InkList) right).size() > 0);
 				}
 			});
 
 			addListBinaryOp(Or, new BinaryOp() {
 				@Override
 				public Object invoke(Object left, Object right) {
-					return (((InkList) left).size() > 0 || ((InkList) right).size() > 0 ? (Integer) 1 : (Integer) 0);
+					return (((InkList) left).size() > 0 || ((InkList) right).size() > 0);
 				}
 			});
 
 			addListUnaryOp(Not, new UnaryOp() {
 				@Override
 				public Object invoke(Object val) {
-					return ((InkList) val).size() == 0 ? (int) 1 : (int) 0;
+					return ((InkList) val).size() == 0;
 				}
 			});
 
@@ -601,7 +604,7 @@ public class NativeFunctionCall extends RTObject {
 
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((Path) left).equals((Path) right) ? (Integer) 1 : (Integer) 0;
+					return ((Path) left).equals((Path) right);
 				}
 
 			};
@@ -610,7 +613,7 @@ public class NativeFunctionCall extends RTObject {
 
 				@Override
 				public Object invoke(Object left, Object right) {
-					return ((Path) left).equals((Path) right) ? (Integer) 0 : (Integer) 1;
+					return !((Path) left).equals((Path) right);
 				}
 
 			};
@@ -718,8 +721,8 @@ public class NativeFunctionCall extends RTObject {
 		if ((name == "&&" || name == "||")
 				&& (v1.getValueType() != ValueType.List || v2.getValueType() != ValueType.List)) {
 			BinaryOp op = (BinaryOp) operationFuncs.get(ValueType.Int);
-			int result = (int) op.invoke(v1.isTruthy() ? 1 : 0, v2.isTruthy() ? 1 : 0);
-			return new IntValue(result);
+			boolean result = (boolean) op.invoke(v1.isTruthy() ? 1 : 0, v2.isTruthy() ? 1 : 0);
+			return new BoolValue(result);
 		}
 
 		// Normal (list • list) operation

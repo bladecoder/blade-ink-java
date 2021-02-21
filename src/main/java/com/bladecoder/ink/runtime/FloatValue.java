@@ -15,6 +15,10 @@ class FloatValue extends Value<Float> {
 			return this;
 		}
 
+		if (newType == ValueType.Bool) {
+			return new BoolValue(this.value == 0.0f ? false : true);
+		}
+
 		if (newType == ValueType.Int) {
 			return new IntValue(this.getValue().intValue());
 		}
@@ -23,7 +27,7 @@ class FloatValue extends Value<Float> {
 			return new StringValue(this.getValue().toString());
 		}
 
-		 throw BadCastException (newType);
+		throw BadCastException(newType);
 	}
 
 	@Override

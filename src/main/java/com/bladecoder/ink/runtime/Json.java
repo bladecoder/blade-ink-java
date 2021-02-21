@@ -50,7 +50,7 @@ public class Json {
 		writer.writeArrayEnd();
 	}
 
-	public static void WriteIntDictionary(SimpleJson.Writer writer, HashMap<String, Integer> dict) throws Exception {
+	public static void writeIntDictionary(SimpleJson.Writer writer, HashMap<String, Integer> dict) throws Exception {
 		writer.writeObjectStart();
 
 		for (Entry<String, Integer> keyVal : dict.entrySet())
@@ -107,6 +107,12 @@ public class Json {
 			writer.writeProperty("*", choicePoint.getPathStringOnChoice());
 			writer.writeProperty("flg", choicePoint.getFlags());
 			writer.writeObjectEnd();
+			return;
+		}
+
+		if (obj instanceof BoolValue) {
+			BoolValue boolVal = (BoolValue) obj;
+			writer.write(boolVal.value);
 			return;
 		}
 
@@ -311,7 +317,7 @@ public class Json {
 	// Tag: {"#": "the tag text"}
 	@SuppressWarnings("unchecked")
 	public static RTObject jTokenToRuntimeObject(Object token) throws Exception {
-		if (token instanceof Integer || token instanceof Float) {
+		if (token instanceof Integer || token instanceof Float || token instanceof Boolean) {
 			return AbstractValue.create(token);
 		}
 

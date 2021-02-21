@@ -16,13 +16,9 @@ public abstract class AbstractValue extends RTObject {
 			val = (float) doub;
 		}
 
-		// Implicitly convert bools into ints
 		if (val instanceof Boolean) {
-			boolean b = (Boolean) val;
-			val = (int) (b ? 1 : 0);
-		}
-
-		if (val instanceof Integer) {
+			return new BoolValue((Boolean) val);
+		} else if (val instanceof Integer) {
 			return new IntValue((Integer) val);
 		} else if (val instanceof Long) {
 			return new IntValue(((Long) val).intValue());
@@ -47,6 +43,7 @@ public abstract class AbstractValue extends RTObject {
 	}
 
 	protected StoryException BadCastException(ValueType targetType) throws Exception {
-		return new StoryException("Can't cast " + this.getValueObject() + " from " + this.getValueType() + " to " + targetType);
+		return new StoryException(
+				"Can't cast " + this.getValueObject() + " from " + this.getValueType() + " to " + targetType);
 	}
 }

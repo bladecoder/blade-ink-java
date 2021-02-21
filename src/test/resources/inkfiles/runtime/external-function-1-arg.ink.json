@@ -1,1 +1,1 @@
-﻿{"inkVersion":19,"root":[["^The value is ","ev",1,{"x()":"externalFunction","exArgs":1},"out","/ev","^.","\n","end",["done",{"#n":"g-0"}],null],"done",{"externalFunction":[{"temp=":"boolean"},"ev","str","^","/str","/ev","~ret",null]}],"listDefs":{}}
+﻿{"inkVersion":19,"root":[["^The value is ","ev",1,{"x()":"externalFunction","exArgs":1},"out","/ev","^.","\n","end",["done",{"#n":"g-0"}],null],"done",{"externalFunction":[{"temp=":"boolean"},"ev",0,"/ev","~ret",null]}],"listDefs":{}}

@@ -161,8 +161,24 @@ public class VariablesState implements Iterable<String> {
 		if (obj1.getClass() != obj2.getClass())
 			return false;
 
+		// Perform equality on int/float/bool manually to avoid boxing
+		if (obj1 instanceof BoolValue) {
+			BoolValue boolVal = (BoolValue) obj1;
+			return boolVal.value == ((BoolValue) obj2).value;
+		}
+
+		if (obj1 instanceof IntValue) {
+			IntValue intVal = (IntValue) obj1;
+			return intVal.value == ((IntValue) obj2).value;
+		}
+
+		if (obj1 instanceof FloatValue) {
+			FloatValue floatVal = (FloatValue) obj1;
+			return floatVal.value == ((FloatValue) obj2).value;
+		}
+
 		// Other Value type (using proper Equals: list, string, divert path)
-		if (obj1 instanceof Value && obj2 instanceof Value) {
+		if (obj1 instanceof Value) {
 			Value<?> val1 = (Value<?>) obj1;
 			Value<?> val2 = (Value<?>) obj2;
 

@@ -16,7 +16,7 @@ public class ListSpecTest {
 		String json = TestUtils.getJsonString("inkfiles/lists/basic-operations.ink.json");
 		Story story = new Story(json);
 
-		Assert.assertEquals("b, d\na, b, c, e\nb, c\n0\n1\n1\n", story.continueMaximally());
+		Assert.assertEquals("b, d\na, b, c, e\nb, c\nfalse\ntrue\ntrue\n", story.continueMaximally());
 	}
 
 	/**

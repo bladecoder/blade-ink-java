@@ -7,8 +7,8 @@ import java.util.List;
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
 
-class CallStack {
-	static class Element {
+public class CallStack {
+	public static class Element {
 		public final Pointer currentPointer = new Pointer();
 
 		public boolean inExpressionEvaluation;
@@ -47,7 +47,7 @@ class CallStack {
 		}
 	}
 
-	static class Thread {
+	public static class Thread {
 		public List<Element> callstack;
 		public final Pointer previousPointer = new Pointer();
 		public int threadIndex;
