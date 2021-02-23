@@ -748,7 +748,9 @@ public class StoryState {
 				if (!(arguments[i] instanceof Integer || arguments[i] instanceof Float
 						|| arguments[i] instanceof String)) {
 					throw new Exception(
-							"ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be int, float or string");
+							"ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be int, float or string. Argument was "
+									+ (arguments[i] == null ? "null" : arguments[i].getClass().getName()));
+
 				}
 
 				pushEvaluationStack(Value.create(arguments[i]));
