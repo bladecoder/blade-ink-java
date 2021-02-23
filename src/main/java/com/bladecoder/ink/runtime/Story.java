@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Stack;
@@ -1219,11 +1220,17 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (specificVariableName != null) {
 			if (variableObservers.containsKey(specificVariableName)) {
 				variableObservers.get(specificVariableName).remove(observer);
+				if (variableObservers.get(specificVariableName).size() == 0) {
+					variableObservers.remove(specificVariableName);
+				}
 			}
 		} else {
 			// Remove observer for all variables
-			for (List<VariableObserver> obs : variableObservers.values()) {
-				obs.remove(observer);
+			for (Map.Entry<String, List<VariableObserver>> obs : variableObservers.entrySet()) {
+				obs.getValue().remove(observer);
+				if (obs.getValue().size() == 0) {
+					variableObservers.remove(obs.getKey());
+				}
 			}
 		}
 	}
