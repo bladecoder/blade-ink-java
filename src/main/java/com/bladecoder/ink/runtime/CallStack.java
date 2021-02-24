@@ -379,14 +379,14 @@ public class CallStack {
 	}
 
 	public void setTemporaryVariable(String name, RTObject value, boolean declareNew, int contextIndex)
-			throws StoryException, Exception {
+			throws Exception {
 		if (contextIndex == -1)
 			contextIndex = getCurrentElementIndex() + 1;
 
 		Element contextElement = getCallStack().get(contextIndex - 1);
 
 		if (!declareNew && !contextElement.temporaryVariables.containsKey(name)) {
-			throw new StoryException("Could not find temporary variable to set: " + name);
+			throw new Exception("Could not find temporary variable to set: " + name);
 		}
 
 		RTObject oldValue = contextElement.temporaryVariables.get(name);

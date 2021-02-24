@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Stack;
 
+import com.bladecoder.ink.runtime.Error.ErrorType;
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
 
@@ -139,6 +140,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		}
 	}
 
+	class ExternalFunctionDef {
+		public ExternalFunction<?> function;
+		public boolean lookaheadSafe;
+	}
+
 	// Version numbers are for engine itself and story file, rather
 	// than the story state save format
 	// -- old engine, new format: always fail
@@ -181,7 +187,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 */
 	private boolean allowExternalFunctionFallbacks;
 
-	private HashMap<String, ExternalFunction<?>> externals;
+	private HashMap<String, ExternalFunctionDef> externals;
 
 	private boolean hasValidatedExternals;
 
@@ -201,6 +207,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	private int recursiveContinueCount = 0;
 
 	private boolean asyncSaving;
+
+	private boolean sawLookaheadUnsafeFunctionAfterNewline = false;
+
+	public Error.ErrorHandler onError = null;
 
 	// Warning: When creating a Story using this constructor, you need to
 	// call ResetState on it before use. Intended for compiler use only.
@@ -329,13 +339,33 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	/**
 	 * Binds a Java function to an ink EXTERNAL function.
 	 *
-	 * @param funcName EXTERNAL ink function name to bind to.
-	 * @param func     The Java function to bind.
+	 * @param funcName      EXTERNAL ink function name to bind to.
+	 * @param func          The Java function to bind.
+	 * @param lookaheadSafe The ink engine often evaluates further than you might
+	 *                      expect beyond the current line just in case it sees glue
+	 *                      that will cause the two lines to become one. In this
+	 *                      case it's possible that a function can appear to be
+	 *                      called twice instead of just once, and earlier than you
+	 *                      expect. If it's safe for your function to be called in
+	 *                      this way (since the result and side effect of the
+	 *                      function will not change), then you can pass 'true'.
+	 *                      Usually, you want to pass 'false', especially if you
+	 *                      want some action to be performed in game code when this
+	 *                      function is called.
 	 */
-	public void bindExternalFunction(String funcName, ExternalFunction<?> func) throws Exception {
+	public void bindExternalFunction(String funcName, ExternalFunction<?> func, boolean lookaheadSafe)
+			throws Exception {
 		ifAsyncWeCant("bind an external function");
 		Assert(!externals.containsKey(funcName), "Function '" + funcName + "' has already been bound.");
-		externals.put(funcName, func);
+		ExternalFunctionDef externalFunctionDef = new ExternalFunctionDef();
+		externalFunctionDef.function = func;
+		externalFunctionDef.lookaheadSafe = lookaheadSafe;
+
+		externals.put(funcName, externalFunctionDef);
+	}
+
+	public void bindExternalFunction(String funcName, ExternalFunction<?> func) throws Exception {
+		bindExternalFunction(funcName, func, true);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -452,12 +482,20 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	void callExternalFunction(String funcName, int numberOfArguments) throws Exception {
+		ExternalFunctionDef funcDef;
 		Container fallbackFunctionContainer = null;
 
-		ExternalFunction<?> func = externals.get(funcName);
+		funcDef = externals.get(funcName);
+
+		// Should this function break glue? Abort run if we've already seen a newline.
+		// Set a bool to tell it to restore the snapshot at the end of this instruction.
+		if (funcDef != null && !funcDef.lookaheadSafe && stateSnapshotAtLastNewline != null) {
+			sawLookaheadUnsafeFunctionAfterNewline = true;
+			return;
+		}
 
 		// Try to use fallback function?
-		if (func == null) {
+		if (funcDef == null) {
 			if (allowExternalFunctionFallbacks) {
 
 				fallbackFunctionContainer = knotContainerWithName(funcName);
@@ -489,7 +527,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		Collections.reverse(arguments);
 
 		// Run the function!
-		Object funcResult = func.call(arguments.toArray());
+		Object funcResult = funcDef.function.call(arguments.toArray());
 
 		// Convert return value (if any) to the a type that the ink engine can use
 		RTObject returnObj;
@@ -699,11 +737,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		continueInternal(millisecsLimitAsync);
 	}
 
-	void continueInternal() throws StoryException, Exception {
+	void continueInternal() throws Exception {
 		continueInternal(0);
 	}
 
-	void continueInternal(float millisecsLimitAsync) throws StoryException, Exception {
+	void continueInternal(float millisecsLimitAsync) throws Exception {
 		if (profiler != null)
 			profiler.preContinue();
 
@@ -717,7 +755,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		if (!asyncContinueActive) {
 			asyncContinueActive = isAsyncTimeLimited;
 			if (!canContinue()) {
-				throw new StoryException("Can't continue - should check canContinue before calling Continue");
+				throw new Exception("Can't continue - should check canContinue before calling Continue");
 			}
 
 			state.setDidSafeExit(false);
@@ -736,6 +774,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		durationStopwatch.start();
 
 		boolean outputStreamEndsInNewline = false;
+		sawLookaheadUnsafeFunctionAfterNewline = false;
 		do {
 
 			try {
@@ -788,6 +827,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 				}
 			}
 			state.setDidSafeExit(false);
+			sawLookaheadUnsafeFunctionAfterNewline = false;
+
 			if (recursiveContinueCount == 1)
 				state.getVariablesState().setbatchObservingVariableChanges(false);
 			asyncContinueActive = false;
@@ -797,6 +838,59 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 		if (profiler != null)
 			profiler.postContinue();
+
+		// Report any errors that occured during evaluation.
+		// This may either have been StoryExceptions that were thrown
+		// and caught during evaluation, or directly added with AddError.
+		if (state.hasError() || state.hasWarning()) {
+			if (onError != null) {
+				if (state.hasError()) {
+					for (String err : state.getCurrentErrors()) {
+						onError.error(err, ErrorType.Error);
+					}
+				}
+				if (state.hasWarning()) {
+					for (String err : state.getCurrentWarnings()) {
+						onError.error(err, ErrorType.Warning);
+					}
+				}
+
+				resetErrors();
+			}
+			// Throw an exception since there's no error handler
+			else {
+				StringBuilder sb = new StringBuilder();
+				sb.append("Ink had ");
+				if (state.hasError()) {
+					sb.append(state.getCurrentErrors().size());
+					sb.append(state.getCurrentErrors().size() == 1 ? " error" : " errors");
+					if (state.hasWarning())
+						sb.append(" and ");
+				}
+				if (state.hasWarning()) {
+					sb.append(state.getCurrentWarnings().size());
+					sb.append(state.getCurrentWarnings().size() == 1 ? " warning" : " warnings");
+				}
+				sb.append(
+						". It is strongly suggested that you assign an error handler to story.onError. The first issue was: ");
+				sb.append(state.hasError() ? state.getCurrentErrors().get(0) : state.getCurrentWarnings().get(0));
+
+				// If you get this exception, please assign an error handler to your story.
+				// If you're using Unity, you can do something like this when you create
+				// your story:
+				//
+				// var story = new Ink.Runtime.Story(jsonTxt);
+				// story.onError = (errorMessage, errorType) => {
+				// if( errorType == ErrorType.Warning )
+				// Debug.LogWarning(errorMessage);
+				// else
+				// Debug.LogError(errorMessage);
+				// };
+				//
+				//
+				throw new StoryException(sb.toString());
+			}
+		}
 	}
 
 	boolean continueSingleStep() throws Exception {
@@ -833,7 +927,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
 				// The last time we saw a newline, it was definitely the end of the line, so we
 				// want to rewind to that point.
-				if (change == OutputStateChange.ExtendedBeyondNewline) {
+				if (change == OutputStateChange.ExtendedBeyondNewline || sawLookaheadUnsafeFunctionAfterNewline) {
 					restoreStateSnapshot();
 
 					// Hit a newline for sure, we're done
@@ -1074,7 +1168,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * Whether the currentErrors list contains any errors.
+	 * Whether the currentErrors list contains any errors. THIS MAY BE REMOVED - you
+	 * should be setting an error handler directly using Story.onError.
 	 */
 	public boolean hasError() {
 		return state.hasError();
@@ -1160,16 +1255,15 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	 * @param variableName The name of the global variable to observe.
 	 * @param observer     A delegate function to call when the variable changes.
 	 * @throws Exception
-	 * @throws StoryException
 	 */
-	public void observeVariable(String variableName, VariableObserver observer) throws StoryException, Exception {
+	public void observeVariable(String variableName, VariableObserver observer) throws Exception {
 		ifAsyncWeCant("observe a new variable");
 
 		if (variableObservers == null)
 			variableObservers = new HashMap<>();
 
 		if (!state.getVariablesState().globalVariableExistsWithName(variableName))
-			throw new StoryException(
+			throw new Exception(
 					"Cannot observe variable '" + variableName + "' because it wasn't declared in the ink story.");
 
 		if (variableObservers.containsKey(variableName)) {
@@ -2057,10 +2151,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		state.forceEnd();
 	}
 
-	/**
-	 * Reset the runtime error and warning list within the state.
-	 */
-	public void resetErrors() {
+	void resetErrors() {
 		state.resetErrors();
 	}
 
@@ -2326,6 +2417,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 		// Invisible choice may have been generated on a different thread,
 		// in which case we need to restore it before we continue
 		state.getCallStack().setCurrentThread(choice.getThreadAtGeneration());
+
+		// If there's a chance that this state will be rolled back to before
+		// the invisible choice then make sure that the choice thread is
+		// left intact, and it isn't re-entered in an old state.
+		if (stateSnapshotAtLastNewline != null)
+			state.getCallStack().setCurrentThread(state.getCallStack().forkThread());
 
 		choosePath(choice.targetPath, false);
 

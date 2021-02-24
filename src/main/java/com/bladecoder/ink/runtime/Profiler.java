@@ -49,7 +49,7 @@ public class Profiler {
 		}
 	}
 
-	private List<StepDetails> stepDetails = new ArrayList<StepDetails>();
+	private List<StepDetails> stepDetails = new ArrayList<>();
 
 	/**
 	 * The root node in the hierarchical tree of recorded ink timings.
@@ -99,14 +99,18 @@ public class Profiler {
 
 		String[] stack = new String[callstack.getElements().size()];
 		for (int i = 0; i < stack.length; i++) {
-			Path objPath = callstack.getElements().get(i).currentPointer.getPath();
+
 			String stackElementName = "";
 
-			for (int c = 0; c < objPath.getLength(); c++) {
-				Component comp = objPath.getComponent(c);
-				if (!comp.isIndex()) {
-					stackElementName = comp.getName();
-					break;
+			if (!callstack.getElements().get(i).currentPointer.isNull()) {
+				Path objPath = callstack.getElements().get(i).currentPointer.getPath();
+
+				for (int c = 0; c < objPath.getLength(); c++) {
+					Component comp = objPath.getComponent(c);
+					if (!comp.isIndex()) {
+						stackElementName = comp.getName();
+						break;
+					}
 				}
 			}
 
@@ -153,7 +157,7 @@ public class Profiler {
 		sb.append("TOTAL: " + rootNode.getTotalMillisecs() + "ms\n");
 
 		// AVERAGE STEP TIMES
-		HashMap<String, Double> typeToDetails = new HashMap<String, Double>();
+		HashMap<String, Double> typeToDetails = new HashMap<>();
 
 		// average group by s.type
 		for (StepDetails sd : stepDetails) {
@@ -177,9 +181,10 @@ public class Profiler {
 		}
 
 		// sort by average
-		List<Entry<String, Double>> averageStepTimes = new LinkedList<Entry<String, Double>>(typeToDetails.entrySet());
+		List<Entry<String, Double>> averageStepTimes = new LinkedList<>(typeToDetails.entrySet());
 
 		Collections.sort(averageStepTimes, new Comparator<Entry<String, Double>>() {
+			@Override
 			public int compare(Entry<String, Double> o1, Entry<String, Double> o2) {
 				return (int) (o1.getValue() - o2.getValue());
 			}
@@ -198,8 +203,7 @@ public class Profiler {
 		}
 
 		sb.append('\n');
-		
-		
+
 		// ACCUMULATED STEP TIMES
 		typeToDetails.clear();
 
@@ -217,13 +221,14 @@ public class Profiler {
 				}
 			}
 
-			typeToDetails.put(sd.type + " (x"+typeToDetails.size()+")", sum);
+			typeToDetails.put(sd.type + " (x" + typeToDetails.size() + ")", sum);
 		}
 
 		// sort by average
-		List<Entry<String, Double>> accumStepTimes  = new LinkedList<Entry<String, Double>>(typeToDetails.entrySet());
+		List<Entry<String, Double>> accumStepTimes = new LinkedList<>(typeToDetails.entrySet());
 
 		Collections.sort(accumStepTimes, new Comparator<Entry<String, Double>>() {
+			@Override
 			public int compare(Entry<String, Double> o1, Entry<String, Double> o2) {
 				return (int) (o1.getValue() - o2.getValue());
 			}

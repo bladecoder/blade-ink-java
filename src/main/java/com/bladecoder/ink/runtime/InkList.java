@@ -3,9 +3,9 @@ package com.bladecoder.ink.runtime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The InkList is the underlying type that's used to store an instance of a list
@@ -47,7 +47,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 		ListDefinition def = originStory.getListDefinitions().getListDefinition(singleOriginListName);
 
 		if (def != null) {
-			origins = new ArrayList<ListDefinition>();
+			origins = new ArrayList<>();
 			origins.add(def);
 		} else
 			throw new Exception(
@@ -60,6 +60,22 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	public InkList(InkList otherList) {
 		super(otherList);
 		this.originNames = otherList.originNames;
+
+		if (otherList.origins != null) {
+			origins = new ArrayList<>(otherList.origins);
+		}
+	}
+
+	/**
+	 * Converts a string to an ink list and returns for use in the story.
+	 */
+	public static InkList FromString(String myListItem, Story originStory) throws Exception {
+		ListValue listValue = originStory.getListDefinitions().findSingleItemListWithName(myListItem);
+		if (listValue != null)
+			return new InkList(listValue.value);
+		else
+			throw new Exception("Could not find the InkListItem from the string '" + myListItem
+					+ "' to create an InkList because it doesn't exist in the original list definition in ink.");
 	}
 
 	ListDefinition getOriginOfMaxItem() {
@@ -86,7 +102,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	public List<String> getOriginNames() {
 		if (this.size() > 0) {
 			if (originNames == null && this.size() > 0)
-				originNames = new ArrayList<String>();
+				originNames = new ArrayList<>();
 			else
 				originNames.clear();
 
@@ -98,7 +114,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	void setInitialOriginName(String initialOriginName) {
-		originNames = new ArrayList<String>();
+		originNames = new ArrayList<>();
 		originNames.add(initialOriginName);
 	}
 
@@ -106,7 +122,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 		if (initialOriginNames == null)
 			originNames = null;
 		else {
-			originNames = new ArrayList<String>();
+			originNames = new ArrayList<>();
 			originNames.addAll(initialOriginNames);
 		}
 	}
@@ -128,8 +144,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	 * items removed that are in the passed in list. Equivalent to calling (list1 -
 	 * list2) in ink.
 	 * 
-	 * @param listToRemove
-	 *            List to remove.
+	 * @param listToRemove List to remove.
 	 */
 
 	public InkList without(InkList listToRemove) {
@@ -191,8 +206,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	 * Returns true if the current list contains all the items that are in the list
 	 * that is passed in. Equivalent to calling (list1 ? list2) in ink.
 	 * 
-	 * @param otherList
-	 *            Other list.
+	 * @param otherList Other list.
 	 */
 	public boolean contains(InkList otherList) {
 		for (Map.Entry<InkListItem, Integer> kv : otherList.entrySet()) {
@@ -505,7 +519,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 	}
 
 	List<Entry<InkListItem, Integer>> getOrderedItems() {
-		List<Entry<InkListItem, Integer>> ordered = new ArrayList<Entry<InkListItem, Integer>>(entrySet());
+		List<Entry<InkListItem, Integer>> ordered = new ArrayList<>(entrySet());
 
 		Collections.sort(ordered, new Comparator<Entry<InkListItem, Integer>>() {
 			@Override

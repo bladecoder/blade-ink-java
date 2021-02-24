@@ -30,6 +30,12 @@ public class StoryState {
 	// REMEMBER! REMEMBER! REMEMBER!
 	// When adding state, update the Copy method and serialisation
 	// REMEMBER! REMEMBER! REMEMBER!
+
+	// TODO: Consider removing currentErrors / currentWarnings altogether
+	// and relying on client error handler code immediately handling StoryExceptions
+	// etc
+	// Or is there a specific reason we need to collect potentially multiple
+	// errors before throwing/exiting?
 	private List<String> currentErrors;
 	private List<String> currentWarnings;
 	private int currentTurnIndex;
@@ -745,10 +751,10 @@ public class StoryState {
 		// Pass arguments onto the evaluation stack
 		if (arguments != null) {
 			for (int i = 0; i < arguments.length; i++) {
-				if (!(arguments[i] instanceof Integer || arguments[i] instanceof Float
-						|| arguments[i] instanceof String)) {
+				if (!(arguments[i] instanceof Integer || arguments[i] instanceof Float || arguments[i] instanceof String
+						|| arguments[i] instanceof InkList)) {
 					throw new Exception(
-							"ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be int, float or string. Argument was "
+							"ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be int, float or string or InkList. Argument was "
 									+ (arguments[i] == null ? "null" : arguments[i].getClass().getName()));
 
 				}
@@ -768,9 +774,9 @@ public class StoryState {
 		return false;
 	}
 
-	Object completeFunctionEvaluationFromGame() throws StoryException, Exception {
+	Object completeFunctionEvaluationFromGame() throws Exception {
 		if (getCallStack().getCurrentElement().type != PushPopType.FunctionEvaluationFromGame) {
-			throw new StoryException("Expected external function evaluation to be complete. Stack trace: "
+			throw new Exception("Expected external function evaluation to be complete. Stack trace: "
 					+ getCallStack().getCallStackTrace());
 		}
 
@@ -911,7 +917,7 @@ public class StoryState {
 
 		int headFirstNewlineIdx = -1;
 		int headLastNewlineIdx = -1;
-		for (int i = 0; i < str.length(); ++i) {
+		for (int i = 0; i < str.length(); i++) {
 			char c = str.charAt(i);
 			if (c == '\n') {
 				if (headFirstNewlineIdx == -1)
@@ -925,7 +931,7 @@ public class StoryState {
 
 		int tailLastNewlineIdx = -1;
 		int tailFirstNewlineIdx = -1;
-		for (int i = 0; i < str.length(); ++i) {
+		for (int i = str.length() - 1; i >= 0; i--) {
 			char c = str.charAt(i);
 			if (c == '\n') {
 				if (tailLastNewlineIdx == -1)
@@ -1211,9 +1217,9 @@ public class StoryState {
 		Object jSaveVersion = jObject.get("inkSaveVersion");
 
 		if (jSaveVersion == null) {
-			throw new StoryException("ink save format incorrect, can't load.");
+			throw new Exception("ink save format incorrect, can't load.");
 		} else if ((int) jSaveVersion < kMinCompatibleLoadVersion) {
-			throw new StoryException("Ink save format isn't compatible with the current version (saw '" + jSaveVersion
+			throw new Exception("Ink save format isn't compatible with the current version (saw '" + jSaveVersion
 					+ "', but minimum is " + kMinCompatibleLoadVersion + "), so can't load.");
 		}
 

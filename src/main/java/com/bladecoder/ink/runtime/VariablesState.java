@@ -326,9 +326,9 @@ public class VariablesState implements Iterable<String> {
 		AbstractValue val = AbstractValue.create(value);
 		if (val == null) {
 			if (value == null) {
-				throw new StoryException("Cannot pass null to VariableState");
+				throw new Exception("Cannot pass null to VariableState");
 			} else {
-				throw new StoryException("Invalid value passed to VariableState: " + value.toString());
+				throw new Exception("Invalid value passed to VariableState: " + value.toString());
 			}
 		}
 
@@ -340,6 +340,8 @@ public class VariablesState implements Iterable<String> {
 		if (value) {
 			changedVariablesForBatchObs = new HashSet<>();
 		} else {
+			// Finished observing variables in a batch - now send
+			// notifications for changed variables all in one go.
 			if (changedVariablesForBatchObs != null) {
 				for (String variableName : changedVariablesForBatchObs) {
 					RTObject currentValue = globalVariables.get(variableName);
