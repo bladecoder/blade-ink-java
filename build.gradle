@@ -1,20 +1,25 @@
-apply plugin: 'java-library'
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'signing'
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+}
 
 group = 'com.bladecoder.ink'
 
-sourceCompatibility = 1.7
-targetCompatibility=1.7
+sourceCompatibility = 1.8
+targetCompatibility=1.8
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
     testImplementation 'junit:junit:4.13'
+}
+
+if (hasProperty("ci") && !version.endsWith("-SNAPSHOT")) {
+    version += "-SNAPSHOT"
 }
 
 jar {
@@ -34,101 +39,86 @@ javadoc {
 		memberLevel = JavadocMemberLevel.PUBLIC
 		author true
 		setUse true
-    		encoding "UTF-8"
+        encoding "UTF-8"
 	}
 }
 
-
-task enginedocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from 'build/docs/javadoc'
-}
-
-
 task sourcesJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier = 'sources'
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
 }
 
-artifacts {
-    //archives jar
-    archives enginedocJar
-    archives sourcesJar
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier = 'javadoc'
 }
 
-def isDevBuild
-def isCiBuild
-def isReleaseBuild
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'blade-ink'
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
 
-def sonatypeRepositoryUrl
-
-//set build variables based on build type (release, continuous integration, development)
-if(hasProperty("release")) {
-    isReleaseBuild = true
-    sonatypeRepositoryUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-} else if (hasProperty("ci")) {
-    isCiBuild = true
-    //version += "-SNAPSHOT"
-    sonatypeRepositoryUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
-} else {
-    isDevBuild = true
-}
-
-//********* artifact signing *********
-if(isReleaseBuild) {
-    signing {
-        sign configurations.archives
-    }
-} else {
-    task signArchives {
-        // do nothing
-    }
-}
-
-uploadArchives {
-    repositories {
-        if (isDevBuild) {
-            mavenLocal()
-        }
-        else {
-            mavenDeployer {
-                if(isReleaseBuild) {
-                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
                 }
-
-                repository(url: sonatypeRepositoryUrl) {
-                  authentication(userName: sonatypeUsername, password: sonatypePassword)
+                usage('java-runtime') {
+                    fromResolutionResult()
                 }
+            }
 
-                pom.project {
-                   name 'blade-ink'
-                   packaging 'jar'
-                   description "This is a Java port of inkle's ink, a scripting language for writing interactive narrative."
-                   url 'https://github.com/bladecoder/blade-ink'
+            pom {
+                name = 'blade-ink'
+                description = "This is a Java port of inkle's ink, a scripting language for writing interactive narrative."
+                url = 'https://github.com/bladecoder/blade-ink'
 
-                   scm {
-                       url 'scm:git@github.com:bladecoder/blade-ink.git'
-                       connection 'scm:git@github.com:bladecoder/blade-ink.git'
-                       developerConnection 'scm:git@github.com:bladecoder/blade-ink.git'
-                   }
-
-                   licenses {
-                       license {
-                           name 'The Apache Software License, Version 2.0'
-                           url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                           distribution 'repo'
-                       }
-                   }
-
-                   developers {
-                       developer {
-                           id 'rgarcia'
-                           name 'Rafael Garcia'
-                       } 
-                   }
-               }
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'bladecoder'
+                        name = 'Rafael Garcia'
+                        email = 'bladecoder@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git@github.com:bladecoder/blade-ink.git'
+                    developerConnection = 'scm:git@github.com:bladecoder/blade-ink.git'
+                    url = 'scm:git@github.com:bladecoder/blade-ink.git'
+                }
             }
         }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username findProperty("sonatypeUsername")
+                password findProperty("sonatypePassword")
+            }
+        }
+    }
+}
+
+signing {
+    if(!version.endsWith('SNAPSHOT')) {
+        sign publishing.publications.mavenJava
+    }
+}
+
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
     }
 }
 
