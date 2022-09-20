@@ -22,6 +22,15 @@ if (hasProperty("ci") && !version.endsWith("-SNAPSHOT")) {
     version += "-SNAPSHOT"
 }
 
+// DISABLES JAVADOC ULTRACHECKS IN JDK8
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
 jar {
 	manifest.attributes += [
 			'github': 'https://github.com/bladecoder/blade-ink/',
