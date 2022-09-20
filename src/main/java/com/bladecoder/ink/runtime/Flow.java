@@ -30,7 +30,13 @@ public class Flow {
 		// choiceThreads is optional
 		Object jChoiceThreadsObj;
 
-		jChoiceThreadsObj = jObject.getOrDefault("choiceThreads", null);
+		// This does not work in Android with SDK < 24
+		//jChoiceThreadsObj = jObject.getOrDefault("choiceThreads", null);
+		if (jObject.containsKey("choiceThreads")) {
+			jChoiceThreadsObj = jObject.get("choiceThreads");
+		} else {
+			jChoiceThreadsObj = null;
+		}
 
 		loadFlowChoiceThreads((HashMap<String, Object>) jChoiceThreadsObj, story);
 	}
