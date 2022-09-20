@@ -28,15 +28,7 @@ public class Flow {
 		this.currentChoices = Json.jArrayToRuntimeObjList((List<Object>) jObject.get("currentChoices"));
 
 		// choiceThreads is optional
-		Object jChoiceThreadsObj;
-
-		// This does not work in Android with SDK < 24
-		//jChoiceThreadsObj = jObject.getOrDefault("choiceThreads", null);
-		if (jObject.containsKey("choiceThreads")) {
-			jChoiceThreadsObj = jObject.get("choiceThreads");
-		} else {
-			jChoiceThreadsObj = null;
-		}
+		Object jChoiceThreadsObj = jObject.get("choiceThreads");
 
 		loadFlowChoiceThreads((HashMap<String, Object>) jChoiceThreadsObj, story);
 	}
