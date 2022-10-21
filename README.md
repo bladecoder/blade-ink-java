@@ -29,7 +29,7 @@ try {
 	br.close();
 }
 
-String json = sb.toSTring().replace('\uFEFF', ' ');
+String json = sb.toString().replace('\uFEFF', ' ');
 ```
 
 ### Starting a story
