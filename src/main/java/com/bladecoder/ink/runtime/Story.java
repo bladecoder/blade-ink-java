@@ -675,11 +675,22 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 	}
 
 	/**
-	 * The current flow name if using multi-flow funtionality - see SwitchFlow
+	 * The current flow name if using multi-flow functionality - see SwitchFlow
 	 */
 	public String getCurrentFlowName() {
 		return state.getCurrentFlowName();
 	}
+
+	/**
+	 * 	Is the default flow currently active? By definition, will also return true if not using multi-flow
+	 * 	functionality - see SwitchFlow
+	 */
+	public boolean currentFlowIsDefaultFlow() { return state.currentFlowIsDefaultFlow(); }
+
+	/**
+	 * 	Names of currently alive flows (not including the default flow)
+	 */
+	public List<String> aliveFlowNames() { return state.aliveFlowNames(); }
 
 	public void switchFlow(String flowName) throws Exception {
 		ifAsyncWeCant("switch flow");
