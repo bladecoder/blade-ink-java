@@ -1,68 +1,78 @@
 package com.bladecoder.ink.runtime;
 
+import java.util.List;
+
 /**
  * A generated Choice from the story. A single ChoicePoint in the Story could
  * potentially generate different Choices dynamically dependent on state, so
  * they're separated.
  */
 public class Choice extends RTObject {
-	Path targetPath;
-	boolean isInvisibleDefault;
+    Path targetPath;
+    boolean isInvisibleDefault;
 
-	/**
-	 * The original index into currentChoices list on the Story when this Choice
-	 * was generated, for convenience.
-	 */
-	private int index = 0;
+    List<String> tags;
 
-	int originalThreadIndex = 0;
+    /**
+     * The original index into currentChoices list on the Story when this Choice
+     * was generated, for convenience.
+     */
+    private int index = 0;
 
-	/**
-	 * The main text to presented to the player for this Choice.
-	 */
-	private String text;
+    int originalThreadIndex = 0;
 
-	private CallStack.Thread threadAtGeneration;
-	
-	String sourcePath;
+    /**
+     * The main text to presented to the player for this Choice.
+     */
+    private String text;
 
-	public Choice() throws Exception {
-	}
+    private CallStack.Thread threadAtGeneration;
 
-	public int getIndex() {
-		return index;
-	}
+    String sourcePath;
 
-	/**
-	 * The target path that the Story should be diverted to if this Choice is
-	 * chosen.
-	 */
-	public String getPathStringOnChoice() throws Exception {
-		return targetPath.toString ();
-	}
-	
-	public void setPathStringOnChoice(String value) throws Exception {
-		targetPath = new Path (value);
-	}
+    public Choice() throws Exception {
+    }
 
-	public String getText() {
-		return text;
-	}
+    public int getIndex() {
+        return index;
+    }
 
-	public CallStack.Thread getThreadAtGeneration() {
-		return threadAtGeneration;
-	}
+    /**
+     * The target path that the Story should be diverted to if this Choice is
+     * chosen.
+     */
+    public String getPathStringOnChoice() throws Exception {
+        return targetPath.toString();
+    }
 
-	public void setIndex(int value) {
-		index = value;
-	}
+    public void setPathStringOnChoice(String value) throws Exception {
+        targetPath = new Path(value);
+    }
 
-	public void setText(String value) {
-		text = value;
-	}
+    public String getText() {
+        return text;
+    }
 
-	public void setThreadAtGeneration(CallStack.Thread value) {
-		threadAtGeneration = value;
-	}
+    public List<String> getTags() {
+        return tags;
+    }
+
+    ;
+
+    public CallStack.Thread getThreadAtGeneration() {
+        return threadAtGeneration;
+    }
+
+    public void setIndex(int value) {
+        index = value;
+    }
+
+    public void setText(String value) {
+        text = value;
+    }
+
+    public void setThreadAtGeneration(CallStack.Thread value) {
+        threadAtGeneration = value;
+    }
 
 }

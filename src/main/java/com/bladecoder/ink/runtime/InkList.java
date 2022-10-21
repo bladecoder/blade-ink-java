@@ -60,7 +60,9 @@ public class InkList extends HashMap<InkListItem, Integer> {
      */
     public InkList(InkList otherList) {
         super(otherList);
-        this.originNames = otherList.originNames;
+
+        if (otherList.originNames != null)
+            this.originNames = new ArrayList<>(otherList.originNames);
 
         if (otherList.origins != null) {
             origins = new ArrayList<>(otherList.origins);

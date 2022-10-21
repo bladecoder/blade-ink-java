@@ -1,9 +1,9 @@
-EXTERNAL externalFunction(boolean)
+EXTERNAL externalFunction(integer)
 
-The value is {externalFunction(true)}.
+The value is {externalFunction(1)}.
 -> END
 
-=== function externalFunction(boolean) ===
+=== function externalFunction(integer) ===
 // Usually external functions can only return placeholder
 // results, otherwise they'd be defined in ink!
 ~ return false

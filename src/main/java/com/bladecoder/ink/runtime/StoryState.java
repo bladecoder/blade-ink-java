@@ -24,7 +24,11 @@ public class StoryState {
     /**
      * The current version of the state save file JSON-based format.
      */
-    public static final int kInkSaveStateVersion = 9;
+    //
+    // Backward compatible changes since v8:
+    // v10: dynamic tags
+    // v9:  multi-flows
+    public static final int kInkSaveStateVersion = 10;
     public static final int kMinCompatibleLoadVersion = 8;
     public static final String kDefaultFlowName = "DEFAULT_FLOW";
 
@@ -184,14 +188,25 @@ public class StoryState {
     String getCurrentText() {
         if (outputStreamTextDirty) {
             StringBuilder sb = new StringBuilder();
+            boolean inTag = false;
 
             for (RTObject outputObj : getOutputStream()) {
                 StringValue textContent = null;
                 if (outputObj instanceof StringValue)
                     textContent = (StringValue) outputObj;
 
-                if (textContent != null) {
+                if (!inTag && textContent != null) {
                     sb.append(textContent.value);
+                } else {
+                    if (outputObj instanceof ControlCommand) {
+                        ControlCommand controlCommand = (ControlCommand) outputObj;
+
+                        if (controlCommand.getCommandType() == ControlCommand.CommandType.BeginTag) {
+                            inTag = true;
+                        } else if (controlCommand.getCommandType() == ControlCommand.CommandType.EndTag) {
+                            inTag = false;
+                        }
+                    }
                 }
             }
 
@@ -313,15 +328,48 @@ public class StoryState {
         if (outputStreamTagsDirty) {
             currentTags = new ArrayList<>();
 
-            for (RTObject outputObj : getOutputStream()) {
-                Tag tag = null;
-                if (outputObj instanceof Tag)
-                    tag = (Tag) outputObj;
+            boolean inTag = false;
+            StringBuilder sb = new StringBuilder();
 
-                if (tag != null) {
-                    currentTags.add(tag.getText());
+            for (RTObject outputObj : getOutputStream()) {
+
+                if (outputObj instanceof ControlCommand) {
+                    ControlCommand controlCommand = (ControlCommand) outputObj;
+
+                    if (controlCommand.getCommandType() == ControlCommand.CommandType.BeginTag) {
+                        if (inTag && sb.length() > 0) {
+                            String txt = cleanOutputWhitespace(sb.toString());
+                            currentTags.add(txt);
+                            sb.setLength(0);
+                        }
+                        inTag = true;
+                    } else if (controlCommand.getCommandType() == ControlCommand.CommandType.EndTag) {
+                        if (sb.length() > 0) {
+                            String txt = cleanOutputWhitespace(sb.toString());
+                            currentTags.add(txt);
+                            sb.setLength(0);
+                        }
+                        inTag = false;
+                    }
+                } else if (inTag) {
+                    if (outputObj instanceof StringValue) {
+                        StringValue strVal = (StringValue) outputObj;
+                        sb.append(strVal.value);
+                    }
+                } else if (outputObj instanceof Tag) {
+                    Tag tag = (Tag) outputObj;
+                    if (tag.getText() != null && tag.getText().length() > 0) {
+                        currentTags.add(tag.getText()); // tag.text has whitespace already cleaned
+                    }
                 }
             }
+
+            if (sb.length() > 0) {
+                String txt = cleanOutputWhitespace(sb.toString());
+                currentTags.add(txt);
+                sb.setLength(0);
+            }
+
             outputStreamTagsDirty = false;
         }
 
