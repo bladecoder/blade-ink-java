@@ -1331,11 +1331,16 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 			}
 		} else {
 			// Remove observer for all variables
+			List<String> keysToRemove = new ArrayList<>();
 			for (Map.Entry<String, List<VariableObserver>> obs : variableObservers.entrySet()) {
 				obs.getValue().remove(observer);
 				if (obs.getValue().size() == 0) {
-					variableObservers.remove(obs.getKey());
+					keysToRemove.add(obs.getKey());
 				}
+			}
+			
+			for (String keyToRemove : keysToRemove) {
+				variableObservers.remove(keyToRemove);
 			}
 		}
 	}
