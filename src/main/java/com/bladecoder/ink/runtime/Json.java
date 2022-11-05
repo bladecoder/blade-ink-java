@@ -171,7 +171,7 @@ public class Json {
 
         if (obj instanceof ControlCommand) {
             ControlCommand controlCmd = (ControlCommand) obj;
-            writer.write(controlCommandNames[controlCmd.getCommandType().ordinal()]);
+            writer.write(controlCommandNames[controlCmd.getCommandType().ordinal() - 1]);
             return;
         }
 
