@@ -1,7 +1,7 @@
 package com.bladecoder.ink.runtime;
 
 public interface INamedContent {
-	String getName();
+    String getName();
 
-	boolean hasValidName();
+    boolean hasValidName();
 }

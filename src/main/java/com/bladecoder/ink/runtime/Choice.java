@@ -30,8 +30,7 @@ public class Choice extends RTObject {
 
     String sourcePath;
 
-    public Choice() throws Exception {
-    }
+    public Choice() throws Exception {}
 
     public int getIndex() {
         return index;
@@ -56,7 +55,6 @@ public class Choice extends RTObject {
     public List<String> getTags() {
         return tags;
     }
-
     ;
 
     public CallStack.Thread getThreadAtGeneration() {
@@ -74,5 +72,4 @@ public class Choice extends RTObject {
     public void setThreadAtGeneration(CallStack.Thread value) {
         threadAtGeneration = value;
     }
-
 }

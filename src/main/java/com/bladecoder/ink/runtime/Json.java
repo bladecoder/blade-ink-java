@@ -1,7 +1,6 @@
 package com.bladecoder.ink.runtime;
 
 import com.bladecoder.ink.runtime.ControlCommand.CommandType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,8 +11,7 @@ public class Json {
     public static List<RTObject> jArrayToRuntimeObjList(List<Object> jArray, boolean skipLast) throws Exception {
         int count = jArray.size();
 
-        if (skipLast)
-            count--;
+        if (skipLast) count--;
 
         List<RTObject> list = new ArrayList<>(jArray.size());
 
@@ -53,8 +51,7 @@ public class Json {
     public static void writeIntDictionary(SimpleJson.Writer writer, HashMap<String, Integer> dict) throws Exception {
         writer.writeObjectStart();
 
-        for (Entry<String, Integer> keyVal : dict.entrySet())
-            writer.writeProperty(keyVal.getKey(), keyVal.getValue());
+        for (Entry<String, Integer> keyVal : dict.entrySet()) writer.writeProperty(keyVal.getKey(), keyVal.getValue());
 
         writer.writeObjectEnd();
     }
@@ -69,33 +66,25 @@ public class Json {
         if (obj instanceof Divert) {
             Divert divert = (Divert) obj;
             String divTypeKey = "->";
-            if (divert.isExternal())
-                divTypeKey = "x()";
+            if (divert.isExternal()) divTypeKey = "x()";
             else if (divert.getPushesToStack()) {
-                if (divert.getStackPushType() == PushPopType.Function)
-                    divTypeKey = "f()";
-                else if (divert.getStackPushType() == PushPopType.Tunnel)
-                    divTypeKey = "->t->";
+                if (divert.getStackPushType() == PushPopType.Function) divTypeKey = "f()";
+                else if (divert.getStackPushType() == PushPopType.Tunnel) divTypeKey = "->t->";
             }
 
             String targetStr;
-            if (divert.hasVariableTarget())
-                targetStr = divert.getVariableDivertName();
-            else
-                targetStr = divert.getTargetPathString();
+            if (divert.hasVariableTarget()) targetStr = divert.getVariableDivertName();
+            else targetStr = divert.getTargetPathString();
 
             writer.writeObjectStart();
 
             writer.writeProperty(divTypeKey, targetStr);
 
-            if (divert.hasVariableTarget())
-                writer.writeProperty("var", true);
+            if (divert.hasVariableTarget()) writer.writeProperty("var", true);
 
-            if (divert.isConditional())
-                writer.writeProperty("c", true);
+            if (divert.isConditional()) writer.writeProperty("c", true);
 
-            if (divert.getExternalArgs() > 0)
-                writer.writeProperty("exArgs", divert.getExternalArgs());
+            if (divert.getExternalArgs() > 0) writer.writeProperty("exArgs", divert.getExternalArgs());
 
             writer.writeObjectEnd();
             return;
@@ -131,8 +120,7 @@ public class Json {
 
         if (obj instanceof StringValue) {
             StringValue strVal = (StringValue) obj;
-            if (strVal.isNewline())
-                writer.write("\\n", false);
+            if (strVal.isNewline()) writer.write("\\n", false);
             else {
                 writer.writeStringStart();
                 writer.writeStringInner("^");
@@ -180,8 +168,7 @@ public class Json {
             String name = nativeFunc.getName();
 
             // Avoid collision with ^ used to indicate a string
-            if ("^".equals(name))
-                name = "L^";
+            if ("^".equals(name)) name = "L^";
 
             writer.write(name);
             return;
@@ -212,8 +199,7 @@ public class Json {
             writer.writeProperty(key, varAss.getVariableName());
 
             // Reassignment?
-            if (!varAss.isNewDeclaration())
-                writer.writeProperty("re", true);
+            if (!varAss.isNewDeclaration()) writer.writeProperty("re", true);
 
             writer.writeObjectEnd();
 
@@ -325,14 +311,11 @@ public class Json {
             String str = (String) token;
             // String value
             char firstChar = str.charAt(0);
-            if (firstChar == '^')
-                return new StringValue(str.substring(1));
-            else if (firstChar == '\n' && str.length() == 1)
-                return new StringValue("\n");
+            if (firstChar == '^') return new StringValue(str.substring(1));
+            else if (firstChar == '\n' && str.length() == 1) return new StringValue("\n");
 
             // Glue
-            if ("<>".equals(str))
-                return new Glue();
+            if ("<>".equals(str)) return new Glue();
 
             for (int i = 0; i < controlCommandNames.length; ++i) {
                 // Control commands (would looking up in a hash set be faster?)
@@ -340,28 +323,21 @@ public class Json {
                 if (str.equals(cmdName)) {
                     return new ControlCommand(CommandType.values()[i + 1]);
                 }
-
             }
 
             // Native functions
             // "^" conflicts with the way to identify strings, so now
             // we know it's not a string, we can convert back to the proper
             // symbol for the operator.
-            if ("L^".equals(str))
-                str = "^";
-            if (NativeFunctionCall.callExistsWithName(str))
-                return NativeFunctionCall.callWithName(str);
+            if ("L^".equals(str)) str = "^";
+            if (NativeFunctionCall.callExistsWithName(str)) return NativeFunctionCall.callWithName(str);
 
             // Pop
-            if ("->->".equals(str))
-                return ControlCommand.popTunnel();
-            else if ("~ret".equals(str))
-                return ControlCommand.popFunction();
+            if ("->->".equals(str)) return ControlCommand.popTunnel();
+            else if ("~ret".equals(str)) return ControlCommand.popFunction();
 
             // Void
-            if ("void".equals(str))
-                return new Void();
-
+            if ("void".equals(str)) return new Void();
         }
 
         if (token instanceof HashMap<?, ?>) {
@@ -383,8 +359,7 @@ public class Json {
 
                 propValue = obj.get("ci");
 
-                if (propValue != null)
-                    varPtr.setContextIndex((Integer) propValue);
+                if (propValue != null) varPtr.setContextIndex((Integer) propValue);
 
                 return varPtr;
             }
@@ -418,7 +393,6 @@ public class Json {
                             pushesToStack = false;
                             divPushType = PushPopType.Function;
                         }
-
                     }
                 }
             }
@@ -445,7 +419,6 @@ public class Json {
                     if (propValue != null) {
                         divert.setExternalArgs((Integer) propValue);
                     }
-
                 }
 
                 return divert;
@@ -476,7 +449,6 @@ public class Json {
                     readCountVarRef.setPathStringForCount(propValue.toString());
                     return readCountVarRef;
                 }
-
             }
             // Variable assignment
             boolean isVarAss = false;
@@ -492,7 +464,6 @@ public class Json {
                     isVarAss = true;
                     isGlobalVar = false;
                 }
-
             }
             if (isVarAss) {
                 String varName = propValue.toString();
@@ -535,9 +506,7 @@ public class Json {
             }
 
             // Used when serialising save state only
-            if (obj.get("originalChoicePath") != null)
-                return jObjectToChoice(obj);
-
+            if (obj.get("originalChoicePath") != null) return jObjectToChoice(obj);
         }
 
         // Array is always a Runtime.Container
@@ -545,8 +514,7 @@ public class Json {
             return jArrayToContainer((List<Object>) token);
         }
 
-        if (token == null)
-            return null;
+        if (token == null) return null;
 
         throw new Exception("Failed to convert token to runtime RTObject: " + token);
     }
@@ -559,8 +527,7 @@ public class Json {
             throws Exception {
         writer.writeArrayStart();
 
-        for (RTObject c : container.getContent())
-            writeRuntimeObject(writer, c);
+        for (RTObject c : container.getContent()) writeRuntimeObject(writer, c);
 
         // Container is always an array [...]
         // But the final element is always either:
@@ -573,16 +540,14 @@ public class Json {
 
         boolean hasTerminator = namedOnlyContent != null || countFlags > 0 || hasNameProperty;
 
-        if (hasTerminator)
-            writer.writeObjectStart();
+        if (hasTerminator) writer.writeObjectStart();
 
         if (namedOnlyContent != null) {
 
             for (Entry<String, RTObject> namedContent : namedOnlyContent.entrySet()) {
                 String name = namedContent.getKey();
-                Container namedContainer = namedContent.getValue() instanceof Container
-                        ? (Container) namedContent.getValue()
-                        : null;
+                Container namedContainer =
+                        namedContent.getValue() instanceof Container ? (Container) namedContent.getValue() : null;
 
                 writer.writePropertyStart(name);
                 writeRuntimeContainer(writer, namedContainer, true);
@@ -590,19 +555,14 @@ public class Json {
             }
         }
 
-        if (countFlags > 0)
-            writer.writeProperty("#f", countFlags);
+        if (countFlags > 0) writer.writeProperty("#f", countFlags);
 
-        if (hasNameProperty)
-            writer.writeProperty("#n", container.getName());
+        if (hasNameProperty) writer.writeProperty("#n", container.getName());
 
-        if (hasTerminator)
-            writer.writeObjectEnd();
-        else
-            writer.writeNull();
+        if (hasTerminator) writer.writeObjectEnd();
+        else writer.writeNull();
 
         writer.writeArrayEnd();
-
     }
 
     @SuppressWarnings("unchecked")
@@ -623,10 +583,9 @@ public class Json {
                     container.setName(keyVal.getValue().toString());
                 } else {
                     RTObject namedContentItem = jTokenToRuntimeObject(keyVal.getValue());
-                    Container namedSubContainer = namedContentItem instanceof Container ? (Container) namedContentItem
-                            : (Container) null;
-                    if (namedSubContainer != null)
-                        namedSubContainer.setName(keyVal.getKey());
+                    Container namedSubContainer =
+                            namedContentItem instanceof Container ? (Container) namedContentItem : (Container) null;
+                    if (namedSubContainer != null) namedSubContainer.setName(keyVal.getKey());
 
                     namedOnlyContent.put(keyVal.getKey(), namedContentItem);
                 }
@@ -685,11 +644,12 @@ public class Json {
 
         writer.writePropertyEnd();
 
-        if (rawList.size() == 0 && rawList.getOriginNames() != null && rawList.getOriginNames().size() > 0) {
+        if (rawList.size() == 0
+                && rawList.getOriginNames() != null
+                && rawList.getOriginNames().size() > 0) {
             writer.writePropertyStart("origins");
             writer.writeArrayStart();
-            for (String name : rawList.getOriginNames())
-                writer.write(name);
+            for (String name : rawList.getOriginNames()) writer.write(name);
             writer.writeArrayEnd();
             writer.writePropertyEnd();
         }
@@ -733,7 +693,7 @@ public class Json {
         return new ListDefinitionsOrigin(allDefs);
     }
 
-    private final static String[] controlCommandNames;
+    private static final String[] controlCommandNames;
 
     static {
         controlCommandNames = new String[CommandType.values().length - 1];
@@ -768,6 +728,5 @@ public class Json {
             if (controlCommandNames[i] == null)
                 throw new ExceptionInInitializerError("Control command not accounted for in serialisation");
         }
-
     }
 }

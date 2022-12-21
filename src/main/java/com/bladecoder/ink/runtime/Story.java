@@ -3,7 +3,6 @@ package com.bladecoder.ink.runtime;
 import com.bladecoder.ink.runtime.Error.ErrorType;
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
-
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -248,9 +247,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             throw new Exception(
                     "Version of ink used to build story is too old to be loaded by this version of the engine");
         } else if (formatFromFile != inkVersionCurrent) {
-            System.out.println(
-                    "WARNING: Version of ink used to build story doesn't match current version of engine. " +
-                            "Non-critical, but recommend synchronising.");
+            System.out.println("WARNING: Version of ink used to build story doesn't match current version of engine. "
+                    + "Non-critical, but recommend synchronising.");
         }
 
         Object rootToken = rootObject.get("root");
@@ -285,8 +283,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
             message = String.format("RUNTIME %s: '%s' line %d: %s", errorTypeStr, dm.fileName, lineNum, message);
         } else if (!state.getCurrentPointer().isNull()) {
-            message = String.format("RUNTIME %s: (%s): %s", errorTypeStr,
-                    state.getCurrentPointer().getPath().toString(), message);
+            message = String.format(
+                    "RUNTIME %s: (%s): %s",
+                    errorTypeStr, state.getCurrentPointer().getPath().toString(), message);
         } else {
             message = "RUNTIME " + errorTypeStr + ": " + message;
         }
@@ -294,8 +293,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         state.addError(message, isWarning);
 
         // In a broken state don't need to know about any other errors.
-        if (!isWarning)
-            state.forceEnd();
+        if (!isWarning) state.forceEnd();
     }
 
     /**
@@ -372,11 +370,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
     @SuppressWarnings("unchecked")
     public <T> T tryCoerce(Object value, Class<T> type) throws Exception {
 
-        if (value == null)
-            return null;
+        if (value == null) return null;
 
-        if (type.isAssignableFrom(value.getClass()))
-            return (T) value;
+        if (type.isAssignableFrom(value.getClass())) return (T) value;
 
         if (value instanceof Float && type == Integer.class) {
             Integer intVal = (int) Math.round((Float) value);
@@ -437,10 +433,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
         while (true) {
             RTObject firstContent = flowContainer.getContent().get(0);
-            if (firstContent instanceof Container)
-                flowContainer = (Container) firstContent;
-            else
-                break;
+            if (firstContent instanceof Container) flowContainer = (Container) firstContent;
+            else break;
         }
 
         // Any initial tag objects count as the "main tags" associated with that
@@ -463,9 +457,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                     if (tags == null) tags = new ArrayList<>();
                     tags.add(str.value);
                 } else {
-                    error("Tag contained non-text content. Only plain text is allowed when using globalTags or " +
-                            "TagsAtContentPath. If you want to evaluate dynamic content, you need to use story" +
-                            ".Continue().");
+                    error("Tag contained non-text content. Only plain text is allowed when using globalTags or "
+                            + "TagsAtContentPath. If you want to evaluate dynamic content, you need to use story"
+                            + ".Continue().");
                 }
             }
 
@@ -489,7 +483,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
     public String buildStringOfHierarchy() {
         StringBuilder sb = new StringBuilder();
 
-        getMainContentContainer().buildStringOfHierarchy(sb, 0, state.getCurrentPointer().resolve());
+        getMainContentContainer()
+                .buildStringOfHierarchy(sb, 0, state.getCurrentPointer().resolve());
 
         return sb.toString();
     }
@@ -523,17 +518,22 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                 fallbackFunctionContainer = knotContainerWithName(funcName);
 
-                Assert(fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName
-                        + "' which has not been bound, and fallback ink function could not be found.");
+                Assert(
+                        fallbackFunctionContainer != null,
+                        "Trying to call EXTERNAL function '" + funcName
+                                + "' which has not been bound, and fallback ink function could not be found.");
 
                 // Divert direct into fallback function and we're done
-                state.getCallStack().push(PushPopType.Function, 0, state.getOutputStream().size());
+                state.getCallStack()
+                        .push(PushPopType.Function, 0, state.getOutputStream().size());
                 state.setDivertedPointer(Pointer.startOf(fallbackFunctionContainer));
                 return;
 
             } else {
-                Assert(false, "Trying to call EXTERNAL function '" + funcName
-                        + "' which has not been bound (and ink fallbacks disabled).");
+                Assert(
+                        false,
+                        "Trying to call EXTERNAL function '" + funcName
+                                + "' which has not been bound (and ink fallbacks disabled).");
             }
         }
 
@@ -556,8 +556,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         RTObject returnObj;
         if (funcResult != null) {
             returnObj = AbstractValue.create(funcResult);
-            Assert(returnObj != null, "Could not create ink value from returned Object of type "
-                    + funcResult.getClass().getCanonicalName());
+            Assert(
+                    returnObj != null,
+                    "Could not create ink value from returned Object of type "
+                            + funcResult.getClass().getCanonicalName());
         } else {
             returnObj = new Void();
         }
@@ -679,8 +681,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
     void ifAsyncWeCant(String activityStr) throws Exception {
         if (asyncContinueActive)
             throw new Exception("Can't " + activityStr
-                    + ". Story is in the middle of a ContinueAsync(). Make more ContinueAsync() calls or a single " +
-                    "Continue() call beforehand.");
+                    + ". Story is in the middle of a ContinueAsync(). Make more ContinueAsync() calls or a single "
+                    + "Continue() call beforehand.");
     }
 
     SearchResult contentAtPath(Path path) throws Exception {
@@ -691,10 +693,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
         INamedContent namedContainer = mainContentContainer.getNamedContent().get(name);
 
-        if (namedContainer != null)
-            return namedContainer instanceof Container ? (Container) namedContainer : null;
-        else
-            return null;
+        if (namedContainer != null) return namedContainer instanceof Container ? (Container) namedContainer : null;
+        else return null;
     }
 
     /**
@@ -769,8 +769,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
      * exactly what Continue does internally).
      */
     public void continueAsync(float millisecsLimitAsync) throws Exception {
-        if (!hasValidatedExternals)
-            validateExternalBindings();
+        if (!hasValidatedExternals) validateExternalBindings();
 
         continueInternal(millisecsLimitAsync);
     }
@@ -780,8 +779,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
     }
 
     void continueInternal(float millisecsLimitAsync) throws Exception {
-        if (profiler != null)
-            profiler.preContinue();
+        if (profiler != null) profiler.preContinue();
 
         boolean isAsyncTimeLimited = millisecsLimitAsync > 0;
 
@@ -803,8 +801,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             // It's possible for ink to call game to call ink to call game etc
             // In this case, we only want to batch observe variable changes
             // for the outermost call.
-            if (recursiveContinueCount == 1)
-                state.getVariablesState().setbatchObservingVariableChanges(true);
+            if (recursiveContinueCount == 1) state.getVariablesState().setbatchObservingVariableChanges(true);
         }
 
         // Start timing
@@ -822,8 +819,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                 break;
             }
 
-            if (outputStreamEndsInNewline)
-                break;
+            if (outputStreamEndsInNewline) break;
 
             // Run out of async time?
             if (asyncContinueActive && durationStopwatch.getElapsedMilliseconds() > millisecsLimitAsync) {
@@ -852,7 +848,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                 if (state.getCallStack().canPopThread())
                     addError("Thread available to pop, threads should always be flat by the end of evaluation?");
 
-                if (state.getGeneratedChoices().size() == 0 && !state.isDidSafeExit()
+                if (state.getGeneratedChoices().size() == 0
+                        && !state.isDidSafeExit()
                         && temporaryEvaluationContainer == null) {
                     if (state.getCallStack().canPop(PushPopType.Tunnel))
                         addError("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
@@ -860,22 +857,19 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                         addError("unexpectedly reached end of content. Do you need a '~ return'?");
                     else if (!state.getCallStack().canPop())
                         addError("ran out of content. Do you need a '-> DONE' or '-> END'?");
-                    else
-                        addError("unexpectedly reached end of content for unknown reason. Please debug compiler!");
+                    else addError("unexpectedly reached end of content for unknown reason. Please debug compiler!");
                 }
             }
             state.setDidSafeExit(false);
             sawLookaheadUnsafeFunctionAfterNewline = false;
 
-            if (recursiveContinueCount == 1)
-                state.getVariablesState().setbatchObservingVariableChanges(false);
+            if (recursiveContinueCount == 1) state.getVariablesState().setbatchObservingVariableChanges(false);
             asyncContinueActive = false;
         }
 
         recursiveContinueCount--;
 
-        if (profiler != null)
-            profiler.postContinue();
+        if (profiler != null) profiler.postContinue();
 
         // Report any errors that occured during evaluation.
         // This may either have been StoryExceptions that were thrown
@@ -902,17 +896,18 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                 if (state.hasError()) {
                     sb.append(state.getCurrentErrors().size());
                     sb.append(state.getCurrentErrors().size() == 1 ? " error" : " errors");
-                    if (state.hasWarning())
-                        sb.append(" and ");
+                    if (state.hasWarning()) sb.append(" and ");
                 }
                 if (state.hasWarning()) {
                     sb.append(state.getCurrentWarnings().size());
                     sb.append(state.getCurrentWarnings().size() == 1 ? " warning" : " warnings");
                 }
+                sb.append(". It is strongly suggested that you assign an error handler to story.onError. The first "
+                        + "issue was: ");
                 sb.append(
-                        ". It is strongly suggested that you assign an error handler to story.onError. The first " +
-                                "issue was: ");
-                sb.append(state.hasError() ? state.getCurrentErrors().get(0) : state.getCurrentWarnings().get(0));
+                        state.hasError()
+                                ? state.getCurrentErrors().get(0)
+                                : state.getCurrentWarnings().get(0));
 
                 // If you get this exception, please assign an error handler to your story.
                 // If you're using Unity, you can do something like this when you create
@@ -933,14 +928,12 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
     }
 
     boolean continueSingleStep() throws Exception {
-        if (profiler != null)
-            profiler.preStep();
+        if (profiler != null) profiler.preStep();
 
         // Run main step function (walks through content)
         step();
 
-        if (profiler != null)
-            profiler.postStep();
+        if (profiler != null) profiler.postStep();
 
         // Run out of content and we have a default invisible choice that we can follow?
         if (!canContinue() && !state.getCallStack().elementIsEvaluateFromGame()) {
@@ -948,8 +941,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             tryFollowDefaultInvisibleChoice();
         }
 
-        if (profiler != null)
-            profiler.preSnapshot();
+        if (profiler != null) profiler.preSnapshot();
 
         // Don't save/rewind during string evaluation, which is e.g. used for choices
         if (!state.inStringEvaluation()) {
@@ -962,7 +954,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                 // that was previously added is definitely the end of the line.
                 OutputStateChange change = calculateNewlineOutputStateChange(
                         stateSnapshotAtLastNewline.getCurrentText(), state.getCurrentText(),
-                        stateSnapshotAtLastNewline.getCurrentTags().size(), state.getCurrentTags().size());
+                        stateSnapshotAtLastNewline.getCurrentTags().size(),
+                                state.getCurrentTags().size());
 
                 // The last time we saw a newline, it was definitely the end of the line, so we
                 // want to rewind to that point.
@@ -979,7 +972,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                     stateSnapshotAtLastNewline = null;
                     discardSnapshot();
                 }
-
             }
 
             // Current content ends in a newline - approaching end of our evaluation
@@ -995,8 +987,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                     // e.g.:
                     // Hello world\n // record state at the end of here
                     // ~ complexCalculation() // don't actually need this unless it generates text
-                    if (stateSnapshotAtLastNewline == null)
-                        stateSnapshot();
+                    if (stateSnapshotAtLastNewline == null) stateSnapshot();
                 }
 
                 // Can't continue, so we're about to exit - make sure we
@@ -1004,17 +995,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                 else {
                     discardSnapshot();
                 }
-
             }
-
         }
 
-        if (profiler != null)
-            profiler.postSnapshot();
+        if (profiler != null) profiler.postSnapshot();
 
         // outputStreamEndsInNewline = false
         return false;
-
     }
 
     /**
@@ -1124,7 +1111,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         } else {
             return null;
         }
-
     }
 
     /**
@@ -1254,8 +1240,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             successfulIncrement = true;
         }
 
-        if (!successfulIncrement)
-            pointer.assign(Pointer.Null);
+        if (!successfulIncrement) pointer.assign(Pointer.Null);
 
         state.getCallStack().getCurrentElement().currentPointer.assign(pointer);
 
@@ -1272,8 +1257,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             if (val instanceof DivertTargetValue) {
                 DivertTargetValue divTarget = (DivertTargetValue) val;
                 error("Shouldn't use a divert target (to " + divTarget.getTargetPath()
-                        + ") as a conditional value. Did you intend a function call 'likeThis()' or a read count " +
-                        "check 'likeThis'? (no arrows)");
+                        + ") as a conditional value. Did you intend a function call 'likeThis()' or a read count "
+                        + "check 'likeThis'? (no arrows)");
                 return false;
             }
 
@@ -1298,8 +1283,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
     public void observeVariable(String variableName, VariableObserver observer) throws Exception {
         ifAsyncWeCant("observe a new variable");
 
-        if (variableObservers == null)
-            variableObservers = new HashMap<>();
+        if (variableObservers == null) variableObservers = new HashMap<>();
 
         if (!state.getVariablesState().globalVariableExistsWithName(variableName))
             throw new Exception(
@@ -1346,8 +1330,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
     public void removeVariableObserver(VariableObserver observer, String specificVariableName) throws Exception {
         ifAsyncWeCant("remove a variable observer");
 
-        if (variableObservers == null)
-            return;
+        if (variableObservers == null) return;
 
         // Remove observer for this specific variable
         if (specificVariableName != null) {
@@ -1379,8 +1362,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
     @Override
     public void variableStateDidChangeEvent(String variableName, RTObject newValueObj) throws Exception {
-        if (variableObservers == null)
-            return;
+        if (variableObservers == null) return;
 
         List<VariableObserver> observers = variableObservers.get(variableName);
 
@@ -1552,8 +1534,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                 RTObject conditionValue = state.popEvaluationStack();
 
                 // False conditional? Cancel divert
-                if (!isTruthy(conditionValue))
-                    return true;
+                if (!isTruthy(conditionValue)) return true;
             }
 
             if (currentDivert.hasVariableTarget()) {
@@ -1589,7 +1570,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             }
 
             if (currentDivert.getPushesToStack()) {
-                state.getCallStack().push(currentDivert.getStackPushType(), 0, state.getOutputStream().size());
+                state.getCallStack()
+                        .push(
+                                currentDivert.getStackPushType(),
+                                0,
+                                state.getOutputStream().size());
             }
 
             if (state.getDivertedPointer().isNull() && !currentDivert.isExternal()) {
@@ -1612,7 +1597,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
             int choiceCount;
             switch (evalCommand.getCommandType()) {
-
                 case EvalStart:
                     Assert(!state.getInExpressionEvaluation(), "Already in expression evaluation?");
                     state.setInExpressionEvaluation(true);
@@ -1644,7 +1628,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                             state.pushToOutputStream(text);
                         }
-
                     }
                     break;
 
@@ -1661,7 +1644,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                 case PopFunction:
                 case PopTunnel:
-
                     PushPopType popType = evalCommand.getCommandType() == ControlCommand.CommandType.PopFunction
                             ? PushPopType.Function
                             : PushPopType.Tunnel;
@@ -1683,8 +1665,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                     if (state.tryExitFunctionEvaluationFromGame()) {
                         break;
-                    } else if (state.getCallStack().getCurrentElement().type != popType || !state.getCallStack()
-                            .canPop()) {
+                    } else if (state.getCallStack().getCurrentElement().type != popType
+                            || !state.getCallStack().canPop()) {
 
                         HashMap<PushPopType, String> names = new HashMap<>();
                         names.put(PushPopType.Function, "function return statement (~ return)");
@@ -1711,13 +1693,14 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                 case BeginString:
                     state.pushToOutputStream(evalCommand);
 
-                    Assert(state.getInExpressionEvaluation(),
+                    Assert(
+                            state.getInExpressionEvaluation(),
                             "Expected to be in an expression when evaluating a string");
                     state.setInExpressionEvaluation(false);
                     break;
-                // Leave it to story.currentText and story.currentTags to sort out the text from the tags
-                // This is mostly because we can't always rely on the existence of EndTag, and we don't want
-                // to try and flatten dynamic tags to strings every time \n is pushed to output
+                    // Leave it to story.currentText and story.currentTags to sort out the text from the tags
+                    // This is mostly because we can't always rely on the existence of EndTag, and we don't want
+                    // to try and flatten dynamic tags to strings every time \n is pushed to output
                 case BeginTag:
                     state.pushToOutputStream(evalCommand);
                     break;
@@ -1770,8 +1753,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                                 }
                             }
 
-                            if (obj instanceof StringValue)
-                                contentStackForTag.push((StringValue) obj);
+                            if (obj instanceof StringValue) contentStackForTag.push((StringValue) obj);
                         }
 
                         // Consume the content that was produced for this string
@@ -1795,7 +1777,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                     }
                     break;
                 }
-                // Dynamic strings and tags are built in the same way
+                    // Dynamic strings and tags are built in the same way
                 case EndString: {
 
                     // Since we're iterating backward through the content,
@@ -1816,11 +1798,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                             break;
                         }
 
-                        if (obj instanceof Tag)
-                            contentToRetain.push(obj);
+                        if (obj instanceof Tag) contentToRetain.push(obj);
 
-                        if (obj instanceof StringValue)
-                            contentStackForString.push(obj);
+                        if (obj instanceof StringValue) contentStackForString.push(obj);
                     }
 
                     // Consume the content that was produced for this string
@@ -1830,8 +1810,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                     // rather than consume as part of the string we're building.
                     // At the time of writing, this only applies to Tag objects generated
                     // by choices, which are pushed to the stack during string generation.
-                    for (RTObject rescuedTag : contentToRetain)
-                        state.pushToOutputStream(rescuedTag);
+                    for (RTObject rescuedTag : contentToRetain) state.pushToOutputStream(rescuedTag);
 
                     // Build string out of the content we collected
                     StringBuilder sb = new StringBuilder();
@@ -1862,15 +1841,15 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                     if (!(target instanceof DivertTargetValue)) {
                         String extraNote = "";
                         if (target instanceof IntValue)
-                            extraNote = ". Did you accidentally pass a read count ('knot_name') instead of a target " +
-                                    "('-> knot_name')?";
+                            extraNote = ". Did you accidentally pass a read count ('knot_name') instead of a target "
+                                    + "('-> knot_name')?";
                         error("TURNS_SINCE expected a divert target (knot, stitch, label name), but saw " + target
                                 + extraNote);
                         break;
                     }
 
-                    DivertTargetValue divertTarget = target instanceof DivertTargetValue ? (DivertTargetValue) target
-                            : null;
+                    DivertTargetValue divertTarget =
+                            target instanceof DivertTargetValue ? (DivertTargetValue) target : null;
 
                     RTObject otmp = contentAtPath(divertTarget.getTargetPath()).correctObj();
                     Container container = otmp instanceof Container ? (Container) otmp : null;
@@ -1880,13 +1859,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                     if (container != null) {
                         if (evalCommand.getCommandType() == ControlCommand.CommandType.TurnsSince)
                             eitherCount = state.turnsSinceForContainer(container);
-                        else
-                            eitherCount = state.visitCountForContainer(container);
+                        else eitherCount = state.visitCountForContainer(container);
                     } else {
                         if (evalCommand.getCommandType() == ControlCommand.CommandType.TurnsSince)
                             eitherCount = -1; // turn count, default to never/unknown
-                        else
-                            eitherCount = 0; // visit count, assume 0 to default to allowing entry
+                        else eitherCount = 0; // visit count, assume 0 to default to allowing entry
 
                         warning("Failed to find container for " + evalCommand.toString() + " lookup at "
                                 + divertTarget.getTargetPath().toString());
@@ -1900,21 +1877,17 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                     RTObject o = state.popEvaluationStack();
 
-                    if (o instanceof IntValue)
-                        maxInt = (IntValue) o;
+                    if (o instanceof IntValue) maxInt = (IntValue) o;
 
                     IntValue minInt = null;
 
                     o = state.popEvaluationStack();
 
-                    if (o instanceof IntValue)
-                        minInt = (IntValue) o;
+                    if (o instanceof IntValue) minInt = (IntValue) o;
 
-                    if (minInt == null)
-                        error("Invalid value for minimum parameter of RANDOM(min, max)");
+                    if (minInt == null) error("Invalid value for minimum parameter of RANDOM(min, max)");
 
-                    if (maxInt == null)
-                        error("Invalid value for maximum parameter of RANDOM(min, max)");
+                    if (maxInt == null) error("Invalid value for maximum parameter of RANDOM(min, max)");
 
                     // +1 because it's inclusive of min and max, for e.g.
                     // RANDOM(1,6) for a dice roll.
@@ -1941,11 +1914,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                     RTObject o = state.popEvaluationStack();
 
-                    if (o instanceof IntValue)
-                        seed = (IntValue) o;
+                    if (o instanceof IntValue) seed = (IntValue) o;
 
-                    if (seed == null)
-                        error("Invalid value passed to SEED_RANDOM");
+                    if (seed == null) error("Invalid value passed to SEED_RANDOM");
 
                     // Story seed affects both RANDOM and shuffle behaviour
                     state.setStorySeed(seed.value);
@@ -1990,7 +1961,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                     break;
 
-                // Force flow to end completely
+                    // Force flow to end completely
                 case End:
                     state.forceEnd();
                     break;
@@ -2000,15 +1971,13 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                     RTObject o = state.popEvaluationStack();
 
-                    if (o instanceof IntValue)
-                        intVal = (IntValue) o;
+                    if (o instanceof IntValue) intVal = (IntValue) o;
 
                     StringValue listNameVal = null;
 
                     o = state.popEvaluationStack();
 
-                    if (o instanceof StringValue)
-                        listNameVal = (StringValue) o;
+                    if (o instanceof StringValue) listNameVal = (StringValue) o;
 
                     if (intVal == null) {
                         throw new StoryException(
@@ -2031,8 +2000,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                         throw new StoryException("Failed to find List called " + listNameVal.value);
                     }
 
-                    if (generatedListValue == null)
-                        generatedListValue = new ListValue();
+                    if (generatedListValue == null) generatedListValue = new ListValue();
 
                     state.pushEvaluationStack(generatedListValue);
                     break;
@@ -2058,12 +2026,10 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                 }
 
                 case ListRandom: {
-
                     RTObject o = state.popEvaluationStack();
                     ListValue listVal = o instanceof ListValue ? (ListValue) o : null;
 
-                    if (listVal == null)
-                        throw new StoryException("Expected list for LIST_RANDOM");
+                    if (listVal == null) throw new StoryException("Expected list for LIST_RANDOM");
 
                     InkList list = listVal.value;
 
@@ -2084,7 +2050,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                         int listItemIndex = nextRandom % list.size();
 
                         // Iterate through to get the random element
-                        Iterator<Entry<InkListItem, Integer>> listEnumerator = list.entrySet().iterator();
+                        Iterator<Entry<InkListItem, Integer>> listEnumerator =
+                                list.entrySet().iterator();
 
                         Entry<InkListItem, Integer> randomItem = null;
 
@@ -2147,9 +2114,9 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                 if (foundValue == null) {
                     warning("Variable not found: '" + varRef.getName()
-                            + "'. Using default value of 0 (false). This can happen with temporary variables if the " +
-                            "declaration hasn't yet been hit. Globals are always given a default value on load if a " +
-                            "value doesn't exist in the save state.");
+                            + "'. Using default value of 0 (false). This can happen with temporary variables if the "
+                            + "declaration hasn't yet been hit. Globals are always given a default value on load if a "
+                            + "value doesn't exist in the save state.");
                     foundValue = new IntValue(0);
                 }
             }
@@ -2182,14 +2149,17 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
     // # tag
     // ... doesn't cause the tag to be wrongly associated with the content above.
     enum OutputStateChange {
-        NoChange, ExtendedBeyondNewline, NewlineRemoved
+        NoChange,
+        ExtendedBeyondNewline,
+        NewlineRemoved
     }
 
-    OutputStateChange calculateNewlineOutputStateChange(String prevText, String currText, int prevTagCount,
-                                                        int currTagCount) {
+    OutputStateChange calculateNewlineOutputStateChange(
+            String prevText, String currText, int prevTagCount, int currTagCount) {
         // Simple case: nothing's changed, and we still have a newline
         // at the end of the current content
-        boolean newlineStillExists = currText.length() >= prevText.length() && prevText.length() > 0
+        boolean newlineStillExists = currText.length() >= prevText.length()
+                && prevText.length() > 0
                 && currText.charAt(prevText.length() - 1) == '\n';
         if (prevTagCount == currTagCount && prevText.length() == currText.length() && newlineStillExists)
             return OutputStateChange.NoChange;
@@ -2200,8 +2170,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         }
 
         // Tag added - definitely the start of a new line
-        if (currTagCount > prevTagCount)
-            return OutputStateChange.ExtendedBeyondNewline;
+        if (currTagCount > prevTagCount) return OutputStateChange.ExtendedBeyondNewline;
 
         // There must be new content - check whether it's just whitespace
         for (int i = prevText.length(); i < currText.length(); i++) {
@@ -2336,8 +2305,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
     }
 
     Pointer pointerAtPath(Path path) throws Exception {
-        if (path.getLength() == 0)
-            return Pointer.Null;
+        if (path.getLength() == 0) return Pointer.Null;
 
         final Pointer p = new Pointer();
 
@@ -2387,8 +2355,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             visitContainer(containerToEnter, true);
 
             // No content? the most we can do is step past it
-            if (containerToEnter.getContent().size() == 0)
-                break;
+            if (containerToEnter.getContent().size() == 0) break;
 
             pointer.assign(Pointer.startOf(containerToEnter));
 
@@ -2446,9 +2413,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             // to our current (possibly temporary) context index. And make a
             // copy of the pointer
             // so that we're not editing the original runtime Object.
-            VariablePointerValue varPointer = currentContentObj instanceof VariablePointerValue
-                    ? (VariablePointerValue) currentContentObj
-                    : null;
+            VariablePointerValue varPointer =
+                    currentContentObj instanceof VariablePointerValue ? (VariablePointerValue) currentContentObj : null;
 
             if (varPointer != null && varPointer.getContextIndex() == -1) {
 
@@ -2475,8 +2441,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         // pointer,
         // so that when returning from the thread, it returns to the content
         // after this instruction.
-        ControlCommand controlCmd = currentContentObj instanceof ControlCommand ? (ControlCommand) currentContentObj
-                : null;
+        ControlCommand controlCmd =
+                currentContentObj instanceof ControlCommand ? (ControlCommand) currentContentObj : null;
         if (controlCmd != null && controlCmd.getCommandType() == ControlCommand.CommandType.StartThread) {
             state.getCallStack().pushThread();
         }
@@ -2558,8 +2524,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             }
         }
 
-        if (invisibleChoices.size() == 0 || allChoices.size() > invisibleChoices.size())
-            return false;
+        if (invisibleChoices.size() == 0 || allChoices.size() > invisibleChoices.size()) return false;
 
         Choice choice = invisibleChoices.get(0);
 
@@ -2604,17 +2569,18 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             StringBuilder join = new StringBuilder();
             boolean first = true;
             for (String item : missingExternals) {
-                if (first)
-                    first = false;
-                else
-                    join.append(", ");
+                if (first) first = false;
+                else join.append(", ");
 
                 join.append(item);
             }
 
-            String message = String.format("ERROR: Missing function binding for external%s: '%s' %s",
-                    missingExternals.size() > 1 ? "s" : "", join.toString(),
-                    allowExternalFunctionFallbacks ? ", and no fallback ink function found."
+            String message = String.format(
+                    "ERROR: Missing function binding for external%s: '%s' %s",
+                    missingExternals.size() > 1 ? "s" : "",
+                    join.toString(),
+                    allowExternalFunctionFallbacks
+                            ? ", and no fallback ink function found."
                             : " (ink fallbacks disabled)");
 
             error(message);
@@ -2629,8 +2595,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         }
 
         for (INamedContent innerKeyValue : c.getNamedContent().values()) {
-            validateExternalBindings(innerKeyValue instanceof RTObject ? (RTObject) innerKeyValue : (RTObject) null,
-                    missingExternals);
+            validateExternalBindings(
+                    innerKeyValue instanceof RTObject ? (RTObject) innerKeyValue : (RTObject) null, missingExternals);
         }
     }
 
@@ -2650,7 +2616,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             if (!externals.containsKey(name)) {
 
                 if (allowExternalFunctionFallbacks) {
-                    boolean fallbackFound = mainContentContainer.getNamedContent().containsKey(name);
+                    boolean fallbackFound =
+                            mainContentContainer.getNamedContent().containsKey(name);
                     if (!fallbackFound) {
                         missingExternals.add(name);
                     }
@@ -2667,8 +2634,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
         // Unless we're pointing *directly* at a piece of content, we don't do
         // counting here. Otherwise, the main stepping function will do the counting.
-        if (pointer.isNull() || pointer.index == -1)
-            return;
+        if (pointer.isNull() || pointer.index == -1) return;
 
         // First, find the previously open set of containers
 
@@ -2686,8 +2652,8 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
             while (prevAncestor != null) {
                 prevContainers.add(prevAncestor);
-                prevAncestor = prevAncestor.getParent() instanceof Container ? (Container) prevAncestor.getParent()
-                        : null;
+                prevAncestor =
+                        prevAncestor.getParent() instanceof Container ? (Container) prevAncestor.getParent() : null;
             }
         }
 
@@ -2698,30 +2664,30 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         RTObject currentChildOfContainer = pointer.resolve();
 
         // Invalid pointer? May happen if attemptingto
-        if (currentChildOfContainer == null)
-            return;
+        if (currentChildOfContainer == null) return;
 
         Container currentContainerAncestor = currentChildOfContainer.getParent() instanceof Container
                 ? (Container) currentChildOfContainer.getParent()
                 : null;
 
         boolean allChildrenEnteredAtStart = true;
-        while (currentContainerAncestor != null && (!prevContainers.contains(currentContainerAncestor)
-                || currentContainerAncestor.getCountingAtStartOnly())) {
+        while (currentContainerAncestor != null
+                && (!prevContainers.contains(currentContainerAncestor)
+                        || currentContainerAncestor.getCountingAtStartOnly())) {
 
             // Check whether this ancestor container is being entered at the
             // start,
             // by checking whether the child Object is the first.
             boolean enteringAtStart = currentContainerAncestor.getContent().size() > 0
-                    && currentChildOfContainer == currentContainerAncestor.getContent().get(0)
+                    && currentChildOfContainer
+                            == currentContainerAncestor.getContent().get(0)
                     && allChildrenEnteredAtStart;
 
             // Don't count it as entering at start if we're entering random somewhere within
             // a container B that happens to be nested at index 0 of container A. It only
             // counts
             // if we're diverting directly to the first leaf node.
-            if (!enteringAtStart)
-                allChildrenEnteredAtStart = false;
+            if (!enteringAtStart) allChildrenEnteredAtStart = false;
 
             // Mark a visit to this container
             visitContainer(currentContainerAncestor, enteringAtStart);
@@ -2730,18 +2696,15 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
             currentContainerAncestor = currentContainerAncestor.getParent() instanceof Container
                     ? (Container) currentContainerAncestor.getParent()
                     : null;
-
         }
     }
 
     // Mark a container as having been visited
     void visitContainer(Container container, boolean atStart) throws Exception {
         if (!container.getCountingAtStartOnly() || atStart) {
-            if (container.getVisitsShouldBeCounted())
-                state.incrementVisitCountForContainer(container);
+            if (container.getVisitsShouldBeCounted()) state.incrementVisitCountForContainer(container);
 
-            if (container.getTurnIndexShouldBeCounted())
-                state.recordTurnIndexVisitToContainer(container);
+            if (container.getTurnIndexShouldBeCounted()) state.recordTurnIndexVisitToContainer(container);
         }
     }
 
@@ -2812,8 +2775,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
         // Get the content that we need to run
         Container funcContainer = knotContainerWithName(functionName);
-        if (funcContainer == null)
-            throw new Exception("Function doesn't exist: '" + functionName + "'");
+        if (funcContainer == null) throw new Exception("Function doesn't exist: '" + functionName + "'");
 
         // Snapshot the output stream
         ArrayList<RTObject> outputStreamBefore = new ArrayList<>(state.getOutputStream());
@@ -2826,8 +2788,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         while (canContinue()) {
             String text = Continue();
 
-            if (textOutput != null)
-                textOutput.append(text);
+            if (textOutput != null) textOutput.append(text);
         }
 
         // Restore the output stream in case this was called
@@ -2873,8 +2834,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         // However, if we're in the middle of async
         // saving, we simply stay in a "patching" state,
         // albeit with the newer cloned patch.
-        if (!asyncSaving)
-            state.applyAnyPatch();
+        if (!asyncSaving) state.applyAnyPatch();
 
         // No longer need the snapshot.
         stateSnapshotAtLastNewline = null;

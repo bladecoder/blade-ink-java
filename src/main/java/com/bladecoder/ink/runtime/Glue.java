@@ -1,11 +1,10 @@
 package com.bladecoder.ink.runtime;
 
 public class Glue extends RTObject {
-	public Glue() { }
+    public Glue() {}
 
-	@Override
-	public String toString() {
-		return "Glue";
-	}
-
+    @Override
+    public String toString() {
+        return "Glue";
+    }
 }

@@ -7,22 +7,20 @@ package com.bladecoder.ink.runtime;
  */
 @SuppressWarnings("serial")
 public class StoryException extends Exception {
-	public boolean useEndLineNumber;
+    public boolean useEndLineNumber;
 
-	/**
-	 * Constructs a default instance of a StoryException without a message.
-	 */
-	public StoryException() throws Exception {
-	}
+    /**
+     * Constructs a default instance of a StoryException without a message.
+     */
+    public StoryException() throws Exception {}
 
-	/**
-	 * Constructs an instance of a StoryException with a message.
-	 * 
-	 * @param message
-	 *            The error message.
-	 */
-	public StoryException(String message) throws Exception {
-		super(message);
-	}
-
+    /**
+     * Constructs an instance of a StoryException with a message.
+     *
+     * @param message
+     *            The error message.
+     */
+    public StoryException(String message) throws Exception {
+        super(message);
+    }
 }

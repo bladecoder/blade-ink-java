@@ -8,27 +8,25 @@ package com.bladecoder.ink.runtime;
  * try to recover by finding an approximate result by working up the story hierarchy
  * in the path to find the closest valid container. Instead of crashing horribly,
  * we might see some slight oddness in the content, but hopefully it recovers!
-
+ *
  * @author rgarcia
  */
 class SearchResult {
-	public RTObject obj;
-	public boolean approximate;
-	
-	public SearchResult() {
-		
-	}
-	
-	public SearchResult(SearchResult sr) {
-		obj = sr.obj;
-		approximate = sr.approximate;
-	}
+    public RTObject obj;
+    public boolean approximate;
 
-	public RTObject correctObj() {
-		return approximate ? null : obj;
-	}
+    public SearchResult() {}
 
-	public Container getContainer() {
-		return obj instanceof Container? (Container)obj:null; 
-	}
+    public SearchResult(SearchResult sr) {
+        obj = sr.obj;
+        approximate = sr.approximate;
+    }
+
+    public RTObject correctObj() {
+        return approximate ? null : obj;
+    }
+
+    public Container getContainer() {
+        return obj instanceof Container ? (Container) obj : null;
+    }
 }

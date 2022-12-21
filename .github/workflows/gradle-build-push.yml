@@ -1,6 +1,6 @@
 name: Run Gradle build on push
 
-on: [push]
+on: [ push ]
 
 jobs:
   build:
@@ -23,6 +23,8 @@ jobs:
             ${{ runner.os }}-gradle-          
       - name: Build with Gradle
         run: ./gradlew build
+      - name: Pass tests and checks
+        run: ./gradlew check
       - name: Cleanup Gradle Cache
         # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
         # Restoring these files from a GitHub Actions cache might cause problems for future builds.

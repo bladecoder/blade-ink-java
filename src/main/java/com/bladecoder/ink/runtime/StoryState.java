@@ -3,7 +3,6 @@ package com.bladecoder.ink.runtime;
 import com.bladecoder.ink.runtime.CallStack.Element;
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
-
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +28,7 @@ public class StoryState {
     // v10: dynamic tags
     // v9:  multi-flows
     public static final int kInkSaveStateVersion = 10;
+
     public static final int kMinCompatibleLoadVersion = 8;
     public static final String kDefaultFlowName = "DEFAULT_FLOW";
 
@@ -98,13 +98,11 @@ public class StoryState {
 
     void addError(String message, boolean isWarning) {
         if (!isWarning) {
-            if (currentErrors == null)
-                currentErrors = new ArrayList<>();
+            if (currentErrors == null) currentErrors = new ArrayList<>();
 
             currentErrors.add(message);
         } else {
-            if (currentWarnings == null)
-                currentWarnings = new ArrayList<>();
+            if (currentWarnings == null) currentWarnings = new ArrayList<>();
 
             currentWarnings.add(message);
         }
@@ -160,8 +158,7 @@ public class StoryState {
 
         copy.evaluationStack.addAll(evaluationStack);
 
-        if (!divertedPointer.isNull())
-            copy.divertedPointer.assign(divertedPointer);
+        if (!divertedPointer.isNull()) copy.divertedPointer.assign(divertedPointer);
 
         copy.setPreviousPointer(getPreviousPointer());
 
@@ -180,7 +177,9 @@ public class StoryState {
     }
 
     void popFromOutputStream(int count) {
-        getOutputStream().subList(getOutputStream().size() - count, getOutputStream().size()).clear();
+        getOutputStream()
+                .subList(getOutputStream().size() - count, getOutputStream().size())
+                .clear();
 
         outputStreamDirty();
     }
@@ -192,8 +191,7 @@ public class StoryState {
 
             for (RTObject outputObj : getOutputStream()) {
                 StringValue textContent = null;
-                if (outputObj instanceof StringValue)
-                    textContent = (StringValue) outputObj;
+                if (outputObj instanceof StringValue) textContent = (StringValue) outputObj;
 
                 if (!inTag && textContent != null) {
                     sb.append(textContent.value);
@@ -234,8 +232,7 @@ public class StoryState {
 
             boolean isInlineWhitespace = c == ' ' || c == '\t';
 
-            if (isInlineWhitespace && currentWhitespaceStart == -1)
-                currentWhitespaceStart = i;
+            if (isInlineWhitespace && currentWhitespaceStart == -1) currentWhitespaceStart = i;
 
             if (!isInlineWhitespace) {
                 if (c != '\n' && currentWhitespaceStart > 0 && currentWhitespaceStart != startOfLine) {
@@ -244,11 +241,9 @@ public class StoryState {
                 currentWhitespaceStart = -1;
             }
 
-            if (c == '\n')
-                startOfLine = i + 1;
+            if (c == '\n') startOfLine = i + 1;
 
-            if (!isInlineWhitespace)
-                sb.append(c);
+            if (!isInlineWhitespace) sb.append(c);
         }
 
         return sb.toString();
@@ -292,12 +287,10 @@ public class StoryState {
         for (int i = getOutputStream().size() - 1; i >= functionStartPoint; i--) {
             RTObject obj = getOutputStream().get(i);
 
-            if (!(obj instanceof StringValue))
-                continue;
+            if (!(obj instanceof StringValue)) continue;
             StringValue txt = (StringValue) obj;
 
-            if (obj instanceof ControlCommand)
-                break;
+            if (obj instanceof ControlCommand) break;
 
             if (txt.isNewline() || txt.isInlineWhitespace()) {
                 getOutputStream().remove(i);
@@ -314,8 +307,7 @@ public class StoryState {
 
     void popCallstack(PushPopType popType) throws Exception {
         // Add the end of a function call, trim any whitespace from the end.
-        if (getCallStack().getCurrentElement().type == PushPopType.Function)
-            trimWhitespaceFromFunctionEnd();
+        if (getCallStack().getCurrentElement().type == PushPopType.Function) trimWhitespaceFromFunctionEnd();
 
         getCallStack().pop(popType);
     }
@@ -415,8 +407,7 @@ public class StoryState {
     }
 
     void switchFlowInternal(String flowName) throws Exception {
-        if (flowName == null)
-            throw new Exception("Must pass a non-null string to Story.SwitchFlow");
+        if (flowName == null) throw new Exception("Must pass a non-null string to Story.SwitchFlow");
 
         if (namedFlows == null) {
             namedFlows = new HashMap<>();
@@ -442,17 +433,14 @@ public class StoryState {
     }
 
     void switchToDefaultFlowInternal() throws Exception {
-        if (namedFlows == null)
-            return;
+        if (namedFlows == null) return;
 
         switchFlowInternal(kDefaultFlowName);
     }
 
     void removeFlowInternal(String flowName) throws Exception {
-        if (flowName == null)
-            throw new Exception("Must pass a non-null string to Story.DestroyFlow");
-        if (flowName.equals(kDefaultFlowName))
-            throw new Exception("Cannot destroy default flow");
+        if (flowName == null) throw new Exception("Must pass a non-null string to Story.DestroyFlow");
+        if (flowName.equals(kDefaultFlowName)) throw new Exception("Cannot destroy default flow");
 
         // If we're currently in the flow that's being removed, switch back to default
         if (currentFlow.name.equals(flowName)) {
@@ -495,8 +483,7 @@ public class StoryState {
         // If we can continue generating text content rather than choices,
         // then we reflect the choice list as being empty, since choices
         // should always come at the end.
-        if (canContinue())
-            return new ArrayList<>();
+        if (canContinue()) return new ArrayList<>();
 
         return currentFlow.currentChoices;
     }
@@ -559,8 +546,7 @@ public class StoryState {
 
     boolean outputStreamContainsContent() {
         for (RTObject content : getOutputStream()) {
-            if (content instanceof StringValue)
-                return true;
+            if (content instanceof StringValue) return true;
         }
         return false;
     }
@@ -571,16 +557,14 @@ public class StoryState {
             for (int i = getOutputStream().size() - 1; i >= 0; i--) {
                 RTObject obj = getOutputStream().get(i);
                 if (obj instanceof ControlCommand) // e.g. BeginString
-                    break;
+                break;
                 StringValue text = getOutputStream().get(i) instanceof StringValue
                         ? (StringValue) getOutputStream().get(i)
                         : null;
 
                 if (text != null) {
-                    if (text.isNewline())
-                        return true;
-                    else if (text.isNonWhitespace())
-                        break;
+                    if (text.isNewline()) return true;
+                    else if (text.isNonWhitespace()) break;
                 }
             }
         }
@@ -605,7 +589,9 @@ public class StoryState {
 
         List<RTObject> popped = new ArrayList<>(
                 evaluationStack.subList(evaluationStack.size() - numberOfObjects, evaluationStack.size()));
-        evaluationStack.subList(evaluationStack.size() - numberOfObjects, evaluationStack.size()).clear();
+        evaluationStack
+                .subList(evaluationStack.size() - numberOfObjects, evaluationStack.size())
+                .clear();
 
         return popped;
     }
@@ -617,8 +603,7 @@ public class StoryState {
         // of the origin list to get related items, or make comparisons
         // with the integer values etc.
         ListValue listValue = null;
-        if (obj instanceof ListValue)
-            listValue = (ListValue) obj;
+        if (obj instanceof ListValue) listValue = (ListValue) obj;
 
         if (listValue != null) {
             // Update origin when list is has something to indicate the list
@@ -627,8 +612,7 @@ public class StoryState {
 
             if (rawList.getOriginNames() != null) {
 
-                if (rawList.getOrigins() == null)
-                    rawList.setOrigins(new ArrayList<ListDefinition>());
+                if (rawList.getOrigins() == null) rawList.setOrigins(new ArrayList<ListDefinition>());
 
                 rawList.getOrigins().clear();
 
@@ -636,7 +620,6 @@ public class StoryState {
                     ListDefinition def = story.getListDefinitions().getListDefinition(n);
                     if (!rawList.getOrigins().contains(def))
                         rawList.getOrigins().add(def);
-
                 }
             }
         }
@@ -716,12 +699,9 @@ public class StoryState {
 
             // Where is the most agressive (earliest) trim point?
             int trimIndex = -1;
-            if (glueTrimIndex != -1 && functionTrimIndex != -1)
-                trimIndex = Math.min(functionTrimIndex, glueTrimIndex);
-            else if (glueTrimIndex != -1)
-                trimIndex = glueTrimIndex;
-            else
-                trimIndex = functionTrimIndex;
+            if (glueTrimIndex != -1 && functionTrimIndex != -1) trimIndex = Math.min(functionTrimIndex, glueTrimIndex);
+            else if (glueTrimIndex != -1) trimIndex = glueTrimIndex;
+            else trimIndex = functionTrimIndex;
 
             // So, are we trimming then?
             if (trimIndex != -1) {
@@ -735,8 +715,7 @@ public class StoryState {
                 // Able to completely reset when normal text is pushed
                 else if (text.isNonWhitespace()) {
 
-                    if (glueTrimIndex > -1)
-                        removeExistingGlue();
+                    if (glueTrimIndex > -1) removeExistingGlue();
 
                     // Tell all functions in callstack that we have seen proper text,
                     // so trimming whitespace at the start is done.
@@ -756,8 +735,7 @@ public class StoryState {
 
             // De-duplicate newlines, and don't ever lead with a newline
             else if (text.isNewline()) {
-                if (outputStreamEndsInNewline() || !outputStreamContainsContent())
-                    includeInOutput = false;
+                if (outputStreamEndsInNewline() || !outputStreamContainsContent()) includeInOutput = false;
             }
         }
 
@@ -765,7 +743,6 @@ public class StoryState {
             getOutputStream().add(obj);
             outputStreamDirty();
         }
-
     }
 
     // Only called when non-whitespace is appended
@@ -794,8 +771,7 @@ public class StoryState {
 
     void resetOutput(List<RTObject> objs) {
         getOutputStream().clear();
-        if (objs != null)
-            getOutputStream().addAll(objs);
+        if (objs != null) getOutputStream().addAll(objs);
         outputStreamDirty();
     }
 
@@ -810,13 +786,11 @@ public class StoryState {
         currentFlow.currentChoices.clear();
 
         final Pointer newPointer = new Pointer(story.pointerAtPath(path));
-        if (!newPointer.isNull() && newPointer.index == -1)
-            newPointer.index = 0;
+        if (!newPointer.isNull() && newPointer.index == -1) newPointer.index = 0;
 
         setCurrentPointer(newPointer);
 
-        if (incrementingTurnIndex)
-            currentTurnIndex++;
+        if (incrementingTurnIndex) currentTurnIndex++;
     }
 
     void startFunctionEvaluationFromGame(Container funcContainer, Object[] arguments) throws Exception {
@@ -830,13 +804,17 @@ public class StoryState {
         // Pass arguments onto the evaluation stack
         if (arguments != null) {
             for (int i = 0; i < arguments.length; i++) {
-                if (!(arguments[i] instanceof Integer || arguments[i] instanceof Float || arguments[i] instanceof String
-                        || arguments[i] instanceof Boolean || arguments[i] instanceof InkList)) {
+                if (!(arguments[i] instanceof Integer
+                        || arguments[i] instanceof Float
+                        || arguments[i] instanceof String
+                        || arguments[i] instanceof Boolean
+                        || arguments[i] instanceof InkList)) {
                     throw new Exception(
-                            "ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be " +
-                                    "int, float, string, bool or InkList. Argument was "
-                                    + (arguments[i] == null ? "null" : arguments[i].getClass().getName()));
-
+                            "ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be "
+                                    + "int, float, string, bool or InkList. Argument was "
+                                    + (arguments[i] == null
+                                            ? "null"
+                                            : arguments[i].getClass().getName()));
                 }
 
                 pushEvaluationStack(Value.create(arguments[i]));
@@ -870,8 +848,7 @@ public class StoryState {
         RTObject returnedObj = null;
         while (evaluationStack.size() > originalEvaluationStackHeight) {
             RTObject poppedObj = popEvaluationStack();
-            if (returnedObj == null)
-                returnedObj = poppedObj;
+            if (returnedObj == null) returnedObj = poppedObj;
         }
 
         // Finally, pop the external function evaluation
@@ -879,14 +856,12 @@ public class StoryState {
 
         // What did we get back?
         if (returnedObj != null) {
-            if (returnedObj instanceof Void)
-                return null;
+            if (returnedObj instanceof Void) return null;
 
             // Some kind of value, if not void
             Value<?> returnVal = null;
 
-            if (returnedObj instanceof Value)
-                returnVal = (Value<?>) returnedObj;
+            if (returnedObj instanceof Value) returnVal = (Value<?>) returnedObj;
 
             // DivertTargets get returned as the string of components
             // (rather than a Path, which isn't public)
@@ -1000,13 +975,10 @@ public class StoryState {
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
             if (c == '\n') {
-                if (headFirstNewlineIdx == -1)
-                    headFirstNewlineIdx = i;
+                if (headFirstNewlineIdx == -1) headFirstNewlineIdx = i;
                 headLastNewlineIdx = i;
-            } else if (c == ' ' || c == '\t')
-                continue;
-            else
-                break;
+            } else if (c == ' ' || c == '\t') continue;
+            else break;
         }
 
         int tailLastNewlineIdx = -1;
@@ -1014,18 +986,14 @@ public class StoryState {
         for (int i = str.length() - 1; i >= 0; i--) {
             char c = str.charAt(i);
             if (c == '\n') {
-                if (tailLastNewlineIdx == -1)
-                    tailLastNewlineIdx = i;
+                if (tailLastNewlineIdx == -1) tailLastNewlineIdx = i;
                 tailFirstNewlineIdx = i;
-            } else if (c == ' ' || c == '\t')
-                continue;
-            else
-                break;
+            } else if (c == ' ' || c == '\t') continue;
+            else break;
         }
 
         // No splitting to be done?
-        if (headFirstNewlineIdx == -1 && tailLastNewlineIdx == -1)
-            return null;
+        if (headFirstNewlineIdx == -1 && tailLastNewlineIdx == -1) return null;
 
         List<StringValue> listTexts = new ArrayList<>();
         int innerStrStart = 0;
@@ -1053,8 +1021,8 @@ public class StoryState {
             listTexts.add(new StringValue("\n"));
             if (tailLastNewlineIdx < str.length() - 1) {
                 int numSpaces = (str.length() - tailLastNewlineIdx) - 1;
-                StringValue trailingSpaces = new StringValue(
-                        str.substring(tailLastNewlineIdx + 1, numSpaces + tailLastNewlineIdx + 1));
+                StringValue trailingSpaces =
+                        new StringValue(str.substring(tailLastNewlineIdx + 1, numSpaces + tailLastNewlineIdx + 1));
                 listTexts.add(trailingSpaces);
             }
         }
@@ -1079,17 +1047,14 @@ public class StoryState {
 
         if (patch != null) {
             Container container = story.contentAtPath(new Path(pathString)).getContainer();
-            if (container == null)
-                throw new Exception("Content at path not found: " + pathString);
+            if (container == null) throw new Exception("Content at path not found: " + pathString);
 
             visitCountOut = patch.getVisitCount(container);
-            if (visitCountOut != null)
-                return visitCountOut;
+            if (visitCountOut != null) return visitCountOut;
         }
 
         visitCountOut = visitCounts.get(pathString);
-        if (visitCountOut != null)
-            return visitCountOut;
+        if (visitCountOut != null) return visitCountOut;
 
         return 0;
     }
@@ -1101,13 +1066,11 @@ public class StoryState {
             return 0;
         }
 
-        if (patch != null && patch.getVisitCount(container) != null)
-            return patch.getVisitCount(container);
+        if (patch != null && patch.getVisitCount(container) != null) return patch.getVisitCount(container);
 
         String containerPathStr = container.getPath().toString();
 
-        if (visitCounts.containsKey(containerPathStr))
-            return visitCounts.get(containerPathStr);
+        if (visitCounts.containsKey(containerPathStr)) return visitCounts.get(containerPathStr);
 
         return 0;
     }
@@ -1124,8 +1087,7 @@ public class StoryState {
         Integer count = 0;
         String containerPathStr = container.getPath().toString();
 
-        if (visitCounts.containsKey(containerPathStr))
-            count = visitCounts.get(containerPathStr);
+        if (visitCounts.containsKey(containerPathStr)) count = visitCounts.get(containerPathStr);
 
         count++;
         visitCounts.put(containerPathStr, count);
@@ -1190,8 +1152,7 @@ public class StoryState {
     }
 
     void applyAnyPatch() {
-        if (patch == null)
-            return;
+        if (patch == null) return;
 
         variablesState.applyPatch();
 
@@ -1262,7 +1223,8 @@ public class StoryState {
         });
 
         if (!divertedPointer.isNull())
-            writer.writeProperty("currentDivertTarget", divertedPointer.getPath().getComponentsString());
+            writer.writeProperty(
+                    "currentDivertTarget", divertedPointer.getPath().getComponentsString());
 
         writer.writeProperty("visitCounts", new InnerWriter() {
             @Override
@@ -1308,16 +1270,13 @@ public class StoryState {
             HashMap<String, Object> flowsObjDict = (HashMap<String, Object>) flowsObj;
 
             // Single default flow
-            if (flowsObjDict.size() == 1)
-                namedFlows = null;
+            if (flowsObjDict.size() == 1) namedFlows = null;
 
-                // Multi-flow, need to create flows dict
-            else if (namedFlows == null)
-                namedFlows = new HashMap<>();
+            // Multi-flow, need to create flows dict
+            else if (namedFlows == null) namedFlows = new HashMap<>();
 
-                // Multi-flow, already have a flows dict
-            else
-                namedFlows.clear();
+            // Multi-flow, already have a flows dict
+            else namedFlows.clear();
 
             // Load up each flow (there may only be one)
             for (Entry<String, Object> namedFlowObj : flowsObjDict.entrySet()) {
@@ -1381,6 +1340,5 @@ public class StoryState {
         } else {
             previousRandom = 0;
         }
-
     }
 }

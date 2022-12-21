@@ -1,11 +1,10 @@
 package com.bladecoder.ink.runtime.test;
 
 import com.bladecoder.ink.runtime.Story;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class VariableSpecTest {
 
@@ -22,8 +21,8 @@ public class VariableSpecTest {
 
         TestUtils.nextAll(story, text);
         Assert.assertEquals(1, text.size());
-        Assert.assertEquals("\"My name is Jean Passepartout, but my friend's call me Jackie. I'm 23 years old.\"",
-                text.get(0));
+        Assert.assertEquals(
+                "\"My name is Jean Passepartout, but my friend's call me Jackie. I'm 23 years old.\"", text.get(0));
     }
 
     /**

@@ -1,67 +1,61 @@
 package com.bladecoder.ink.runtime;
 
 public class VariableReference extends RTObject {
-	// Normal named variable
-	private String name = new String();
+    // Normal named variable
+    private String name = new String();
 
-	// Variable reference is actually a path for a visit (read) count
-	private Path pathForCount;
+    // Variable reference is actually a path for a visit (read) count
+    private Path pathForCount;
 
-	// Require default constructor for serialisation
-	public VariableReference() {
-	}
+    // Require default constructor for serialisation
+    public VariableReference() {}
 
-	public VariableReference(String name) {
-		this.setName(name);
-	}
+    public VariableReference(String name) {
+        this.setName(name);
+    }
 
-	public Container getContainerForCount() throws Exception {
-		return this.resolvePath(getPathForCount()).getContainer();
-	}
+    public Container getContainerForCount() throws Exception {
+        return this.resolvePath(getPathForCount()).getContainer();
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public Path getPathForCount() {
-		return pathForCount;
-	}
+    public Path getPathForCount() {
+        return pathForCount;
+    }
 
-	public String getPathStringForCount() throws Exception {
-		if (getPathForCount() == null)
-			return null;
+    public String getPathStringForCount() throws Exception {
+        if (getPathForCount() == null) return null;
 
-		return compactPathString(getPathForCount());
-	}
+        return compactPathString(getPathForCount());
+    }
 
-	public void setName(String value) {
-		name = value;
-	}
+    public void setName(String value) {
+        name = value;
+    }
 
-	public void setPathForCount(Path value) {
-		pathForCount = value;
-	}
+    public void setPathForCount(Path value) {
+        pathForCount = value;
+    }
 
-	public void setPathStringForCount(String value) throws Exception {
-		if (value == null)
-			setPathForCount(null);
-		else
-			setPathForCount(new Path(value));
-	}
+    public void setPathStringForCount(String value) throws Exception {
+        if (value == null) setPathForCount(null);
+        else setPathForCount(new Path(value));
+    }
 
-	@Override
-	public String toString() {
-		try {
-			if (getName() != null) {
-				return String.format("var(%s)", getName());
-			} else {
-				String pathStr = getPathStringForCount();
-				return String.format("read_count(%s)", pathStr);
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
+    @Override
+    public String toString() {
+        try {
+            if (getName() != null) {
+                return String.format("var(%s)", getName());
+            } else {
+                String pathStr = getPathStringForCount();
+                return String.format("read_count(%s)", pathStr);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

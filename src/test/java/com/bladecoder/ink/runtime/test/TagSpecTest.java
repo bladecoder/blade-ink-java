@@ -27,13 +27,15 @@ public class TagSpecTest {
         Assert.assertArrayEquals(globalTags, story.getCurrentTags().toArray());
 
         Assert.assertArrayEquals(knotTags, story.tagsForContentAtPath("knot").toArray());
-        Assert.assertArrayEquals(stitchTags, story.tagsForContentAtPath("knot.stitch").toArray());
+        Assert.assertArrayEquals(
+                stitchTags, story.tagsForContentAtPath("knot.stitch").toArray());
 
         story.choosePathString("knot");
         Assert.assertEquals("Knot content\n", story.Continue());
         Assert.assertArrayEquals(knotTags, story.getCurrentTags().toArray());
         Assert.assertEquals("", story.Continue());
-        Assert.assertArrayEquals(knotTagWhenContinuedTwice, story.getCurrentTags().toArray());
+        Assert.assertArrayEquals(
+                knotTagWhenContinuedTwice, story.getCurrentTags().toArray());
     }
 
     @Test
@@ -43,10 +45,10 @@ public class TagSpecTest {
         Story story = new Story(json);
 
         Assert.assertEquals("A red sequence.\n", story.Continue());
-        Assert.assertArrayEquals(new String[]{"red"}, story.getCurrentTags().toArray());
+        Assert.assertArrayEquals(new String[] {"red"}, story.getCurrentTags().toArray());
 
         Assert.assertEquals("A white sequence.\n", story.Continue());
-        Assert.assertArrayEquals(new String[]{"white"}, story.getCurrentTags().toArray());
+        Assert.assertArrayEquals(new String[] {"white"}, story.getCurrentTags().toArray());
     }
 
     @Test
@@ -58,12 +60,15 @@ public class TagSpecTest {
         story.Continue();
         Assert.assertEquals(0, story.getCurrentTags().size());
         Assert.assertEquals(1, story.getCurrentChoices().size());
-        Assert.assertArrayEquals(new String[]{"one", "two"}, story.getCurrentChoices().get(0).getTags().toArray());
+        Assert.assertArrayEquals(
+                new String[] {"one", "two"},
+                story.getCurrentChoices().get(0).getTags().toArray());
 
         story.chooseChoiceIndex(0);
 
         Assert.assertEquals("one three", story.Continue());
-        Assert.assertArrayEquals(new String[]{"one", "three"}, story.getCurrentTags().toArray());
+        Assert.assertArrayEquals(
+                new String[] {"one", "three"}, story.getCurrentTags().toArray());
     }
 
     @Test
@@ -73,6 +78,7 @@ public class TagSpecTest {
         Story story = new Story(json);
 
         Assert.assertEquals("tag\n", story.Continue());
-        Assert.assertArrayEquals(new String[]{"pic8red.jpg"}, story.getCurrentTags().toArray());
+        Assert.assertArrayEquals(
+                new String[] {"pic8red.jpg"}, story.getCurrentTags().toArray());
     }
 }

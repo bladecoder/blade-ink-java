@@ -30,8 +30,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
     /**
      * Create a new empty ink list.
      */
-    public InkList() {
-    }
+    public InkList() {}
 
     public InkList(Map.Entry<InkListItem, Integer> singleElement) {
         put(singleElement.getKey(), singleElement.getValue());
@@ -61,8 +60,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
     public InkList(InkList otherList) {
         super(otherList);
 
-        if (otherList.originNames != null)
-            this.originNames = new ArrayList<>(otherList.originNames);
+        if (otherList.originNames != null) this.originNames = new ArrayList<>(otherList.originNames);
 
         if (otherList.origins != null) {
             origins = new ArrayList<>(otherList.origins);
@@ -74,21 +72,18 @@ public class InkList extends HashMap<InkListItem, Integer> {
      */
     public static InkList FromString(String myListItem, Story originStory) throws Exception {
         ListValue listValue = originStory.getListDefinitions().findSingleItemListWithName(myListItem);
-        if (listValue != null)
-            return new InkList(listValue.value);
+        if (listValue != null) return new InkList(listValue.value);
         else
             throw new Exception("Could not find the InkListItem from the string '" + myListItem
                     + "' to create an InkList because it doesn't exist in the original list definition in ink.");
     }
 
     ListDefinition getOriginOfMaxItem() {
-        if (origins == null)
-            return null;
+        if (origins == null) return null;
 
         String maxOriginName = getMaxItem().getKey().getOriginName();
         for (ListDefinition origin : origins) {
-            if (origin.getName().equals(maxOriginName))
-                return origin;
+            if (origin.getName().equals(maxOriginName)) return origin;
         }
 
         return null;
@@ -104,13 +99,10 @@ public class InkList extends HashMap<InkListItem, Integer> {
 
     public List<String> getOriginNames() {
         if (this.size() > 0) {
-            if (originNames == null && this.size() > 0)
-                originNames = new ArrayList<>();
-            else
-                originNames.clear();
+            if (originNames == null && this.size() > 0) originNames = new ArrayList<>();
+            else originNames.clear();
 
-            for (InkListItem itemAndValue : keySet())
-                originNames.add(itemAndValue.getOriginName());
+            for (InkListItem itemAndValue : keySet()) originNames.add(itemAndValue.getOriginName());
         }
 
         return originNames;
@@ -122,8 +114,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
     }
 
     void setInitialOriginNames(List<String> initialOriginNames) {
-        if (initialOriginNames == null)
-            originNames = null;
+        if (initialOriginNames == null) originNames = null;
         else {
             originNames = new ArrayList<>();
             originNames.addAll(initialOriginNames);
@@ -136,8 +127,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
      */
     public InkList union(InkList otherList) {
         InkList union = new InkList(this);
-        for (InkListItem key : otherList.keySet())
-            union.put(key, otherList.get(key));
+        for (InkListItem key : otherList.keySet()) union.put(key, otherList.get(key));
 
         return union;
     }
@@ -149,11 +139,9 @@ public class InkList extends HashMap<InkListItem, Integer> {
      *
      * @param listToRemove List to remove.
      */
-
     public InkList without(InkList listToRemove) {
         InkList result = new InkList(this);
-        for (InkListItem kv : listToRemove.keySet())
-            result.remove(kv);
+        for (InkListItem kv : listToRemove.keySet()) result.remove(kv);
 
         return result;
     }
@@ -167,8 +155,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
         InkList intersection = new InkList();
 
         for (Map.Entry<InkListItem, Integer> kv : this.entrySet()) {
-            if (otherList.containsKey(kv.getKey()))
-                intersection.put(kv.getKey(), kv.getValue());
+            if (otherList.containsKey(kv.getKey())) intersection.put(kv.getKey(), kv.getValue());
         }
 
         return intersection;
@@ -179,8 +166,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
      */
     public boolean hasIntersection(InkList otherList) {
         for (Map.Entry<InkListItem, Integer> kv : this.entrySet()) {
-            if (otherList.containsKey(kv.getKey()))
-                return true;
+            if (otherList.containsKey(kv.getKey())) return true;
         }
         return false;
     }
@@ -209,8 +195,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
         CustomEntry min = new CustomEntry(null, 0);
 
         for (Map.Entry<InkListItem, Integer> kv : this.entrySet()) {
-            if (min.getKey() == null || kv.getValue() < min.getValue())
-                min.set(kv);
+            if (min.getKey() == null || kv.getValue() < min.getValue()) min.set(kv);
         }
 
         return min;
@@ -226,8 +211,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
         if (otherList.size() == 0 || this.size() == 0) return false;
 
         for (Map.Entry<InkListItem, Integer> kv : otherList.entrySet()) {
-            if (!this.containsKey(kv.getKey()))
-                return false;
+            if (!this.containsKey(kv.getKey())) return false;
         }
 
         return true;
@@ -249,10 +233,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
      * list2) in ink.
      */
     public boolean greaterThan(InkList otherList) {
-        if (size() == 0)
-            return false;
-        if (otherList.size() == 0)
-            return true;
+        if (size() == 0) return false;
+        if (otherList.size() == 0) return true;
 
         // All greater
         return getMinItem().getValue() > otherList.getMaxItem().getValue();
@@ -266,10 +248,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
      * LIST_MIN(list2) &amp;&amp; LIST_MAX(list1) &gt;= LIST_MAX(list2).
      */
     public boolean greaterThanOrEquals(InkList otherList) {
-        if (size() == 0)
-            return false;
-        if (otherList.size() == 0)
-            return true;
+        if (size() == 0) return false;
+        if (otherList.size() == 0) return true;
 
         // All greater
         return getMinItem().getValue() >= otherList.getMinItem().getValue()
@@ -282,10 +262,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
      * in ink.
      */
     public boolean lessThan(InkList otherList) {
-        if (otherList.size() == 0)
-            return false;
-        if (size() == 0)
-            return true;
+        if (otherList.size() == 0) return false;
+        if (size() == 0) return true;
 
         return getMaxItem().getValue() < otherList.getMinItem().getValue();
     }
@@ -298,27 +276,21 @@ public class InkList extends HashMap<InkListItem, Integer> {
      * &amp;&amp; LIST_MIN(list1) &lt;= LIST_MIN(list2).
      */
     public boolean lessThanOrEquals(InkList otherList) {
-        if (otherList.size() == 0)
-            return false;
-        if (size() == 0)
-            return true;
+        if (otherList.size() == 0) return false;
+        if (size() == 0) return true;
 
         return getMaxItem().getValue() <= otherList.getMaxItem().getValue()
                 && getMinItem().getValue() <= otherList.getMinItem().getValue();
     }
 
     InkList maxAsList() {
-        if (size() > 0)
-            return new InkList(getMaxItem());
-        else
-            return new InkList();
+        if (size() > 0) return new InkList(getMaxItem());
+        else return new InkList();
     }
 
     InkList minAsList() {
-        if (size() > 0)
-            return new InkList(getMinItem());
-        else
-            return new InkList();
+        if (size() > 0) return new InkList(getMinItem());
+        else return new InkList();
     }
 
     /**
@@ -334,8 +306,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
      * @throws StoryException
      */
     public InkList listWithSubRange(Object minBound, Object maxBound) throws StoryException, Exception {
-        if (this.size() == 0)
-            return new InkList();
+        if (this.size() == 0) return new InkList();
 
         List<Entry<InkListItem, Integer>> ordered = getOrderedItems();
         int minValue = 0;
@@ -348,8 +319,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
                 minValue = ((InkList) minBound).getMinItem().getValue();
         }
 
-        if (maxBound instanceof Integer)
-            maxValue = (int) maxBound;
+        if (maxBound instanceof Integer) maxValue = (int) maxBound;
         else {
             if (minBound instanceof InkList && ((InkList) minBound).size() > 0)
                 maxValue = ((InkList) maxBound).getMaxItem().getValue();
@@ -375,13 +345,11 @@ public class InkList extends HashMap<InkListItem, Integer> {
             String originName = itemAndValue.getKey().getOriginName();
 
             // First name - take it as the assumed single origin name
-            if (name == null)
-                name = originName;
+            if (name == null) name = originName;
 
-                // A different one than one we've already had? No longer
-                // single origin.
-            else if (name != originName)
-                return null;
+            // A different one than one we've already had? No longer
+            // single origin.
+            else if (name != originName) return null;
         }
 
         return name;
@@ -396,7 +364,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
 
         if (origins != null) {
             for (ListDefinition origin : origins) {
-                for (Map.Entry<InkListItem, Integer> itemAndValue : origin.getItems().entrySet()) {
+                for (Map.Entry<InkListItem, Integer> itemAndValue :
+                        origin.getItems().entrySet()) {
 
                     if (!this.containsKey(itemAndValue.getKey()))
                         rawList.put(itemAndValue.getKey(), itemAndValue.getValue());
@@ -405,7 +374,6 @@ public class InkList extends HashMap<InkListItem, Integer> {
         }
 
         return rawList;
-
     }
 
     /**
@@ -457,10 +425,10 @@ public class InkList extends HashMap<InkListItem, Integer> {
         }
 
         throw new Exception(
-                "Failed to add item to list because the item was from a new list definition that wasn't previously " +
-                        "known to this list. Only items from previously known lists can be used, so that the int " +
-                        "value" +
-                        " can be found.");
+                "Failed to add item to list because the item was from a new list definition that wasn't previously "
+                        + "known to this list. Only items from previously known lists can be used, so that the int "
+                        + "value"
+                        + " can be found.");
     }
 
     /**
@@ -490,8 +458,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
 
         if (foundListDef == null)
             throw new Exception("Could not add the item " + itemName
-                    + " to this list because it isn't known to any list definitions previously associated with this " +
-                    "list.");
+                    + " to this list because it isn't known to any list definitions previously associated with this "
+                    + "list.");
 
         InkListItem item = new InkListItem(foundListDef.getName(), itemName);
         Integer itemVal = foundListDef.getValueForItem(item);
@@ -504,8 +472,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
      */
     public boolean ContainsItemNamed(String itemName) {
         for (Map.Entry<InkListItem, Integer> itemWithValue : this.entrySet()) {
-            if (itemWithValue.getKey().getItemName().equals(itemName))
-                return true;
+            if (itemWithValue.getKey().getItemName().equals(itemName)) return true;
         }
         return false;
     }
@@ -518,17 +485,13 @@ public class InkList extends HashMap<InkListItem, Integer> {
     public boolean equals(Object other) {
         InkList otherRawList = null;
 
-        if (other instanceof InkList)
-            otherRawList = (InkList) other;
+        if (other instanceof InkList) otherRawList = (InkList) other;
 
-        if (otherRawList == null)
-            return false;
-        if (otherRawList.size() != size())
-            return false;
+        if (otherRawList == null) return false;
+        if (otherRawList.size() != size()) return false;
 
         for (InkListItem key : keySet()) {
-            if (!otherRawList.containsKey(key))
-                return false;
+            if (!otherRawList.containsKey(key)) return false;
         }
 
         return true;
@@ -542,8 +505,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
     public int hashCode() {
         int ownHash = 0;
 
-        for (InkListItem key : keySet())
-            ownHash += key.hashCode();
+        for (InkListItem key : keySet()) ownHash += key.hashCode();
 
         return ownHash;
     }
@@ -577,8 +539,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < ordered.size(); i++) {
-            if (i > 0)
-                sb.append(", ");
+            if (i > 0) sb.append(", ");
 
             InkListItem item = ordered.get(i).getKey();
 

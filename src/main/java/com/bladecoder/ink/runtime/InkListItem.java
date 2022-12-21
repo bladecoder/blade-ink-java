@@ -7,91 +7,90 @@ package com.bladecoder.ink.runtime;
  * int.
  */
 public class InkListItem {
-	/**
-	 * The name of the list where the item was originally defined.
-	 */
-	private String originName;
+    /**
+     * The name of the list where the item was originally defined.
+     */
+    private String originName;
 
-	/**
-	 * The main name of the item as defined in ink.
-	 */
-	private String itemName;
+    /**
+     * The main name of the item as defined in ink.
+     */
+    private String itemName;
 
-	/**
-	 * Create an item with the given original list definition name, and the name
-	 * of this item.
-	 */
-	public InkListItem(String originName, String itemName) {
-		this.originName = originName;
-		this.itemName = itemName;
-	}
+    /**
+     * Create an item with the given original list definition name, and the name
+     * of this item.
+     */
+    public InkListItem(String originName, String itemName) {
+        this.originName = originName;
+        this.itemName = itemName;
+    }
 
-	/**
-	 * Create an item from a dot-separted string of the form
-	 * "listDefinitionName.listItemName".
-	 */
-	public InkListItem(String fullName) {
-		String[] nameParts = fullName.split("\\.");
-		this.originName = nameParts[0];
-		this.itemName = nameParts[1];
-	}
+    /**
+     * Create an item from a dot-separted string of the form
+     * "listDefinitionName.listItemName".
+     */
+    public InkListItem(String fullName) {
+        String[] nameParts = fullName.split("\\.");
+        this.originName = nameParts[0];
+        this.itemName = nameParts[1];
+    }
 
-	static InkListItem getNull() {
-		return new InkListItem(null, null);
-	}
+    static InkListItem getNull() {
+        return new InkListItem(null, null);
+    }
 
-	public String getOriginName() {
-		return originName;
-	}
+    public String getOriginName() {
+        return originName;
+    }
 
-	public String getItemName() {
-		return itemName;
-	}
+    public String getItemName() {
+        return itemName;
+    }
 
-	/**
-	 * Get the full dot-separated name of the item, in the form
-	 * "listDefinitionName.itemName".
-	 */
-	public String getFullName() {
-		return (originName != null ? originName : "?") + "." + itemName;
-	}
+    /**
+     * Get the full dot-separated name of the item, in the form
+     * "listDefinitionName.itemName".
+     */
+    public String getFullName() {
+        return (originName != null ? originName : "?") + "." + itemName;
+    }
 
-	boolean isNull() {
-		return originName == null && itemName == null;
-	}
+    boolean isNull() {
+        return originName == null && itemName == null;
+    }
 
-	/**
-	 * Get the full dot-separated name of the item, in the form
-	 * "listDefinitionName.itemName". Calls fullName internally.
-	 */
-	@Override
-	public String toString() {
-		return getFullName();
-	}
+    /**
+     * Get the full dot-separated name of the item, in the form
+     * "listDefinitionName.itemName". Calls fullName internally.
+     */
+    @Override
+    public String toString() {
+        return getFullName();
+    }
 
-	/**
-	 * Is this item the same as another item?
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof InkListItem) {
-			InkListItem otherItem = (InkListItem) obj;
-			return otherItem.itemName.equals(itemName) && otherItem.originName.equals(originName);
-		}
+    /**
+     * Is this item the same as another item?
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof InkListItem) {
+            InkListItem otherItem = (InkListItem) obj;
+            return otherItem.itemName.equals(itemName) && otherItem.originName.equals(originName);
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	/**
-	 * Get the hashcode for an item.
-	 */
-	@Override
-	public int hashCode() {
-		int originCode = 0;
-		int itemCode = itemName.hashCode();
-		if (originName != null)
-			originCode = originName.hashCode();
+    /**
+     * Get the hashcode for an item.
+     */
+    @Override
+    public int hashCode() {
+        int originCode = 0;
+        int itemCode = itemName.hashCode();
+        if (originName != null) originCode = originName.hashCode();
 
-		return originCode + itemCode;
-	}
+        return originCode + itemCode;
+    }
 }

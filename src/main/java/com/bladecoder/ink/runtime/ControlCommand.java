@@ -2,10 +2,33 @@ package com.bladecoder.ink.runtime;
 
 public class ControlCommand extends RTObject {
     public enum CommandType {
-        NotSet, EvalStart, EvalOutput, EvalEnd, Duplicate, PopEvaluatedValue, PopFunction, PopTunnel, BeginString,
-        EndString, NoOp, ChoiceCount, Turns, TurnsSince, ReadCount, Random, SeedRandom, VisitIndex,
-        SequenceShuffleIndex, StartThread, Done, End,
-        ListFromInt, ListRange, ListRandom, BeginTag, EndTag
+        NotSet,
+        EvalStart,
+        EvalOutput,
+        EvalEnd,
+        Duplicate,
+        PopEvaluatedValue,
+        PopFunction,
+        PopTunnel,
+        BeginString,
+        EndString,
+        NoOp,
+        ChoiceCount,
+        Turns,
+        TurnsSince,
+        ReadCount,
+        Random,
+        SeedRandom,
+        VisitIndex,
+        SequenceShuffleIndex,
+        StartThread,
+        Done,
+        End,
+        ListFromInt,
+        ListRange,
+        ListRandom,
+        BeginTag,
+        EndTag
     }
 
     private CommandType commandType = CommandType.NotSet;
@@ -150,5 +173,4 @@ public class ControlCommand extends RTObject {
     public String toString() {
         return getCommandType().toString();
     }
-
 }
