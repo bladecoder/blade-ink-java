@@ -2,12 +2,13 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
+    id "com.diffplug.spotless" version "6.12.0"
 }
 
 group = 'com.bladecoder.ink'
 
 sourceCompatibility = 1.8
-targetCompatibility=1.8
+targetCompatibility = 1.8
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 repositories {
@@ -31,25 +32,38 @@ if (JavaVersion.current().isJava8Compatible()) {
     }
 }
 
+spotless {
+    java {
+        target fileTree('src') {
+            include '**/*.java'
+        }
+        toggleOffOn()
+        palantirJavaFormat()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
 jar {
-	manifest.attributes += [
-			'github': 'https://github.com/bladecoder/blade-ink/',
-			'license': 'Apache-2.0',
-			'group': project.group,
-			'version': project.version,
-			'java': targetCompatibility,
-			'timestamp': System.currentTimeMillis()
-	]
+    manifest.attributes += [
+            'github'   : 'https://github.com/bladecoder/blade-ink/',
+            'license'  : 'Apache-2.0',
+            'group'    : project.group,
+            'version'  : project.version,
+            'java'     : targetCompatibility,
+            'timestamp': System.currentTimeMillis()
+    ]
 }
 
 javadoc {
-	title = "Blade Ink"
-	options {
-		memberLevel = JavadocMemberLevel.PUBLIC
-		author true
-		setUse true
+    title = "Blade Ink"
+    options {
+        memberLevel = JavadocMemberLevel.PUBLIC
+        author true
+        setUse true
         encoding "UTF-8"
-	}
+    }
 }
 
 task sourcesJar(type: Jar) {
@@ -119,14 +133,14 @@ publishing {
 }
 
 signing {
-    if(!version.endsWith('SNAPSHOT')) {
+    if (!version.endsWith('SNAPSHOT')) {
         sign publishing.publications.mavenJava
     }
 }
 
 
 javadoc {
-    if(JavaVersion.current().isJava9Compatible()) {
+    if (JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
     }
 }
