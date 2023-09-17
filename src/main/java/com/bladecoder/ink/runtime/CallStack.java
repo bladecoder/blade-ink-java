@@ -2,6 +2,7 @@ package com.bladecoder.ink.runtime;
 
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -178,7 +179,7 @@ public class CallStack {
     }
 
     public CallStack(Story storyContext) {
-        startOfRoot.assign(Pointer.startOf(storyContext.getRootContentContainer()));
+        startOfRoot.assign(Pointer.startOf(storyContext.getMainContentContainer()));
 
         reset();
     }
@@ -361,7 +362,7 @@ public class CallStack {
         }
 
         threadCounter = (int) jRTObject.get("threadCounter");
-        startOfRoot.assign(Pointer.startOf(storyContext.getRootContentContainer()));
+        startOfRoot.assign(Pointer.startOf(storyContext.getMainContentContainer()));
     }
 
     public Thread forkThread() {

@@ -1,6 +1,7 @@
 package com.bladecoder.ink.runtime;
 
 import com.bladecoder.ink.runtime.ControlCommand.CommandType;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -568,7 +569,7 @@ public class Json {
     @SuppressWarnings("unchecked")
     static Container jArrayToContainer(List<Object> jArray) throws Exception {
         Container container = new Container();
-        container.setContent(jArrayToRuntimeObjList(jArray, true));
+        container.addContents(jArrayToRuntimeObjList(jArray, true));
         // Final RTObject in the array is always a combination of
         // - named content
         // - a "#" key with the countFlags
@@ -584,7 +585,7 @@ public class Json {
                 } else {
                     RTObject namedContentItem = jTokenToRuntimeObject(keyVal.getValue());
                     Container namedSubContainer =
-                            namedContentItem instanceof Container ? (Container) namedContentItem : (Container) null;
+                            namedContentItem instanceof Container ? (Container) namedContentItem : null;
                     if (namedSubContainer != null) namedSubContainer.setName(keyVal.getKey());
 
                     namedOnlyContent.put(keyVal.getKey(), namedContentItem);

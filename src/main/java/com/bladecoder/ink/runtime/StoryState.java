@@ -3,6 +3,7 @@ package com.bladecoder.ink.runtime;
 import com.bladecoder.ink.runtime.CallStack.Element;
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
+
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,7 +48,7 @@ public class StoryState {
     private boolean didSafeExit;
     private final Pointer divertedPointer = new Pointer();
     private List<RTObject> evaluationStack;
-    private Story story;
+    private final Story story;
     private int storySeed;
     private int previousRandom;
     private HashMap<String, Integer> turnIndices;
@@ -452,7 +453,7 @@ public class StoryState {
     }
 
     boolean hasError() {
-        return currentErrors != null && currentErrors.size() > 0;
+        return currentErrors != null && !currentErrors.isEmpty();
     }
 
     boolean inStringEvaluation() {

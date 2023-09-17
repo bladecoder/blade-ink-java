@@ -3,6 +3,7 @@ package com.bladecoder.ink.runtime;
 import com.bladecoder.ink.runtime.Error.ErrorType;
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
+
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +20,7 @@ import java.util.Stack;
  * A Story is the core class that represents a complete Ink narrative, and
  * manages the evaluation and state of it.
  */
-public class Story extends RTObject implements VariablesState.VariableChanged {
+public class Story implements VariablesState.VariableChanged {
     /**
      * General purpose delegate definition for bound EXTERNAL function definitions
      * from ink. Note that this version isn't necessary if you have a function with

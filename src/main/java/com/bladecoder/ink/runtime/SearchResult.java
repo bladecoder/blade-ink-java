@@ -11,7 +11,7 @@ package com.bladecoder.ink.runtime;
  *
  * @author rgarcia
  */
-class SearchResult {
+public class SearchResult {
     public RTObject obj;
     public boolean approximate;
 

@@ -1,10 +1,11 @@
 package com.bladecoder.ink.runtime.test;
 
 import com.bladecoder.ink.runtime.Story;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BasicTextSpecTest {
 
@@ -32,6 +33,8 @@ public class BasicTextSpecTest {
 
         String json = TestUtils.getJsonString("inkfiles/basictext/twolines.ink.json");
         Story story = new Story(json);
+
+        System.out.println(story.buildStringOfHierarchy());
 
         TestUtils.nextAll(story, text);
         Assert.assertEquals(2, text.size());

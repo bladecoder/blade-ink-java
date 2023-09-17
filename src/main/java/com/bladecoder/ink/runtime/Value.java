@@ -13,7 +13,7 @@ public abstract class Value<T> extends AbstractValue {
 
     @Override
     public Object getValueObject() {
-        return (Object) value;
+        return value;
     }
 
     public Value(T val) {

@@ -12,7 +12,7 @@ import java.util.Map.Entry;
  */
 public class VariablesState implements Iterable<String> {
 
-    public static interface VariableChanged {
+    public interface VariableChanged {
         void variableStateDidChangeEvent(String variableName, RTObject newValue) throws Exception;
     }
 

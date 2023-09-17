@@ -1,16 +1,17 @@
 package com.bladecoder.ink.runtime.test;
 
-import static org.junit.Assert.fail;
-
 import com.bladecoder.ink.runtime.Choice;
 import com.bladecoder.ink.runtime.Story;
 import com.bladecoder.ink.runtime.StoryException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.Assert.fail;
 
 public class TestUtils {
 
@@ -99,11 +100,11 @@ public class TestUtils {
         return sb.toString();
     }
 
-    public static final boolean isEnded(Story story) {
+    public static boolean isEnded(Story story) {
         return !story.canContinue() && story.getCurrentChoices().size() == 0;
     }
 
-    public static final void nextAll(Story story, List<String> text) throws StoryException, Exception {
+    public static void nextAll(Story story, List<String> text) throws StoryException, Exception {
         while (story.canContinue()) {
             String line = story.Continue();
             System.out.print(line);
