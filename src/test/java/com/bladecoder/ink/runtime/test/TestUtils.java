@@ -1,9 +1,10 @@
 package com.bladecoder.ink.runtime.test;
 
+import static org.junit.Assert.fail;
+
 import com.bladecoder.ink.runtime.Choice;
 import com.bladecoder.ink.runtime.Story;
 import com.bladecoder.ink.runtime.StoryException;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,11 +12,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.fail;
-
 public class TestUtils {
 
-    public static final String getJsonString(String filename) throws IOException {
+    public static String getJsonString(String filename) throws IOException {
 
         InputStream systemResourceAsStream = ClassLoader.getSystemResourceAsStream(filename);
 
@@ -39,7 +38,7 @@ public class TestUtils {
         }
     }
 
-    public static final List<String> runStory(String filename, List<Integer> choiceList, List<String> errors)
+    public static List<String> runStory(String filename, List<Integer> choiceList, List<String> errors)
             throws Exception {
         // 1) Load story
         String json = getJsonString(filename);
@@ -90,7 +89,7 @@ public class TestUtils {
         return text;
     }
 
-    public static final String joinText(List<String> text) {
+    public static String joinText(List<String> text) {
         StringBuilder sb = new StringBuilder();
 
         for (String s : text) {
@@ -101,7 +100,7 @@ public class TestUtils {
     }
 
     public static boolean isEnded(Story story) {
-        return !story.canContinue() && story.getCurrentChoices().size() == 0;
+        return !story.canContinue() && story.getCurrentChoices().isEmpty();
     }
 
     public static void nextAll(Story story, List<String> text) throws StoryException, Exception {

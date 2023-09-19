@@ -1,7 +1,6 @@
 package com.bladecoder.ink.runtime;
 
 import com.bladecoder.ink.runtime.Path.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

@@ -1,7 +1,6 @@
 package com.bladecoder.ink.runtime;
 
 import com.bladecoder.ink.runtime.ControlCommand.CommandType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

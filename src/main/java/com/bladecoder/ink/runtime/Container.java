@@ -1,7 +1,6 @@
 package com.bladecoder.ink.runtime;
 
 import com.bladecoder.ink.runtime.Path.Component;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -202,11 +201,11 @@ public class Container extends RTObject implements INamedContent {
         }
     }
 
-    public SearchResult contentAtPath(Path path) throws Exception {
+    public SearchResult contentAtPath(Path path) {
         return contentAtPath(path, 0, -1);
     }
 
-    public SearchResult contentAtPath(Path path, int partialPathStart, int partialPathLength) throws Exception {
+    public SearchResult contentAtPath(Path path, int partialPathStart, int partialPathLength) {
         if (partialPathLength == -1) partialPathLength = path.getLength();
 
         SearchResult result = new SearchResult();

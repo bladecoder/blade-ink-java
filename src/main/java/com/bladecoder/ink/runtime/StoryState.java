@@ -3,7 +3,6 @@ package com.bladecoder.ink.runtime;
 import com.bladecoder.ink.runtime.CallStack.Element;
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
-
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -580,6 +579,7 @@ public class StoryState {
     RTObject popEvaluationStack() {
         RTObject obj = evaluationStack.get(evaluationStack.size() - 1);
         evaluationStack.remove(evaluationStack.size() - 1);
+
         return obj;
     }
 

@@ -3,7 +3,6 @@ package com.bladecoder.ink.runtime;
 import com.bladecoder.ink.runtime.Error.ErrorType;
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
-
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -2667,9 +2666,7 @@ public class Story implements VariablesState.VariableChanged {
         // Invalid pointer? May happen if attemptingto
         if (currentChildOfContainer == null) return;
 
-        Container currentContainerAncestor = currentChildOfContainer.getParent() instanceof Container
-                ? (Container) currentChildOfContainer.getParent()
-                : null;
+        Container currentContainerAncestor = currentChildOfContainer.getParent();
 
         boolean allChildrenEnteredAtStart = true;
         while (currentContainerAncestor != null

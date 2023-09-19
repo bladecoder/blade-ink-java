@@ -2,7 +2,6 @@ package com.bladecoder.ink.runtime;
 
 import com.bladecoder.ink.runtime.SimpleJson.InnerWriter;
 import com.bladecoder.ink.runtime.SimpleJson.Writer;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
