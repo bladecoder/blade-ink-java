@@ -50,7 +50,7 @@ public class TestUtils {
         int choiceListIndex = 0;
 
         while (story.canContinue() || !story.getCurrentChoices().isEmpty()) {
-            //System.out.println(story.buildStringOfHierarchy());
+            // System.out.println(story.buildStringOfHierarchy());
 
             // 2) Game content, line by line
             while (story.canContinue()) {

@@ -66,7 +66,6 @@ public class Container extends RTObject implements INamedContent {
             getNamedContent().remove(kvPair.getKey());
         }
 
-
         for (Entry<String, RTObject> kvPair : value.entrySet()) {
             INamedContent named = kvPair.getValue() instanceof INamedContent
                     ? (INamedContent) kvPair.getValue()

@@ -534,7 +534,7 @@ public class Json {
         int countFlags = container.getCountFlags();
         boolean hasNameProperty = container.getName() != null && !withoutName;
 
-        boolean hasTerminator = !namedOnlyContent.isEmpty()|| countFlags > 0 || hasNameProperty;
+        boolean hasTerminator = !namedOnlyContent.isEmpty() || countFlags > 0 || hasNameProperty;
 
         if (hasTerminator) writer.writeObjectStart();
 
