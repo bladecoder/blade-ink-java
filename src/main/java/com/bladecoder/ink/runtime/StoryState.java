@@ -287,10 +287,10 @@ public class StoryState {
         for (int i = getOutputStream().size() - 1; i >= functionStartPoint; i--) {
             RTObject obj = getOutputStream().get(i);
 
+            if (obj instanceof ControlCommand) break;
+
             if (!(obj instanceof StringValue)) continue;
             StringValue txt = (StringValue) obj;
-
-            if (obj instanceof ControlCommand) break;
 
             if (txt.isNewline() || txt.isInlineWhitespace()) {
                 getOutputStream().remove(i);

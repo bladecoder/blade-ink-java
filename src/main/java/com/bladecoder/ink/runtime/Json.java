@@ -332,10 +332,6 @@ public class Json {
             if ("L^".equals(str)) str = "^";
             if (NativeFunctionCall.callExistsWithName(str)) return NativeFunctionCall.callWithName(str);
 
-            // Pop
-            if ("->->".equals(str)) return ControlCommand.popTunnel();
-            else if ("~ret".equals(str)) return ControlCommand.popFunction();
-
             // Void
             if ("void".equals(str)) return new Void();
         }
@@ -538,21 +534,18 @@ public class Json {
         int countFlags = container.getCountFlags();
         boolean hasNameProperty = container.getName() != null && !withoutName;
 
-        boolean hasTerminator = namedOnlyContent != null || countFlags > 0 || hasNameProperty;
+        boolean hasTerminator = !namedOnlyContent.isEmpty()|| countFlags > 0 || hasNameProperty;
 
         if (hasTerminator) writer.writeObjectStart();
 
-        if (namedOnlyContent != null) {
+        for (Entry<String, RTObject> namedContent : namedOnlyContent.entrySet()) {
+            String name = namedContent.getKey();
+            Container namedContainer =
+                    namedContent.getValue() instanceof Container ? (Container) namedContent.getValue() : null;
 
-            for (Entry<String, RTObject> namedContent : namedOnlyContent.entrySet()) {
-                String name = namedContent.getKey();
-                Container namedContainer =
-                        namedContent.getValue() instanceof Container ? (Container) namedContent.getValue() : null;
-
-                writer.writePropertyStart(name);
-                writeRuntimeContainer(writer, namedContainer, true);
-                writer.writePropertyEnd();
-            }
+            writer.writePropertyStart(name);
+            writeRuntimeContainer(writer, namedContainer, true);
+            writer.writePropertyEnd();
         }
 
         if (countFlags > 0) writer.writeProperty("#f", countFlags);

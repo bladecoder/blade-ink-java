@@ -1561,7 +1561,6 @@ public class Story implements VariablesState.VariableChanged {
 
                 DivertTargetValue target = (DivertTargetValue) varContents;
                 state.setDivertedPointer(pointerAtPath(target.getTargetPath()));
-
             } else if (currentDivert.isExternal()) {
                 callExternalFunction(currentDivert.getTargetPathString(), currentDivert.getExternalArgs());
                 return true;

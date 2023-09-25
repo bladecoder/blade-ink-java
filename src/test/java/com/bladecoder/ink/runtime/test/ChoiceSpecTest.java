@@ -217,6 +217,8 @@ public class ChoiceSpecTest {
         String json = TestUtils.getJsonString("inkfiles/choices/conditional-choice.ink.json");
         Story story = new Story(json);
 
+        System.out.println(story.buildStringOfHierarchy());
+
         TestUtils.nextAll(story, text);
 
         Assert.assertEquals(4, story.getCurrentChoices().size());

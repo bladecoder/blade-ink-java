@@ -222,7 +222,7 @@ public class VariablesState implements Iterable<String> {
         return callStack.getCurrentElementIndex();
     }
 
-    RTObject getRawVariableWithName(String name, int contextIndex) throws Exception {
+    RTObject getRawVariableWithName(String name, int contextIndex) {
         RTObject varValue = null;
         // 0 context = global
         if (contextIndex == 0 || contextIndex == -1) {

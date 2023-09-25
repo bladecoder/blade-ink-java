@@ -57,20 +57,15 @@ public class Container extends RTObject implements INamedContent {
             }
         }
 
-        if (namedOnlyContentDict.isEmpty()) namedOnlyContentDict = null;
-
         return namedOnlyContentDict;
     }
 
     public void setNamedOnlyContent(HashMap<String, RTObject> value) {
         HashMap<String, RTObject> existingNamedOnly = getNamedOnlyContent();
-        if (existingNamedOnly != null) {
-            for (Entry<String, RTObject> kvPair : existingNamedOnly.entrySet()) {
-                getNamedContent().remove(kvPair.getKey());
-            }
+        for (Entry<String, RTObject> kvPair : existingNamedOnly.entrySet()) {
+            getNamedContent().remove(kvPair.getKey());
         }
 
-        if (value == null) return;
 
         for (Entry<String, RTObject> kvPair : value.entrySet()) {
             INamedContent named = kvPair.getValue() instanceof INamedContent

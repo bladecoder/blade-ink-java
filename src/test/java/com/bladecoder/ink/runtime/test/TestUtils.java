@@ -4,11 +4,11 @@ import static org.junit.Assert.fail;
 
 import com.bladecoder.ink.runtime.Choice;
 import com.bladecoder.ink.runtime.Story;
-import com.bladecoder.ink.runtime.StoryException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +18,9 @@ public class TestUtils {
 
         InputStream systemResourceAsStream = ClassLoader.getSystemResourceAsStream(filename);
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(systemResourceAsStream, "UTF-8"));
-
-        try {
+        assert systemResourceAsStream != null;
+        try (BufferedReader br =
+                new BufferedReader(new InputStreamReader(systemResourceAsStream, StandardCharsets.UTF_8))) {
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
 
@@ -33,8 +33,6 @@ public class TestUtils {
                 line = br.readLine();
             }
             return sb.toString();
-        } finally {
-            br.close();
         }
     }
 
@@ -42,8 +40,6 @@ public class TestUtils {
             throws Exception {
         // 1) Load story
         String json = getJsonString(filename);
-
-        //		System.out.println(json);
 
         Story story = new Story(json);
 
@@ -53,7 +49,9 @@ public class TestUtils {
 
         int choiceListIndex = 0;
 
-        while (story.canContinue() || story.getCurrentChoices().size() > 0) {
+        while (story.canContinue() || !story.getCurrentChoices().isEmpty()) {
+            //System.out.println(story.buildStringOfHierarchy());
+
             // 2) Game content, line by line
             while (story.canContinue()) {
                 String line = story.Continue();
@@ -69,7 +67,7 @@ public class TestUtils {
             }
 
             // 3) Display story.currentChoices list, allow player to choose one
-            if (story.getCurrentChoices().size() > 0) {
+            if (!story.getCurrentChoices().isEmpty()) {
 
                 for (Choice c : story.getCurrentChoices()) {
                     System.out.println(c.getText());
@@ -103,7 +101,7 @@ public class TestUtils {
         return !story.canContinue() && story.getCurrentChoices().isEmpty();
     }
 
-    public static void nextAll(Story story, List<String> text) throws StoryException, Exception {
+    public static void nextAll(Story story, List<String> text) throws Exception {
         while (story.canContinue()) {
             String line = story.Continue();
             System.out.print(line);
