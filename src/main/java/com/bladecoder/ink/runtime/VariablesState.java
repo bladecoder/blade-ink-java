@@ -39,10 +39,6 @@ public class VariablesState implements Iterable<String> {
         this.listDefsOrigin = listDefsOrigin;
     }
 
-    CallStack getCallStack() {
-        return callStack;
-    }
-
     void setCallStack(CallStack callStack) {
         this.callStack = callStack;
     }
@@ -90,10 +86,6 @@ public class VariablesState implements Iterable<String> {
         } else {
             callStack.setTemporaryVariable(name, value, varAss.isNewDeclaration(), contextIndex);
         }
-    }
-
-    ListDefinitionsOrigin getLists() {
-        return listDefsOrigin;
     }
 
     void applyPatch() {
@@ -402,11 +394,11 @@ public class VariablesState implements Iterable<String> {
                 || (defaultGlobalVariables != null && defaultGlobalVariables.containsKey(name));
     }
 
-    public StatePatch getPatch() {
+    StatePatch getPatch() {
         return patch;
     }
 
-    public void setPatch(StatePatch patch) {
+    void setPatch(StatePatch patch) {
         this.patch = patch;
     }
 }

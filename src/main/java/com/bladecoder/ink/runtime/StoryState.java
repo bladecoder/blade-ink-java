@@ -613,7 +613,7 @@ public class StoryState {
 
             if (rawList.getOriginNames() != null) {
 
-                if (rawList.getOrigins() == null) rawList.setOrigins(new ArrayList<ListDefinition>());
+                if (rawList.getOrigins() == null) rawList.setOrigins(new ArrayList<>());
 
                 rawList.getOrigins().clear();
 

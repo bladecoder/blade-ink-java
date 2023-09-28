@@ -92,7 +92,7 @@ public class ListSpecTest {
         Assert.assertEquals("a, b, c\n", story.continueMaximally());
     }
 
-    // @Test
+    @Test
     public void testListRange() throws Exception {
 
         String json = TestUtils.getJsonString("inkfiles/lists/list-range.ink.json");
@@ -119,5 +119,16 @@ public class ListSpecTest {
         story.chooseChoiceIndex(1);
         s = story.continueMaximally();
         Assert.assertEquals("OK\n", s);
+    }
+
+    @Test
+    public void testMoreListOperations2() throws Exception {
+
+        String json = TestUtils.getJsonString("inkfiles/lists/more-list-operations2.ink.json");
+        Story story = new Story(json);
+
+        Assert.assertEquals(
+                "a1, b1, c1\na1\na1, b2\ncount:2\nmax:c2\nmin:a1\ntrue\ntrue\nfalse\nempty\na2\na2, b2, c2\nrange:a1, b2\na1\nsubtract:a1, c1\nrandom:a1\nlistinc:b1\n",
+                story.continueMaximally());
     }
 }

@@ -683,7 +683,7 @@ public class NativeFunctionCall extends RTObject {
         List<Value<?>> coercedParams = coerceValuesToSingleType(parameters);
         ValueType coercedType = coercedParams.get(0).getValueType();
 
-        // Originally CallType gets a type parameter taht is used to do some
+        // Originally CallType gets a type parameter that is used to do some
         // casting, but we can do without.
         if (coercedType == ValueType.Int) {
             return callType(coercedParams);
@@ -731,7 +731,7 @@ public class NativeFunctionCall extends RTObject {
                 "Can not call use '" + name + "' operation on " + v1.getValueType() + " and " + v2.getValueType());
     }
 
-    Value<?> callListIncrementOperation(List<RTObject> listIntParams) throws StoryException, Exception {
+    Value<?> callListIncrementOperation(List<RTObject> listIntParams) {
         ListValue listVal = (ListValue) listIntParams.get(0);
         IntValue intVal = (IntValue) listIntParams.get(1);
 
