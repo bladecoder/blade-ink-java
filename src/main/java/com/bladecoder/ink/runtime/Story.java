@@ -462,6 +462,11 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                             + ".Continue().");
                 }
             }
+            // Legacy Tag
+            else if ( c instanceof Tag ) {
+                if (tags == null) tags = new ArrayList<>();
+                tags.add(((Tag) c).getText());
+            }
 
             // Any other content - we're done
             // We only recognise initial text-only tags
