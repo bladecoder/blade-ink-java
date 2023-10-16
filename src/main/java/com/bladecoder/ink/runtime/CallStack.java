@@ -178,7 +178,7 @@ public class CallStack {
     }
 
     public CallStack(Story storyContext) {
-        startOfRoot.assign(Pointer.startOf(storyContext.getRootContentContainer()));
+        startOfRoot.assign(Pointer.startOf(storyContext.getMainContentContainer()));
 
         reset();
     }
@@ -361,7 +361,7 @@ public class CallStack {
         }
 
         threadCounter = (int) jRTObject.get("threadCounter");
-        startOfRoot.assign(Pointer.startOf(storyContext.getRootContentContainer()));
+        startOfRoot.assign(Pointer.startOf(storyContext.getMainContentContainer()));
     }
 
     public Thread forkThread() {

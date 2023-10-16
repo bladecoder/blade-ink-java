@@ -7,12 +7,12 @@ import java.util.List;
 public class Path {
     private static final String PARENT_ID = "^";
 
-    private List<Component> components;
+    private final List<Component> components;
     private boolean isRelative = false;
     private String componentsString;
 
     public Path() {
-        components = new ArrayList<Component>();
+        components = new ArrayList<>();
     }
 
     public Path(Component head, Path tail) {
@@ -51,7 +51,7 @@ public class Path {
     }
 
     public Component getHead() {
-        if (components.size() > 0) {
+        if (!components.isEmpty()) {
             return components.get(0);
         } else {
             return null;

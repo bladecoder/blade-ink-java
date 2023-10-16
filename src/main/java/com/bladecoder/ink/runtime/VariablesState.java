@@ -12,7 +12,7 @@ import java.util.Map.Entry;
  */
 public class VariablesState implements Iterable<String> {
 
-    public static interface VariableChanged {
+    public interface VariableChanged {
         void variableStateDidChangeEvent(String variableName, RTObject newValue) throws Exception;
     }
 
@@ -37,10 +37,6 @@ public class VariablesState implements Iterable<String> {
         this.callStack = callStack;
 
         this.listDefsOrigin = listDefsOrigin;
-    }
-
-    CallStack getCallStack() {
-        return callStack;
     }
 
     void setCallStack(CallStack callStack) {
@@ -90,10 +86,6 @@ public class VariablesState implements Iterable<String> {
         } else {
             callStack.setTemporaryVariable(name, value, varAss.isNewDeclaration(), contextIndex);
         }
-    }
-
-    ListDefinitionsOrigin getLists() {
-        return listDefsOrigin;
     }
 
     void applyPatch() {
@@ -222,7 +214,7 @@ public class VariablesState implements Iterable<String> {
         return callStack.getCurrentElementIndex();
     }
 
-    RTObject getRawVariableWithName(String name, int contextIndex) throws Exception {
+    RTObject getRawVariableWithName(String name, int contextIndex) {
         RTObject varValue = null;
         // 0 context = global
         if (contextIndex == 0 || contextIndex == -1) {
@@ -402,11 +394,11 @@ public class VariablesState implements Iterable<String> {
                 || (defaultGlobalVariables != null && defaultGlobalVariables.containsKey(name));
     }
 
-    public StatePatch getPatch() {
+    StatePatch getPatch() {
         return patch;
     }
 
-    public void setPatch(StatePatch patch) {
+    void setPatch(StatePatch patch) {
         this.patch = patch;
     }
 }

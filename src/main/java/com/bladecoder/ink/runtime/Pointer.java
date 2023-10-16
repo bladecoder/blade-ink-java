@@ -37,7 +37,7 @@ class Pointer {
 
         if (container == null) return null;
 
-        if (container.getContent().size() == 0) return container;
+        if (container.getContent().isEmpty()) return container;
 
         if (index >= container.getContent().size()) return null;
 

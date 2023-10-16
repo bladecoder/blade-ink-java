@@ -30,7 +30,7 @@ public class Choice extends RTObject {
 
     String sourcePath;
 
-    public Choice() throws Exception {}
+    public Choice() {}
 
     public int getIndex() {
         return index;
