@@ -139,7 +139,7 @@ public class Story implements VariablesState.VariableChanged {
         }
     }
 
-    class ExternalFunctionDef {
+    static class ExternalFunctionDef {
         public ExternalFunction<?> function;
         public boolean lookaheadSafe;
     }
@@ -186,7 +186,7 @@ public class Story implements VariablesState.VariableChanged {
      */
     private boolean allowExternalFunctionFallbacks;
 
-    private HashMap<String, ExternalFunctionDef> externals;
+    private final HashMap<String, ExternalFunctionDef> externals;
 
     private boolean hasValidatedExternals;
 
@@ -196,7 +196,7 @@ public class Story implements VariablesState.VariableChanged {
 
     private HashMap<String, List<VariableObserver>> variableObservers;
 
-    private List<Container> prevContainers = new ArrayList<>();
+    private final List<Container> prevContainers = new ArrayList<>();
 
     private Profiler profiler;
 
@@ -1594,7 +1594,6 @@ public class Story implements VariablesState.VariableChanged {
         else if (contentObj instanceof ControlCommand) {
             ControlCommand evalCommand = (ControlCommand) contentObj;
 
-            int choiceCount;
             switch (evalCommand.getCommandType()) {
                 case EvalStart:
                     Assert(!state.getInExpressionEvaluation(), "Already in expression evaluation?");
@@ -1826,7 +1825,7 @@ public class Story implements VariablesState.VariableChanged {
                     break;
                 }
                 case ChoiceCount:
-                    choiceCount = state.getGeneratedChoices().size();
+                    int choiceCount = state.getGeneratedChoices().size();
                     state.pushEvaluationStack(new IntValue(choiceCount));
                     break;
 

@@ -51,7 +51,7 @@ public class Container extends RTObject implements INamedContent {
         }
 
         for (RTObject c : getContent()) {
-            INamedContent named = c instanceof INamedContent ? (INamedContent) c : (INamedContent) null;
+            INamedContent named = c instanceof INamedContent ? (INamedContent) c : null;
             if (named != null && named.hasValidName()) {
                 namedOnlyContentDict.remove(named.getName());
             }
