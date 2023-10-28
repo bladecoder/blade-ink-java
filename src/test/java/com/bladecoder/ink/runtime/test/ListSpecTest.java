@@ -131,4 +131,15 @@ public class ListSpecTest {
                 "a1, b1, c1\na1\na1, b2\ncount:2\nmax:c2\nmin:a1\ntrue\ntrue\nfalse\nempty\na2\na2, b2, c2\nrange:a1, b2\na1\nsubtract:a1, c1\nrandom:a1\nlistinc:b1\n",
                 story.continueMaximally());
     }
+
+    @Test
+    public void testListAllBug() throws Exception {
+
+        String json = TestUtils.getJsonString("inkfiles/lists/list-all.ink.json");
+        Story story = new Story(json);
+
+        Assert.assertEquals(
+                "A, B\n",
+                story.continueMaximally());
+    }
 }
