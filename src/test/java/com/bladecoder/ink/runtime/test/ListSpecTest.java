@@ -138,8 +138,6 @@ public class ListSpecTest {
         String json = TestUtils.getJsonString("inkfiles/lists/list-all.ink.json");
         Story story = new Story(json);
 
-        Assert.assertEquals(
-                "A, B\n",
-                story.continueMaximally());
+        Assert.assertEquals("A, B\n", story.continueMaximally());
     }
 }
