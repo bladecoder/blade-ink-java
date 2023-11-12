@@ -27,4 +27,13 @@ public class MiscTest {
             }
         }
     }
+
+    @Test
+    public void testNewlinesWithStringEval() throws Exception {
+
+        String json = TestUtils.getJsonString("inkfiles/misc/newlines_with_string_eval.ink.json");
+        Story story = new Story(json);
+
+        Assert.assertEquals("A\n3\nB\n", story.continueMaximally());
+    }
 }
