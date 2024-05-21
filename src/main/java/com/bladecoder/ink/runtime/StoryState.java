@@ -47,7 +47,7 @@ public class StoryState {
     private boolean didSafeExit;
     private final Pointer divertedPointer = new Pointer();
     private List<RTObject> evaluationStack;
-    private Story story;
+    private final Story story;
     private int storySeed;
     private int previousRandom;
     private HashMap<String, Integer> turnIndices;
@@ -287,10 +287,10 @@ public class StoryState {
         for (int i = getOutputStream().size() - 1; i >= functionStartPoint; i--) {
             RTObject obj = getOutputStream().get(i);
 
+            if (obj instanceof ControlCommand) break;
+
             if (!(obj instanceof StringValue)) continue;
             StringValue txt = (StringValue) obj;
-
-            if (obj instanceof ControlCommand) break;
 
             if (txt.isNewline() || txt.isInlineWhitespace()) {
                 getOutputStream().remove(i);
@@ -452,7 +452,7 @@ public class StoryState {
     }
 
     boolean hasError() {
-        return currentErrors != null && currentErrors.size() > 0;
+        return currentErrors != null && !currentErrors.isEmpty();
     }
 
     boolean inStringEvaluation() {
@@ -579,6 +579,7 @@ public class StoryState {
     RTObject popEvaluationStack() {
         RTObject obj = evaluationStack.get(evaluationStack.size() - 1);
         evaluationStack.remove(evaluationStack.size() - 1);
+
         return obj;
     }
 
@@ -612,7 +613,7 @@ public class StoryState {
 
             if (rawList.getOriginNames() != null) {
 
-                if (rawList.getOrigins() == null) rawList.setOrigins(new ArrayList<ListDefinition>());
+                if (rawList.getOrigins() == null) rawList.setOrigins(new ArrayList<>());
 
                 rawList.getOrigins().clear();
 

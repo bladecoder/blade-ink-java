@@ -12,9 +12,9 @@ import java.util.List;
 public class RTObject {
     /**
      * Runtime.RTObjects can be included in the main Story as a hierarchy. Usually
-     * parents are Container RTObjects. (TODO: Always?) The parent.
+     * parents are Container RTObjects.
      */
-    private RTObject parent;
+    private Container parent;
 
     private Path path;
 
@@ -25,11 +25,11 @@ public class RTObject {
     // for serialisation purposes at least.
     private DebugMetadata debugMetadata;
 
-    public RTObject getParent() {
+    public Container getParent() {
         return parent;
     }
 
-    public void setParent(RTObject value) {
+    public void setParent(Container value) {
         parent = value;
     }
 
@@ -80,20 +80,15 @@ public class RTObject {
             } else {
                 List<Path.Component> comps = new ArrayList<Path.Component>();
                 RTObject child = this;
-                Container container =
-                        child.getParent() instanceof Container ? (Container) child.getParent() : (Container) null;
+                Container container = child.getParent();
                 while (container != null) {
-                    INamedContent namedChild =
-                            child instanceof INamedContent ? (INamedContent) child : (INamedContent) null;
-                    if (namedChild != null && namedChild.hasValidName()) {
-                        comps.add(new Path.Component(namedChild.getName()));
+                    if (child instanceof Container && ((Container) child).hasValidName()) {
+                        comps.add(new Path.Component(((Container) child).getName()));
                     } else {
                         comps.add(new Component(container.getContent().indexOf(child)));
                     }
                     child = container;
-                    container = container.getParent() instanceof Container
-                            ? (Container) container.getParent()
-                            : (Container) null;
+                    container = container.getParent();
                 }
 
                 // Reverse list because components are searched in reverse
@@ -109,13 +104,12 @@ public class RTObject {
 
     public SearchResult resolvePath(Path path) throws Exception {
         if (path.isRelative()) {
-            Container nearestContainer = this instanceof Container ? (Container) this : (Container) null;
+            Container nearestContainer = this instanceof Container ? (Container) this : null;
 
             if (nearestContainer == null) {
                 // Debug.Assert(this.getparent() != null, "Can't resolve
                 // relative path because we don't have a parent");
-                nearestContainer =
-                        this.getParent() instanceof Container ? (Container) this.getParent() : (Container) null;
+                nearestContainer = this.getParent() != null ? this.getParent() : null;
                 // Debug.Assert(nearestContainer != null, "Expected parent to be
                 // a container");
                 // Debug.Assert(path.getcomponents()[0].isParent);
@@ -156,8 +150,7 @@ public class RTObject {
         for (int down = lastSharedPathCompIndex + 1; down < globalPath.getLength(); ++down)
             newPathComps.add(globalPath.getComponent(down));
 
-        Path relativePath = new Path(newPathComps, true);
-        return relativePath;
+        return new Path(newPathComps, true);
     }
 
     // Find most compact representation for a path, whether relative or global
@@ -181,7 +174,7 @@ public class RTObject {
         while (ancestor.getParent() != null) {
             ancestor = ancestor.getParent();
         }
-        return ancestor instanceof Container ? (Container) ancestor : (Container) null;
+        return ancestor instanceof Container ? (Container) ancestor : null;
     }
 
     RTObject copy() throws Exception {

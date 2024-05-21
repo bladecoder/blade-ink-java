@@ -19,7 +19,7 @@ import java.util.Stack;
  * A Story is the core class that represents a complete Ink narrative, and
  * manages the evaluation and state of it.
  */
-public class Story extends RTObject implements VariablesState.VariableChanged {
+public class Story implements VariablesState.VariableChanged {
     /**
      * General purpose delegate definition for bound EXTERNAL function definitions
      * from ink. Note that this version isn't necessary if you have a function with
@@ -139,7 +139,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         }
     }
 
-    class ExternalFunctionDef {
+    static class ExternalFunctionDef {
         public ExternalFunction<?> function;
         public boolean lookaheadSafe;
     }
@@ -186,7 +186,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
      */
     private boolean allowExternalFunctionFallbacks;
 
-    private HashMap<String, ExternalFunctionDef> externals;
+    private final HashMap<String, ExternalFunctionDef> externals;
 
     private boolean hasValidatedExternals;
 
@@ -196,7 +196,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
     private HashMap<String, List<VariableObserver>> variableObservers;
 
-    private List<Container> prevContainers = new ArrayList<>();
+    private final List<Container> prevContainers = new ArrayList<>();
 
     private Profiler profiler;
 
@@ -1566,7 +1566,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
 
                 DivertTargetValue target = (DivertTargetValue) varContents;
                 state.setDivertedPointer(pointerAtPath(target.getTargetPath()));
-
             } else if (currentDivert.isExternal()) {
                 callExternalFunction(currentDivert.getTargetPathString(), currentDivert.getExternalArgs());
                 return true;
@@ -1600,7 +1599,6 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         else if (contentObj instanceof ControlCommand) {
             ControlCommand evalCommand = (ControlCommand) contentObj;
 
-            int choiceCount;
             switch (evalCommand.getCommandType()) {
                 case EvalStart:
                     Assert(!state.getInExpressionEvaluation(), "Already in expression evaluation?");
@@ -1832,7 +1830,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
                     break;
                 }
                 case ChoiceCount:
-                    choiceCount = state.getGeneratedChoices().size();
+                    int choiceCount = state.getGeneratedChoices().size();
                     state.pushEvaluationStack(new IntValue(choiceCount));
                     break;
 
@@ -2671,9 +2669,7 @@ public class Story extends RTObject implements VariablesState.VariableChanged {
         // Invalid pointer? May happen if attemptingto
         if (currentChildOfContainer == null) return;
 
-        Container currentContainerAncestor = currentChildOfContainer.getParent() instanceof Container
-                ? (Container) currentChildOfContainer.getParent()
-                : null;
+        Container currentContainerAncestor = currentChildOfContainer.getParent();
 
         boolean allChildrenEnteredAtStart = true;
         while (currentContainerAncestor != null

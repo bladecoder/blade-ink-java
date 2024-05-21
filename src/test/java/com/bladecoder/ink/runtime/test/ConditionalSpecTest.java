@@ -18,6 +18,8 @@ public class ConditionalSpecTest {
         String json = TestUtils.getJsonString("inkfiles/conditional/iftrue.ink.json");
         Story story = new Story(json);
 
+        System.out.println(story.buildStringOfHierarchy());
+
         TestUtils.nextAll(story, text);
 
         Assert.assertEquals(1, text.size());

@@ -549,7 +549,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
         return sb.toString();
     }
 
-    public class CustomEntry implements Map.Entry<InkListItem, Integer> {
+    public static class CustomEntry implements Map.Entry<InkListItem, Integer> {
 
         private InkListItem key;
         private Integer value;

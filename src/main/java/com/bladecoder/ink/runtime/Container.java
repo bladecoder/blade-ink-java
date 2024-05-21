@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 public class Container extends RTObject implements INamedContent {
     private String name;
 
-    private List<RTObject> content;
+    private final List<RTObject> content;
     private HashMap<String, INamedContent> namedContent;
 
     private boolean visitsShouldBeCounted;
@@ -17,8 +17,8 @@ public class Container extends RTObject implements INamedContent {
     private boolean countingAtStartOnly;
 
     public Container() {
-        content = new ArrayList<RTObject>();
-        setNamedContent(new HashMap<String, INamedContent>());
+        content = new ArrayList<>();
+        setNamedContent(new HashMap<>());
     }
 
     @Override
@@ -32,10 +32,6 @@ public class Container extends RTObject implements INamedContent {
 
     public List<RTObject> getContent() {
         return content;
-    }
-
-    public void setContent(List<RTObject> value) throws Exception {
-        addContent(value);
     }
 
     public HashMap<String, INamedContent> getNamedContent() {
@@ -55,26 +51,20 @@ public class Container extends RTObject implements INamedContent {
         }
 
         for (RTObject c : getContent()) {
-            INamedContent named = c instanceof INamedContent ? (INamedContent) c : (INamedContent) null;
+            INamedContent named = c instanceof INamedContent ? (INamedContent) c : null;
             if (named != null && named.hasValidName()) {
                 namedOnlyContentDict.remove(named.getName());
             }
         }
-
-        if (namedOnlyContentDict.size() == 0) namedOnlyContentDict = null;
 
         return namedOnlyContentDict;
     }
 
     public void setNamedOnlyContent(HashMap<String, RTObject> value) {
         HashMap<String, RTObject> existingNamedOnly = getNamedOnlyContent();
-        if (existingNamedOnly != null) {
-            for (Entry<String, RTObject> kvPair : existingNamedOnly.entrySet()) {
-                getNamedContent().remove(kvPair.getKey());
-            }
+        for (Entry<String, RTObject> kvPair : existingNamedOnly.entrySet()) {
+            getNamedContent().remove(kvPair.getKey());
         }
-
-        if (value == null) return;
 
         for (Entry<String, RTObject> kvPair : value.entrySet()) {
             INamedContent named = kvPair.getValue() instanceof INamedContent
@@ -134,46 +124,26 @@ public class Container extends RTObject implements INamedContent {
     }
 
     public void setCountFlags(int value) {
-        int flag = value;
 
-        if ((flag & COUNTFLAGS_VISITS) > 0) setVisitsShouldBeCounted(true);
+        if ((value & COUNTFLAGS_VISITS) > 0) setVisitsShouldBeCounted(true);
 
-        if ((flag & COUNTFLAGS_TURNS) > 0) setTurnIndexShouldBeCounted(true);
+        if ((value & COUNTFLAGS_TURNS) > 0) setTurnIndexShouldBeCounted(true);
 
-        if ((flag & COUNTFLAGS_COUNTSTARTONLY) > 0) setCountingAtStartOnly(true);
+        if ((value & COUNTFLAGS_COUNTSTARTONLY) > 0) setCountingAtStartOnly(true);
     }
 
     @Override
     public boolean hasValidName() {
-        return getName() != null && getName().length() > 0;
+        return getName() != null && !getName().isEmpty();
     }
 
-    public Path getPathToFirstLeafContent() {
-        if (_pathToFirstLeafContent == null)
-            _pathToFirstLeafContent = getPath().pathByAppendingPath(getInternalPathToFirstLeafContent());
-
-        return _pathToFirstLeafContent;
-    }
-
-    Path _pathToFirstLeafContent;
-
-    Path getInternalPathToFirstLeafContent() {
-        List<Component> components = new ArrayList<Path.Component>();
-
-        Container container = this;
-        while (container != null) {
-            if (container.getContent().size() > 0) {
-                components.add(new Path.Component(0));
-                container = container.getContent().get(0) instanceof Container
-                        ? (Container) container.getContent().get(0)
-                        : (Container) null;
-            }
+    public void addContents(List<RTObject> contentList) throws Exception {
+        for (RTObject c : contentList) {
+            addContent(c);
         }
-
-        return new Path(components);
     }
 
-    public void addContent(RTObject contentObj) throws Exception {
+    private void addContent(RTObject contentObj) throws Exception {
         getContent().add(contentObj);
 
         if (contentObj.getParent() != null) {
@@ -185,25 +155,8 @@ public class Container extends RTObject implements INamedContent {
         tryAddNamedContent(contentObj);
     }
 
-    public void addContent(List<RTObject> contentList) throws Exception {
-        for (RTObject c : contentList) {
-            addContent(c);
-        }
-    }
-
-    public void insertContent(RTObject contentObj, int index) throws Exception {
-        getContent().add(index, contentObj);
-        if (contentObj.getParent() != null) {
-            throw new Exception("content is already in " + contentObj.getParent());
-        }
-
-        contentObj.setParent(this);
-        tryAddNamedContent(contentObj);
-    }
-
-    public void tryAddNamedContent(RTObject contentObj) throws Exception {
-        INamedContent namedContentObj =
-                contentObj instanceof INamedContent ? (INamedContent) contentObj : (INamedContent) null;
+    private void tryAddNamedContent(RTObject contentObj) {
+        INamedContent namedContentObj = contentObj instanceof INamedContent ? (INamedContent) contentObj : null;
         if (namedContentObj != null && namedContentObj.hasValidName()) {
             addToNamedContentOnly(namedContentObj);
         }
@@ -219,17 +172,7 @@ public class Container extends RTObject implements INamedContent {
         getNamedContent().put(namedContentObj.getName(), namedContentObj);
     }
 
-    public void addContentsOfContainer(Container otherContainer) throws Exception {
-        getContent().addAll(otherContainer.getContent());
-
-        for (RTObject obj : otherContainer.getContent()) {
-            obj.setParent(this);
-
-            tryAddNamedContent(obj);
-        }
-    }
-
-    protected RTObject contentWithPathComponent(Path.Component component) throws StoryException, Exception {
+    private RTObject contentWithPathComponent(Path.Component component) {
 
         if (component.isIndex()) {
             if (component.getIndex() >= 0 && component.getIndex() < getContent().size()) {
@@ -252,11 +195,11 @@ public class Container extends RTObject implements INamedContent {
         }
     }
 
-    public SearchResult contentAtPath(Path path) throws Exception {
+    public SearchResult contentAtPath(Path path) {
         return contentAtPath(path, 0, -1);
     }
 
-    public SearchResult contentAtPath(Path path, int partialPathStart, int partialPathLength) throws Exception {
+    public SearchResult contentAtPath(Path path, int partialPathStart, int partialPathLength) {
         if (partialPathLength == -1) partialPathLength = path.getLength();
 
         SearchResult result = new SearchResult();
@@ -342,17 +285,15 @@ public class Container extends RTObject implements INamedContent {
             sb.append("\n");
         }
 
-        HashMap<String, INamedContent> onlyNamed = new HashMap<String, INamedContent>();
+        HashMap<String, INamedContent> onlyNamed = new HashMap<>();
 
         for (Entry<String, INamedContent> objKV : getNamedContent().entrySet()) {
-            if (getContent().contains(objKV.getValue())) {
-                continue;
-            } else {
+            if (!getContent().contains(objKV.getValue())) {
                 onlyNamed.put(objKV.getKey(), objKV.getValue());
             }
         }
 
-        if (onlyNamed.size() > 0) {
+        if (!onlyNamed.isEmpty()) {
             appendIndentation(sb, indentation);
 
             sb.append("-- named: --\n");
