@@ -79,15 +79,24 @@ public class CallStack {
                     pointer.container = threadPointerResult.getContainer();
                     pointer.index = (int) jElementObj.get("idx");
 
-                    if (threadPointerResult.obj == null)
+                    if (threadPointerResult.obj == null) {
                         throw new Exception("When loading state, internal story location couldn't be found: "
                                 + currentContainerPathStr
                                 + ". Has the story changed since this save data was created?");
-                    else if (threadPointerResult.approximate)
-                        storyContext.warning("When loading state, exact internal story location couldn't be found: '"
-                                + currentContainerPathStr + "', so it was approximated to '"
-                                + pointer.container.getPath().toString()
-                                + "' to recover. Has the story changed since this save data was created?");
+                    } else if (threadPointerResult.approximate) {
+                        if (pointer.container != null) {
+                            storyContext.warning(
+                                    "When loading state, exact internal story location couldn't be found: '"
+                                            + currentContainerPathStr + "', so it was approximated to '"
+                                            + pointer.container.getPath().toString()
+                                            + "' to recover. Has the story changed since this save data was created?");
+                        } else {
+                            storyContext.warning(
+                                    "When loading state, exact internal story location couldn't be found: '"
+                                            + currentContainerPathStr
+                                            + "' and it may not be recoverable. Has the story changed since this save data was created?");
+                        }
+                    }
                 }
 
                 boolean inExpressionEvaluation = (boolean) jElementObj.get("exp");
@@ -282,6 +291,7 @@ public class CallStack {
 
     // Get variable value, dereferencing a variable pointer if necessary
     public RTObject getTemporaryVariableWithName(String name, int contextIndex) {
+        // contextIndex 0 means global, so index is actually 1-based
         if (contextIndex == -1) contextIndex = getCurrentElementIndex() + 1;
 
         Element contextElement = getCallStack().get(contextIndex - 1);

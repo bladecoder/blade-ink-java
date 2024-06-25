@@ -70,7 +70,9 @@ public class InkList extends HashMap<InkListItem, Integer> {
     /**
      * Converts a string to an ink list and returns for use in the story.
      */
-    public static InkList FromString(String myListItem, Story originStory) throws Exception {
+    public static InkList fromString(String myListItem, Story originStory) throws Exception {
+        if (myListItem == null || myListItem.isEmpty()) return new InkList();
+
         ListValue listValue = originStory.getListDefinitions().findSingleItemListWithName(myListItem);
         if (listValue != null) return new InkList(listValue.value);
         else
@@ -321,7 +323,7 @@ public class InkList extends HashMap<InkListItem, Integer> {
 
         if (maxBound instanceof Integer) maxValue = (int) maxBound;
         else {
-            if (minBound instanceof InkList && ((InkList) minBound).size() > 0)
+            if (maxBound instanceof InkList && ((InkList) maxBound).size() > 0)
                 maxValue = ((InkList) maxBound).getMaxItem().getValue();
         }
 
@@ -353,6 +355,17 @@ public class InkList extends HashMap<InkListItem, Integer> {
         }
 
         return name;
+    }
+
+    /**
+     * If you have an InkList that's known to have one single item, this is a convenient way to get it.
+     */
+    public InkListItem getSingleItem() {
+        for (Map.Entry<InkListItem, Integer> item : this.entrySet()) {
+            return item.getKey();
+        }
+
+        return null;
     }
 
     /**
@@ -398,7 +411,8 @@ public class InkList extends HashMap<InkListItem, Integer> {
     /**
      * Adds the given item to the ink list. Note that the item must come from a list
      * definition that is already "known" to this list, so that the item's value can
-     * be looked up. By "known", we mean that it already has items in it from that
+     * be looked up.
+     * By "known", we mean that it already has items in it from that
      * source, or it did at one point - it can't be a completely fresh empty list,
      * or a list that only contains items from a different list definition.
      *
@@ -438,39 +452,53 @@ public class InkList extends HashMap<InkListItem, Integer> {
      * be looked up. By "known", we mean that it already has items in it from that
      * source, or it did at one point - it can't be a completely fresh empty list,
      * or a list that only contains items from a different list definition.
+     * You can also provide the Story object, so in the case of an unknown element, it can be created fresh.
      *
      * @throws Exception
      */
-    public void addItem(String itemName) throws Exception {
+    public void addItem(String itemName, Story storyObject) throws Exception {
         ListDefinition foundListDef = null;
 
-        for (ListDefinition origin : origins) {
-            if (origin.containsItemWithName(itemName)) {
-                if (foundListDef != null) {
-                    throw new Exception(
-                            "Could not add the item " + itemName + " to this list because it could come from either "
-                                    + origin.getName() + " or " + foundListDef.getName());
-                } else {
-                    foundListDef = origin;
+        if (origins != null) {
+            for (ListDefinition origin : origins) {
+                if (origin.containsItemWithName(itemName)) {
+                    if (foundListDef != null) {
+                        throw new Exception("Could not add the item " + itemName
+                                + " to this list because it could come from either " + origin.getName() + " or "
+                                + foundListDef.getName());
+                    } else {
+                        foundListDef = origin;
+                    }
                 }
             }
         }
 
-        if (foundListDef == null)
-            throw new Exception("Could not add the item " + itemName
-                    + " to this list because it isn't known to any list definitions previously associated with this "
-                    + "list.");
+        if (foundListDef == null) {
+            if (storyObject == null) {
+                throw new Exception("Could not add the item " + itemName
+                        + " to this list because it isn't known to any list definitions previously associated with this "
+                        + "list.");
+            } else {
+                Entry<InkListItem, Integer> newItem =
+                        fromString(itemName, storyObject).getOrderedItems().get(0);
+                this.put(newItem.getKey(), newItem.getValue());
+            }
+        } else {
+            InkListItem item = new InkListItem(foundListDef.getName(), itemName);
+            Integer itemVal = foundListDef.getValueForItem(item);
+            this.put(item, itemVal != null ? itemVal : 0);
+        }
+    }
 
-        InkListItem item = new InkListItem(foundListDef.getName(), itemName);
-        Integer itemVal = foundListDef.getValueForItem(item);
-        this.put(item, itemVal != null ? itemVal : 0);
+    public void addItem(String itemName) throws Exception {
+        addItem(itemName, null);
     }
 
     /**
      * Returns true if this ink list contains an item with the given short name
      * (ignoring the original list where it was defined).
      */
-    public boolean ContainsItemNamed(String itemName) {
+    public boolean containsItemNamed(String itemName) {
         for (Map.Entry<InkListItem, Integer> itemWithValue : this.entrySet()) {
             if (itemWithValue.getKey().getItemName().equals(itemName)) return true;
         }

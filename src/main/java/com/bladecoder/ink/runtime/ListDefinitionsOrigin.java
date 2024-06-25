@@ -45,7 +45,7 @@ public class ListDefinitionsOrigin {
     ListValue findSingleItemListWithName(String name) {
         ListValue val = null;
 
-        val = allUnambiguousListValueCache.get(name);
+        if (name != null && !name.trim().isEmpty()) val = allUnambiguousListValueCache.get(name);
 
         return val;
     }

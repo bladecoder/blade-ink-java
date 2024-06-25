@@ -268,6 +268,16 @@ class SimpleJson {
             writeObjectEnd();
         }
 
+        public void clear() {
+            StringWriter stringWriter = writer instanceof StringWriter ? (StringWriter) writer : null;
+            if (stringWriter == null) {
+                throw new UnsupportedOperationException(
+                        "Writer.Clear() is only supported for the StringWriter variant, not for streams");
+            }
+
+            stringWriter.getBuffer().setLength(0);
+        }
+
         public void writeObjectStart() throws Exception {
             startNewObject(true);
             stateStack.push(new StateElement(State.Object, 0));
@@ -278,6 +288,7 @@ class SimpleJson {
             Assert(getState() == State.Object);
             writer.write("}");
             stateStack.pop();
+            if (getState() == State.None) writer.flush();
         }
 
         public void writeProperty(String name, InnerWriter inner) throws Exception {

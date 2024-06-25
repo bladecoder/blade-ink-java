@@ -90,6 +90,5 @@ public class TagSpecTest {
 
         Assert.assertEquals("í\n", story.Continue());
         Assert.assertEquals("a\n", story.Continue());
-
     }
 }

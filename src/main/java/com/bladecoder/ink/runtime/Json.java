@@ -596,7 +596,20 @@ public class Json {
         choice.sourcePath = jObj.get("originalChoicePath").toString();
         choice.originalThreadIndex = (int) jObj.get("originalThreadIndex");
         choice.setPathStringOnChoice(jObj.get("targetPath").toString());
+        choice.tags = jArrayToTags(jObj, choice);
         return choice;
+    }
+
+    private static List<String> jArrayToTags(HashMap<String, Object> jObj, Choice choice) {
+        Object jArray = jObj.get("tags");
+        if (jArray == null) return null;
+
+        List<String> tags = new ArrayList<>();
+        for (Object stringValue : (List<Object>) jArray) {
+            tags.add(stringValue.toString());
+        }
+
+        return tags;
     }
 
     public static void writeChoice(SimpleJson.Writer writer, Choice choice) throws Exception {
@@ -606,7 +619,20 @@ public class Json {
         writer.writeProperty("originalChoicePath", choice.sourcePath);
         writer.writeProperty("originalThreadIndex", choice.originalThreadIndex);
         writer.writeProperty("targetPath", choice.getPathStringOnChoice());
+        writeChoiceTags(writer, choice);
         writer.writeObjectEnd();
+    }
+
+    private static void writeChoiceTags(SimpleJson.Writer writer, Choice choice) throws Exception {
+        if (choice.tags == null || choice.tags.isEmpty()) return;
+        writer.writePropertyStart("tags");
+        writer.writeArrayStart();
+        for (String tag : choice.tags) {
+            writer.write(tag);
+        }
+
+        writer.writeArrayEnd();
+        writer.writePropertyEnd();
     }
 
     static void writeInkList(SimpleJson.Writer writer, ListValue listVal) throws Exception {

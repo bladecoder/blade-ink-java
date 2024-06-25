@@ -224,8 +224,18 @@ public class Container extends RTObject implements INamedContent {
                 break;
             }
 
+            // Are we about to loop into another container?
+            // Is the object a container as expected? It might
+            // no longer be if the content has shuffled around, so what
+            // was originally a container no longer is.
+            Container nextContainer = foundObj instanceof Container ? (Container) foundObj : null;
+            if (i < partialPathLength - 1 && nextContainer == null) {
+                result.approximate = true;
+                break;
+            }
+
             currentObj = foundObj;
-            currentContainer = foundObj instanceof Container ? (Container) foundObj : null;
+            currentContainer = nextContainer;
         }
 
         result.obj = currentObj;

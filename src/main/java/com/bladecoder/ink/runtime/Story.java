@@ -505,6 +505,36 @@ public class Story implements VariablesState.VariableChanged {
 
         funcDef = externals.get(funcName);
 
+        if (funcDef != null && funcDef.lookaheadSafe && state.inStringEvaluation()) {
+            // 16th Jan 2023: Example ink that was failing:
+            //
+            //      A line above
+            //      ~ temp text = "{theFunc()}"
+            //      {text}
+            //
+            //      === function theFunc()
+            //          { external():
+            //              Boom
+            //          }
+            //
+            //      EXTERNAL external()
+            //
+            // What was happening: The external() call would exit out early due to
+            // _stateSnapshotAtLastNewline having a value, leaving the evaluation stack
+            // without a return value on it. When the if-statement tried to pop a value,
+            // the evaluation stack would be empty, and there would be an exception.
+            //
+            // The snapshot rewinding code is only designed to work when outside of
+            // string generation code (there's a check for that in the snapshot rewinding code),
+            // hence these things are incompatible, you can't have unsafe functions that
+            // cause snapshot rewinding in the middle of string generation.
+            //
+            error("External function " + funcName
+                    + " could not be called because 1) it wasn't marked as lookaheadSafe when BindExternalFunction was called and 2) the story is in the middle of string generation, either because choice text is being generated, or because you have ink like \"hello {func()}\". You can work around this by generating the result of your function into a temporary variable before the string or choice gets generated: ~ temp x = "
+                    + funcName + "()");
+            return;
+        }
+
         // Should this function break glue? Abort run if we've already seen a newline.
         // Set a bool to tell it to restore the snapshot at the end of this instruction.
         if (funcDef != null && !funcDef.lookaheadSafe && stateSnapshotAtLastNewline != null) {
@@ -801,7 +831,9 @@ public class Story implements VariablesState.VariableChanged {
             // It's possible for ink to call game to call ink to call game etc
             // In this case, we only want to batch observe variable changes
             // for the outermost call.
-            if (recursiveContinueCount == 1) state.getVariablesState().setbatchObservingVariableChanges(true);
+            if (recursiveContinueCount == 1) state.getVariablesState().startVariableObservation();
+        } else if (asyncContinueActive && !isAsyncTimeLimited) {
+            asyncContinueActive = false;
         }
 
         // Start timing
@@ -829,6 +861,8 @@ public class Story implements VariablesState.VariableChanged {
         } while (canContinue());
 
         durationStopwatch.stop();
+
+        HashMap<String, RTObject> changedVariablesToObserve = null;
 
         // 4 outcomes:
         // - got newline (so finished this line of text)
@@ -863,7 +897,8 @@ public class Story implements VariablesState.VariableChanged {
             state.setDidSafeExit(false);
             sawLookaheadUnsafeFunctionAfterNewline = false;
 
-            if (recursiveContinueCount == 1) state.getVariablesState().setbatchObservingVariableChanges(false);
+            if (recursiveContinueCount == 1)
+                changedVariablesToObserve = state.getVariablesState().completeVariableObservation();
             asyncContinueActive = false;
         }
 
@@ -924,6 +959,11 @@ public class Story implements VariablesState.VariableChanged {
                 //
                 throw new StoryException(sb.toString());
             }
+        }
+
+        // Send out variable observation events at the last second, since it might trigger new ink to be run
+        if (changedVariablesToObserve != null && changedVariablesToObserve.size() > 0) {
+            state.getVariablesState().notifyObservers(changedVariablesToObserve);
         }
     }
 
@@ -2802,7 +2842,7 @@ public class Story implements VariablesState.VariableChanged {
     // - _state (current, being patched)
     void stateSnapshot() {
         stateSnapshotAtLastNewline = state;
-        state = state.copyAndStartPatching();
+        state = state.copyAndStartPatching(false);
     }
 
     void restoreStateSnapshot() {
@@ -2853,7 +2893,7 @@ public class Story implements VariablesState.VariableChanged {
             throw new Exception(
                     "Story is already in background saving mode, can't call CopyStateForBackgroundThreadSave again!");
         StoryState stateToSave = state;
-        state = state.copyAndStartPatching();
+        state = state.copyAndStartPatching(true);
         asyncSaving = true;
         return stateToSave;
     }

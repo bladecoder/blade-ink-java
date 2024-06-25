@@ -72,4 +72,16 @@ public class Choice extends RTObject {
     public void setThreadAtGeneration(CallStack.Thread value) {
         threadAtGeneration = value;
     }
+
+    public Choice clone() {
+        Choice copy = new Choice();
+        copy.text = text;
+        copy.sourcePath = sourcePath;
+        copy.index = index;
+        copy.targetPath = targetPath;
+        copy.originalThreadIndex = originalThreadIndex;
+        copy.isInvisibleDefault = isInvisibleDefault;
+        if (threadAtGeneration != null) copy.threadAtGeneration = threadAtGeneration.copy();
+        return copy;
+    }
 }

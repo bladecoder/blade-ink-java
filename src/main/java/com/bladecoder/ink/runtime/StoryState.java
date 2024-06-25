@@ -113,7 +113,7 @@ public class StoryState {
     // RTObjects are treated as immutable after they've been set up.
     // (e.g. we don't edit a Runtime.StringValue after it's been created an added.)
     // I wonder if there's a sensible way to enforce that..??
-    StoryState copyAndStartPatching() {
+    StoryState copyAndStartPatching(boolean forBackgroundSave) {
         StoryState copy = new StoryState(story);
 
         copy.patch = new StatePatch(patch);
@@ -123,9 +123,19 @@ public class StoryState {
         // _namedFlows
         copy.currentFlow.name = currentFlow.name;
         copy.currentFlow.callStack = new CallStack(currentFlow.callStack);
-        copy.currentFlow.currentChoices.addAll(currentFlow.currentChoices);
         copy.currentFlow.outputStream.addAll(currentFlow.outputStream);
         copy.outputStreamDirty();
+
+        // When background saving we need to make copies of choices since they each have
+        // a snapshot of the thread at the time of generation since the game could progress
+        // significantly and threads modified during the save process.
+        // However, when doing internal saving and restoring of snapshots this isn't an issue,
+        // and we can simply ref-copy the choices with their existing threads.
+        if (forBackgroundSave) {
+            for (Choice choice : currentFlow.currentChoices) copy.currentFlow.currentChoices.add(choice.clone());
+        } else {
+            copy.currentFlow.currentChoices.addAll(currentFlow.currentChoices);
+        }
 
         // The copy of the state has its own copy of the named flows dictionary,
         // except with the current flow replaced with the copy above
@@ -310,6 +320,17 @@ public class StoryState {
         if (getCallStack().getCurrentElement().type == PushPopType.Function) trimWhitespaceFromFunctionEnd();
 
         getCallStack().pop(popType);
+    }
+
+    /**
+     * Get the previous state of currentPathString, which can be helpful
+     * for finding out where the story was before it ended (when the path
+     * string becomes null)
+     */
+    public String previousPathString() {
+        Pointer pointer = getPreviousPointer();
+        if (pointer.isNull()) return null;
+        else return pointer.getPath().toString();
     }
 
     Pointer getCurrentPointer() {

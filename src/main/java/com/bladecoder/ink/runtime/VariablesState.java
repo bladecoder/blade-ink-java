@@ -68,7 +68,7 @@ public class VariablesState implements Iterable<String> {
             // Then assign to the variable that the pointer is pointing to by
             // name.
             // De-reference variable reference to point to
-            VariablePointerValue existingPointer = null;
+            VariablePointerValue existingPointer;
             do {
                 existingPointer = getRawVariableWithName(name, contextIndex) instanceof VariablePointerValue
                         ? (VariablePointerValue) getRawVariableWithName(name, contextIndex)
@@ -134,7 +134,7 @@ public class VariablesState implements Iterable<String> {
 
             if (dontSaveDefaultValues) {
                 // Don't write out values that are the same as the default global values
-                RTObject defaultVal = defaultGlobalVariables.get(name);
+                RTObject defaultVal = defaultGlobalVariables != null ? defaultGlobalVariables.get(name) : null;
                 if (defaultVal != null) {
                     if (runtimeObjectsEqual(val, defaultVal)) continue;
                 }
@@ -199,8 +199,41 @@ public class VariablesState implements Iterable<String> {
         } else return null;
     }
 
-    public boolean getbatchObservingVariableChanges() {
-        return batchObservingVariableChanges;
+    public void startVariableObservation() {
+        batchObservingVariableChanges = true;
+        changedVariablesForBatchObs = new HashSet<>();
+    }
+
+    public HashMap<String, RTObject> completeVariableObservation() {
+        batchObservingVariableChanges = false;
+
+        HashMap<String, RTObject> changedVars = new HashMap<>();
+        if (changedVariablesForBatchObs != null) {
+            for (String variableName : changedVariablesForBatchObs) {
+                RTObject currentValue = globalVariables.get(variableName);
+                changedVars.put(variableName, currentValue);
+            }
+        }
+
+        // Patch may still be active - e.g. if we were in the middle of a background save
+        if (patch != null) {
+            for (String variableName : patch.getChangedVariables()) {
+                RTObject patchedVal = patch.getGlobal(variableName);
+
+                if (patchedVal != null) {
+                    changedVars.put(variableName, patchedVal);
+                }
+            }
+        }
+
+        changedVariablesForBatchObs = null;
+        return changedVars;
+    }
+
+    public void notifyObservers(HashMap<String, RTObject> changedVars) throws Exception {
+        for (Entry<String, RTObject> varToVal : changedVars.entrySet()) {
+            variableChangedEvent.variableStateDidChangeEvent(varToVal.getKey(), varToVal.getValue());
+        }
     }
 
     // Make copy of the variable pointer so we're not using the value direct
@@ -319,24 +352,6 @@ public class VariablesState implements Iterable<String> {
         setGlobal(variableName, val);
     }
 
-    public void setbatchObservingVariableChanges(boolean value) throws Exception {
-        batchObservingVariableChanges = value;
-        if (value) {
-            changedVariablesForBatchObs = new HashSet<>();
-        } else {
-            // Finished observing variables in a batch - now send
-            // notifications for changed variables all in one go.
-            if (changedVariablesForBatchObs != null) {
-                for (String variableName : changedVariablesForBatchObs) {
-                    RTObject currentValue = globalVariables.get(variableName);
-                    getVariableChangedEvent().variableStateDidChangeEvent(variableName, currentValue);
-                }
-            }
-
-            changedVariablesForBatchObs = null;
-        }
-    }
-
     void retainListOriginsForAssignment(RTObject oldValue, RTObject newValue) {
         ListValue oldList = null;
 
@@ -364,7 +379,7 @@ public class VariablesState implements Iterable<String> {
 
         if (getVariableChangedEvent() != null && !value.equals(oldValue)) {
 
-            if (getbatchObservingVariableChanges()) {
+            if (batchObservingVariableChanges) {
                 if (patch != null) patch.addChangedVariable(variableName);
                 else if (changedVariablesForBatchObs != null) changedVariablesForBatchObs.add(variableName);
             } else {
