@@ -81,4 +81,15 @@ public class TagSpecTest {
         Assert.assertArrayEquals(
                 new String[] {"pic8red.jpg"}, story.getCurrentTags().toArray());
     }
+
+    @Test
+    public void testTagsInLines() throws Exception {
+
+        String json = TestUtils.getJsonString("inkfiles/tags/tagsInLines.ink.json");
+        Story story = new Story(json);
+
+        Assert.assertEquals("í\n", story.Continue());
+        Assert.assertEquals("a\n", story.Continue());
+
+    }
 }
