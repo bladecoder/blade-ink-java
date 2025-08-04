@@ -134,6 +134,7 @@ publishing {
 
 signing {
     if (!version.endsWith('SNAPSHOT')) {
+        useGpgCmd()
         sign publishing.publications.mavenJava
     }
 }
