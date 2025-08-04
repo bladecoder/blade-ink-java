@@ -72,6 +72,26 @@ public class TagSpecTest {
     }
 
     @Test
+    public void testTagsInChoiceDynamicContent() throws Exception {
+
+        String json = TestUtils.getJsonString("inkfiles/tags/tagsInChoiceDynamic.ink.json");
+        Story story = new Story(json);
+
+        story.Continue();
+        Assert.assertEquals(0, story.getCurrentTags().size());
+        Assert.assertEquals(3, story.getCurrentChoices().size());
+        Assert.assertArrayEquals(
+                new String[] {"tag Name"},
+                story.getCurrentChoices().get(0).getTags().toArray());
+        Assert.assertArrayEquals(
+                new String[] {"tag 1 Name 2 3 4"},
+                story.getCurrentChoices().get(1).getTags().toArray());
+        Assert.assertArrayEquals(
+                new String[] {"Name tag 1 2 3 4"},
+                story.getCurrentChoices().get(2).getTags().toArray());
+    }
+
+    @Test
     public void testTagsDynamicContent() throws Exception {
 
         String json = TestUtils.getJsonString("inkfiles/tags/tagsDynamicContent.ink.json");

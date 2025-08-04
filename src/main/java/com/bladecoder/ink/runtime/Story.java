@@ -1798,7 +1798,9 @@ public class Story implements VariablesState.VariableChanged {
                         state.popFromOutputStream(outputCountConsumed);
 
                         StringBuilder sb = new StringBuilder();
-                        for (StringValue strVal : contentStackForTag) {
+
+                        for (int i = contentStackForTag.size() - 1; i >= 0; --i) {
+                            StringValue strVal = contentStackForTag.get(i);
                             sb.append(strVal.value);
                         }
 
@@ -1848,13 +1850,20 @@ public class Story implements VariablesState.VariableChanged {
                     // rather than consume as part of the string we're building.
                     // At the time of writing, this only applies to Tag objects generated
                     // by choices, which are pushed to the stack during string generation.
-                    for (RTObject rescuedTag : contentToRetain) state.pushToOutputStream(rescuedTag);
+                    // for (RTObject rescuedTag : contentToRetain) state.pushToOutputStream(rescuedTag);
+
+                    for (int i = contentToRetain.size() - 1; i >= 0; --i) {
+
+                        RTObject c = contentToRetain.get(i);
+
+                        state.pushToOutputStream(c);
+                    }
 
                     // Build string out of the content we collected
                     StringBuilder sb = new StringBuilder();
 
-                    while (contentStackForString.size() > 0) {
-                        RTObject c = contentStackForString.pop();
+                    for (int i = contentStackForString.size() - 1; i >= 0; --i) {
+                        RTObject c = contentStackForString.get(i);
 
                         sb.append(c.toString());
                     }
@@ -2227,7 +2236,7 @@ public class Story implements VariablesState.VariableChanged {
     String popChoiceStringAndTags(List<String> tags) {
         StringValue choiceOnlyStrVal = (StringValue) state.popEvaluationStack();
 
-        while (state.getEvaluationStack().size() > 0 && state.peekEvaluationStack() instanceof Tag) {
+        while (!state.getEvaluationStack().isEmpty() && state.peekEvaluationStack() instanceof Tag) {
             Tag tag = (Tag) state.popEvaluationStack();
             tags.add(0, tag.getText()); // popped in reverse order
         }
