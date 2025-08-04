@@ -1850,10 +1850,7 @@ public class Story implements VariablesState.VariableChanged {
                     // rather than consume as part of the string we're building.
                     // At the time of writing, this only applies to Tag objects generated
                     // by choices, which are pushed to the stack during string generation.
-                    // for (RTObject rescuedTag : contentToRetain) state.pushToOutputStream(rescuedTag);
-
                     for (int i = contentToRetain.size() - 1; i >= 0; --i) {
-
                         RTObject c = contentToRetain.get(i);
 
                         state.pushToOutputStream(c);
