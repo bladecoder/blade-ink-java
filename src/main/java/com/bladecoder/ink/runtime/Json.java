@@ -745,7 +745,7 @@ public class Json {
 
         for (int i = 0; i < CommandType.values().length - 1; ++i) {
             if (controlCommandNames[i] == null)
-                throw new ExceptionInInitializerError("Control command not accounted for in serialisation");
+                throw new RuntimeException("Control command (index " + i + ") not accounted for in serialisation");
         }
     }
 }
