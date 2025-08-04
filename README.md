@@ -12,22 +12,17 @@ First you need to turn your ink file into a json file [as described here](https:
 
 ```java
 InputStream systemResourceAsStream = ClassLoader.getSystemResourceAsStream(filename);
+StringBuilder sb = new StringBuilder();
 
-BufferedReader br = new BufferedReader(new InputStreamReader(systemResourceAsStream, "UTF-8"));
-
-try {
-	StringBuilder sb = new StringBuilder();
+try (BufferedReader br = new BufferedReader(new InputStreamReader(systemResourceAsStream, "UTF-8"));){
 	String line = br.readLine();
-
 	while (line != null) {
 		sb.append(line);
 		sb.append("\n");
 		line = br.readLine();
 	}
-
-} finally {
-	br.close();
-}
+} 
+catch(Exception e){e.printStackTrace();}
 
 String json = sb.toString().replace('\uFEFF', ' ');
 ```
