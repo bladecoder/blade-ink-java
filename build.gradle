@@ -19,7 +19,7 @@ dependencies {
     testImplementation 'junit:junit:4.13'
 }
 
-if (hasProperty("ci") && !version.endsWith("-SNAPSHOT")) {
+if (!hasProperty("release") && !version.endsWith("-SNAPSHOT")) {
     version += "-SNAPSHOT"
 }
 
@@ -125,8 +125,8 @@ publishing {
             def snapshotsRepoUrl = "https://central.sonatype.com/repository/maven-snapshots/"
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
             credentials {
-                username findProperty("sonatypeUsername")
-                password findProperty("sonatypePassword")
+                username project.hasProperty('NEXUS_USERNAME') ? NEXUS_USERNAME : "$System.env.NEXUS_USERNAME"
+                password project.hasProperty('NEXUS_PASSWORD') ? NEXUS_PASSWORD : "$System.env.NEXUS_PASSWORD"
             }
         }
     }
@@ -137,7 +137,6 @@ signing {
         sign publishing.publications.mavenJava
     }
 }
-
 
 javadoc {
     if (JavaVersion.current().isJava9Compatible()) {
