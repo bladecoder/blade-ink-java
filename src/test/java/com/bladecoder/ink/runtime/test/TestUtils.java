@@ -24,9 +24,6 @@ public class TestUtils {
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
 
-            // Replace the BOM mark
-            if (line != null) line = line.replace('\uFEFF', ' ');
-
             while (line != null) {
                 sb.append(line);
                 sb.append("\n");
