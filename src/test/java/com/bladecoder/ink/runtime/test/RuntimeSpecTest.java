@@ -249,7 +249,7 @@ public class RuntimeSpecTest {
         Assert.assertEquals("The value is 7.0.", text.get(0));
     }
 
-    private static int variableObserversExceptedValue = 5;
+    private static int variableObserversExpectedValue = 5;
 
     /**
      * Test variable observers.
@@ -267,9 +267,9 @@ public class RuntimeSpecTest {
             public void call(String variableName, Object newValue) {
                 if (!"x".equals(variableName)) Assert.fail();
                 try {
-                    if ((int) newValue != variableObserversExceptedValue) Assert.fail();
+                    if ((int) newValue != variableObserversExpectedValue) Assert.fail();
 
-                    variableObserversExceptedValue = 10;
+                    variableObserversExpectedValue = 10;
                 } catch (Exception e) {
                     Assert.fail();
                 }
@@ -279,6 +279,8 @@ public class RuntimeSpecTest {
         TestUtils.nextAll(story, text);
         story.chooseChoiceIndex(0);
         TestUtils.nextAll(story, text);
+
+        Assert.assertEquals(10, variableObserversExpectedValue);
     }
 
     /**
