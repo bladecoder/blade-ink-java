@@ -1,0 +1,18 @@
+plugins {
+    id 'java-library'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+repositories {
+    mavenCentral()
+}
+
+// add runtime dependency
+dependencies {
+    implementation project(":runtime")
+
+    testImplementation 'junit:junit:4.13.1'
+}
