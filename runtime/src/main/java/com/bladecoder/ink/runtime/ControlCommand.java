@@ -51,7 +51,7 @@ public class ControlCommand extends RTObject {
     }
 
     @Override
-    RTObject copy() {
+    public RTObject copy() {
         return new ControlCommand(getCommandType());
     }
 

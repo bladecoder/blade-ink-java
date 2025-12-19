@@ -18,7 +18,7 @@ public class BasicTextSpecTest {
 
         Compiler compiler = new Compiler();
 
-        String json = compiler.compile(TestUtils.getJsonString("inkfiles/basictext/oneline.ink"));
+        String json = compiler.compile(TestUtils.readFileAsString("inkfiles/basictext/oneline.ink"));
         System.out.println("JSON: " + json);
         Story story = new Story(json);
 
@@ -36,7 +36,7 @@ public class BasicTextSpecTest {
 
         Compiler compiler = new Compiler();
 
-        String json = compiler.compile(TestUtils.getJsonString("inkfiles/basictext/twolines.ink"));
+        String json = compiler.compile(TestUtils.readFileAsString("inkfiles/basictext/twolines.ink"));
         Story story = new Story(json);
 
         TestUtils.nextAll(story, text);

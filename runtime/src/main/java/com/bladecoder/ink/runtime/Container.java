@@ -143,8 +143,20 @@ public class Container extends RTObject implements INamedContent {
         }
     }
 
-    private void addContent(RTObject contentObj) throws Exception {
+    public void addContent(RTObject contentObj) throws Exception {
         getContent().add(contentObj);
+
+        if (contentObj.getParent() != null) {
+            throw new Exception("content is already in " + contentObj.getParent());
+        }
+
+        contentObj.setParent(this);
+
+        tryAddNamedContent(contentObj);
+    }
+
+    public void insertContent(RTObject contentObj, int index) throws Exception {
+        getContent().add(index, contentObj);
 
         if (contentObj.getParent() != null) {
             throw new Exception("content is already in " + contentObj.getParent());
@@ -170,6 +182,14 @@ public class Container extends RTObject implements INamedContent {
         runtimeObj.setParent(this);
 
         getNamedContent().put(namedContentObj.getName(), namedContentObj);
+    }
+
+    public void addContentsOfContainer(Container otherContainer) {
+        getContent().addAll(otherContainer.getContent());
+        for (RTObject obj : otherContainer.getContent()) {
+            obj.setParent(this);
+            tryAddNamedContent(obj);
+        }
     }
 
     private RTObject contentWithPathComponent(Path.Component component) {

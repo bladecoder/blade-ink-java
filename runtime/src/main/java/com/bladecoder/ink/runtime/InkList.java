@@ -110,12 +110,12 @@ public class InkList extends HashMap<InkListItem, Integer> {
         return originNames;
     }
 
-    void setInitialOriginName(String initialOriginName) {
+    public void setInitialOriginName(String initialOriginName) {
         originNames = new ArrayList<>();
         originNames.add(initialOriginName);
     }
 
-    void setInitialOriginNames(List<String> initialOriginNames) {
+    public void setInitialOriginNames(List<String> initialOriginNames) {
         if (initialOriginNames == null) originNames = null;
         else {
             originNames = new ArrayList<>();

@@ -1,6 +1,6 @@
 package com.bladecoder.ink.runtime;
 
-class FloatValue extends Value<Float> {
+public class FloatValue extends Value<Float> {
     public FloatValue() {
         this(0.0f);
     }

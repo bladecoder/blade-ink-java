@@ -1,8 +1,10 @@
 package com.bladecoder.ink.runtime.test;
 
+import static org.junit.Assert.fail;
+
+import com.bladecoder.ink.compiler.Compiler;
 import com.bladecoder.ink.runtime.Choice;
 import com.bladecoder.ink.runtime.Story;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,11 +13,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.fail;
-
 public class TestUtils {
 
-    public static String getJsonString(String filename) throws IOException {
+    public static String readFileAsString(String filename) throws IOException {
 
         InputStream systemResourceAsStream = ClassLoader.getSystemResourceAsStream(filename);
 
@@ -34,12 +34,22 @@ public class TestUtils {
         }
     }
 
+    public static String compileInkFile(String filename) throws Exception {
+        String source = readFileAsString(filename);
+        Compiler compiler = new Compiler();
+        return compiler.compile(source);
+    }
+
     public static List<String> runStory(String filename, List<Integer> choiceList, List<String> errors)
             throws Exception {
         // 1) Load story
-        String json = getJsonString(filename);
+        String source = readFileAsString(filename);
 
-        Story story = new Story(json);
+        Compiler compiler = new Compiler();
+
+        String compiled = compiler.compile(source);
+
+        Story story = new Story(compiled);
 
         List<String> text = new ArrayList<>();
 

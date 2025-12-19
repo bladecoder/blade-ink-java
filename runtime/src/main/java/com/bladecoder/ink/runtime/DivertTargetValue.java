@@ -1,6 +1,6 @@
 package com.bladecoder.ink.runtime;
 
-class DivertTargetValue extends Value<Path> {
+public class DivertTargetValue extends Value<Path> {
     public DivertTargetValue() {
         super(null);
     }

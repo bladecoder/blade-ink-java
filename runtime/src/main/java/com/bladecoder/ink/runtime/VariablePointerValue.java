@@ -2,7 +2,7 @@ package com.bladecoder.ink.runtime;
 
 // TODO: Think: Erm, I get that this contains a string, but should
 // we really derive from Value<string>? That seems a bit misleading to me.
-class VariablePointerValue extends Value<String> {
+public class VariablePointerValue extends Value<String> {
     // Where the variable is located
     // -1 = default, unknown, yet to be determined
     // 0 = in global scope
@@ -31,7 +31,7 @@ class VariablePointerValue extends Value<String> {
     }
 
     @Override
-    RTObject copy() {
+    public RTObject copy() {
         return new VariablePointerValue(getVariableName(), getContextIndex());
     }
 

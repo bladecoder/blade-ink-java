@@ -16,7 +16,7 @@ import java.util.Stack;
  * System.Collections that are produced by the ink engine and converts to and
  * from JSON text.
  */
-class SimpleJson {
+public class SimpleJson {
 
     public static HashMap<String, Object> textToDictionary(String text) throws Exception {
         return new Reader(text).toHashMap();

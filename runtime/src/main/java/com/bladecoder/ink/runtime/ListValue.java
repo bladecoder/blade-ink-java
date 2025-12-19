@@ -2,7 +2,7 @@ package com.bladecoder.ink.runtime;
 
 import java.util.Map.Entry;
 
-class ListValue extends Value<InkList> {
+public class ListValue extends Value<InkList> {
 
     public ListValue(InkList list) {
         super(list);

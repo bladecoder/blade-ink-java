@@ -33,7 +33,7 @@ public class RTObject {
         parent = value;
     }
 
-    DebugMetadata getOwnDebugMetadata() {
+    public DebugMetadata getOwnDebugMetadata() {
         return debugMetadata;
     }
 
@@ -177,7 +177,7 @@ public class RTObject {
         return ancestor instanceof Container ? (Container) ancestor : null;
     }
 
-    RTObject copy() throws Exception {
+    public RTObject copy() throws Exception {
         throw new UnsupportedOperationException(this.getClass().getSimpleName() + " doesn't support copying");
     }
 }

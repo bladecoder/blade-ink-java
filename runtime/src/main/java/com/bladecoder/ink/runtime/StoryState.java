@@ -333,6 +333,14 @@ public class StoryState {
         else return pointer.getPath().toString();
     }
 
+    public String getCurrentPathString() {
+        Pointer pointer = getCurrentPointer();
+        if (pointer == null || pointer.isNull()) {
+            return null;
+        }
+        return pointer.getPath().toString();
+    }
+
     Pointer getCurrentPointer() {
         return getCallStack().getCurrentElement().currentPointer;
     }
@@ -529,7 +537,7 @@ public class StoryState {
         return currentWarnings != null && currentWarnings.size() > 0;
     }
 
-    List<RTObject> getOutputStream() {
+    public List<RTObject> getOutputStream() {
         return currentFlow.outputStream;
     }
 

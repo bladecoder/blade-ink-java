@@ -1,6 +1,6 @@
 package com.bladecoder.ink.runtime;
 
-class BoolValue extends Value<Boolean> {
+public class BoolValue extends Value<Boolean> {
     public BoolValue() {
         this(false);
     }
