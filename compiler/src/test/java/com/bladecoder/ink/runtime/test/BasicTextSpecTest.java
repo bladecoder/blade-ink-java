@@ -19,7 +19,6 @@ public class BasicTextSpecTest {
         Compiler compiler = new Compiler();
 
         String json = compiler.compile(TestUtils.readFileAsString("inkfiles/basictext/oneline.ink"));
-        System.out.println("JSON: " + json);
         Story story = new Story(json);
 
         TestUtils.nextAll(story, text);
