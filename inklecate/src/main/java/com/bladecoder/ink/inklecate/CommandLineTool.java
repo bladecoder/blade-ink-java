@@ -69,11 +69,14 @@ public class CommandLineTool {
                 outputBaseDir = parent;
             }
 
+            opts.inputFile = fullFilename.getFileName().toString();
+
             if (outputFileWasRelative) {
-                opts.outputFile = outputBaseDir.resolve(opts.outputFile).toString();
+                opts.outputFile = outputBaseDir
+                        .resolve(changeExtension(opts.inputFile, ".ink.json"))
+                        .toString();
             }
 
-            opts.inputFile = fullFilename.getFileName().toString();
             inputString = readFile(fullFilename.toString());
         } catch (IOException e) {
             System.out.println("Could not open file '" + opts.inputFile + "'");

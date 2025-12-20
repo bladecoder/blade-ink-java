@@ -16,6 +16,8 @@ jobs:
         run: chmod +x gradlew
       - name: Build
         run: ./gradlew build
+      - name: Build inklecate jar
+        run: ./gradlew :inklecate:jar
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v5
@@ -40,3 +42,7 @@ jobs:
             -Psigning.gnupg.keyId=${{ secrets.GPG_KEYID }} \
             -Psigning.gnupg.passphrase=${{ secrets.GPG_PASSPHRASE }} \
             -Psigning.gnupg.keyName=${{ secrets.GPG_KEYID }}
+      - name: Upload inklecate jar to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: inklecate/build/libs/*.jar
