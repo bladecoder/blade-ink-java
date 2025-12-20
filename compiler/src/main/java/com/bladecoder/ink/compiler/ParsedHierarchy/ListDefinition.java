@@ -37,7 +37,7 @@ public class ListDefinition extends ParsedObject {
             if (!allItems.containsKey(e.getName())) {
                 allItems.put(e.getName(), e.seriesValue);
             } else {
-                error("List '" + identifier + "' contains dupicate items called '" + e.getName() + "'");
+                error("List '" + identifier + "' contains duplicate items called '" + e.getName() + "'");
             }
         }
 
