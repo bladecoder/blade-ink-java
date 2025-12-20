@@ -183,7 +183,7 @@ public class Divert extends ParsedObject {
         if (targetFlow != null) {
             if (!targetFlow.isFunction() && isFunctionCall) {
                 error(targetFlow.getIdentifier()
-                        + " hasn't been marked as a function, but it's being called as one. Do you need to delcare the knot as '== function "
+                        + " hasn't been marked as a function, but it's being called as one. Do you need to declare the knot as '== function "
                         + targetFlow.getIdentifier() + " =='?");
             } else if (targetFlow.isFunction() && !isFunctionCall && !(parent instanceof DivertTarget)) {
                 error(targetFlow.getIdentifier()
