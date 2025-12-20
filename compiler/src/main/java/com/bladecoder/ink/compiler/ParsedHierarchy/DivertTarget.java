@@ -29,7 +29,7 @@ public class DivertTarget extends Expression {
         super.resolveReferences(context);
 
         if (divert.isDone() || divert.isEnd()) {
-            error("Can't Can't use -> DONE or -> END as variable divert targets", this, false);
+            error("Can't use -> DONE or -> END as variable divert targets", this, false);
             return;
         }
 
