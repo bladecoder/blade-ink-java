@@ -1,14 +1,11 @@
 name: Publish snapshot
-
 on:
   push:
     branches:
       - master
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 21
@@ -20,8 +17,13 @@ jobs:
         run: chmod +x gradlew
       - name: Build
         run: ./gradlew build
-      - name: Publish snapshot
+      - name: Publish runtime snapshot
         env:
           NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: ./gradlew publish
+        run: ./gradlew :runtime:publish
+      - name: Publish compiler snapshot
+        env:
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        run: ./gradlew :compiler:publish

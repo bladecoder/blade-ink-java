@@ -1,0 +1,47 @@
+dependencies {
+    implementation project(':runtime')
+}
+javadoc {
+    title = "Blade Ink Compiler"
+}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'blade-ink-compiler'
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'blade-ink-compiler'
+                description = "Compiler for inkle's ink scripting language. Converts .ink files to JSON format."
+                url = 'https://github.com/bladecoder/blade-ink'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'bladecoder'
+                        name = 'Rafael Garcia'
+                        email = 'bladecoder@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git@github.com:bladecoder/blade-ink-java.git'
+                    developerConnection = 'scm:git@github.com:bladecoder/blade-ink-java.git'
+                    url = 'scm:git@github.com:bladecoder/blade-ink-java.git'
+                }
+            }
+        }
+    }
+}

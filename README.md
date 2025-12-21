@@ -1,6 +1,6 @@
 # blade-ink
 
-This is a Java port of inkle's [ink](https://github.com/inkle/ink), a scripting language for writing interactive narrative.
+This is a Java port of inkle's [ink](https://github.com/inkle/ink), a scripting language for writing interactive narrative, including the compiler and inklecate.
 
 **blade-ink** should support pretty much everything the original version does. If you find any bugs, please report them here!
 

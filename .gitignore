@@ -21,3 +21,5 @@ build/
 *.log
 
 .DS_Store
+
+prompts/
