@@ -1736,9 +1736,9 @@ public class Story implements VariablesState.VariableChanged {
                             "Expected to be in an expression when evaluating a string");
                     state.setInExpressionEvaluation(false);
                     break;
-                    // Leave it to story.currentText and story.currentTags to sort out the text from the tags
-                    // This is mostly because we can't always rely on the existence of EndTag, and we don't want
-                    // to try and flatten dynamic tags to strings every time \n is pushed to output
+                // Leave it to story.currentText and story.currentTags to sort out the text from the tags
+                // This is mostly because we can't always rely on the existence of EndTag, and we don't want
+                // to try and flatten dynamic tags to strings every time \n is pushed to output
                 case BeginTag:
                     state.pushToOutputStream(evalCommand);
                     break;
@@ -1817,7 +1817,7 @@ public class Story implements VariablesState.VariableChanged {
                     }
                     break;
                 }
-                    // Dynamic strings and tags are built in the same way
+                // Dynamic strings and tags are built in the same way
                 case EndString: {
 
                     // Since we're iterating backward through the content,
@@ -2005,7 +2005,7 @@ public class Story implements VariablesState.VariableChanged {
 
                     break;
 
-                    // Force flow to end completely
+                // Force flow to end completely
                 case End:
                     state.forceEnd();
                     break;

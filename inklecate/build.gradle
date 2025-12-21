@@ -20,6 +20,7 @@ application {
 }
 
 jar {
+    dependsOn(':compiler:jar', ':runtime:jar')
     manifest.attributes += [
             'Main-Class': application.mainClass
     ]
