@@ -11,8 +11,11 @@ subprojects {
 
     group = 'com.bladecoder.ink'
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
     repositories {
@@ -48,14 +51,16 @@ subprojects {
     }
 
     jar {
-        manifest.attributes += [
+        manifest {
+            attributes(
                 'github'   : 'https://github.com/bladecoder/blade-ink/',
                 'license'  : 'Apache-2.0',
                 'group'    : project.group,
                 'version'  : project.version,
-                'java'     : targetCompatibility,
+                'java'     : project.java.targetCompatibility,
                 'timestamp': System.currentTimeMillis()
-        ]
+            )
+        }
     }
 
     javadoc {

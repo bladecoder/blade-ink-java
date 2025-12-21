@@ -2,8 +2,11 @@ plugins {
     id 'application'
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 repositories {
@@ -21,9 +24,11 @@ application {
 
 jar {
     dependsOn(':compiler:jar', ':runtime:jar')
-    manifest.attributes += [
-            'Main-Class': application.mainClass
-    ]
+    manifest {
+        attributes(
+            'Main-Class': application.mainClass.get()
+        )
+    }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
