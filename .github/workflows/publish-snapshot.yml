@@ -17,13 +17,9 @@ jobs:
         run: chmod +x gradlew
       - name: Build
         run: ./gradlew build
-      - name: Publish runtime snapshot
+      - name: Publish snapshot to Maven Central
         env:
           NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: ./gradlew :runtime:publish
-      - name: Publish compiler snapshot
-        env:
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: ./gradlew :compiler:publish
+        run: ./gradlew publishToMavenCentral -PmavenCentralUsername=$NEXUS_USERNAME -PmavenCentralPassword=$NEXUS_PASSWORD
+

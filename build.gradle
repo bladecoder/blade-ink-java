@@ -1,6 +1,14 @@
 plugins {
     id "com.diffplug.spotless" version "7.2.1" apply false
+    id("com.vanniktech.maven.publish") version "0.35.0"
 }
+
+if (!hasProperty("release") && !version.endsWith("-SNAPSHOT")) {
+    version += "-SNAPSHOT"
+}
+
+// Display version
+println "Building version: $version"
 
 // Configuración común para todos los subproyectos
 subprojects {
@@ -8,6 +16,7 @@ subprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
     apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'com.vanniktech.maven.publish'
 
     group = 'com.bladecoder.ink'
 
@@ -24,10 +33,6 @@ subprojects {
 
     dependencies {
         testImplementation 'junit:junit:4.13'
-    }
-
-    if (!hasProperty("release") && !version.endsWith("-SNAPSHOT")) {
-        version += "-SNAPSHOT"
     }
 
     // DISABLES JAVADOC ULTRACHECKS IN JDK8
@@ -96,13 +101,6 @@ subprojects {
                     password project.hasProperty('NEXUS_PASSWORD') ? NEXUS_PASSWORD : "$System.env.NEXUS_PASSWORD"
                 }
             }
-        }
-    }
-
-    signing {
-        if (!version.endsWith('SNAPSHOT')) {
-            useGpgCmd()
-            sign publishing.publications.mavenJava
         }
     }
 }

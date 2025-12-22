@@ -18,30 +18,14 @@ jobs:
         run: ./gradlew build
       - name: Build inklecate jar
         run: ./gradlew :inklecate:jar -Prelease
-      - name: Import GPG key
-        id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v5
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-      - name: Publish runtime to Maven Central
+      - name: Publish to Maven Central
         env:
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.NEXUS_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.NEXUS_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          ./gradlew :runtime:clean :runtime:publish -Prelease \
-            -Psigning.gnupg.keyId=${{ secrets.GPG_KEYID }} \
-            -Psigning.gnupg.passphrase=${{ secrets.GPG_PASSPHRASE }} \
-            -Psigning.gnupg.keyName=${{ secrets.GPG_KEYID }}
-      - name: Publish compiler to Maven Central
-        env:
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: |
-          ./gradlew :compiler:clean :compiler:publish -Prelease \
-            -Psigning.gnupg.keyId=${{ secrets.GPG_KEYID }} \
-            -Psigning.gnupg.passphrase=${{ secrets.GPG_PASSPHRASE }} \
-            -Psigning.gnupg.keyName=${{ secrets.GPG_KEYID }}
+          ./gradlew clean publishToMavenCentral -Prelease
       - name: Upload inklecate jar to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
