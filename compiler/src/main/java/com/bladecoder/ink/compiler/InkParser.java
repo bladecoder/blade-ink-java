@@ -481,7 +481,7 @@ public class InkParser extends StringParser {
 
         while (true) {
             String str = parse(this::contentTextNoEscape);
-            boolean gotEscapeChar = parseString("\\\\") != null;
+            boolean gotEscapeChar = parseString("\\") != null;
 
             if (gotEscapeChar || str != null) {
                 if (sb == null) {

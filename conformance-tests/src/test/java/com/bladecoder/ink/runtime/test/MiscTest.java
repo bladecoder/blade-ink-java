@@ -30,4 +30,14 @@ public class MiscTest {
             }
         }
     }
+
+    @Test
+    public void escapeHashCompiles() throws Exception {
+        Compiler compiler = new Compiler();
+
+        String json = compiler.compile(TestUtils.readFileAsString("inkfiles/misc/escape-hash.ink"));
+        Story story = new Story(json);
+
+        Assert.assertEquals("Bug with escape character #\n", story.Continue());
+    }
 }
