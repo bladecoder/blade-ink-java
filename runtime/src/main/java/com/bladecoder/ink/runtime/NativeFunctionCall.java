@@ -164,7 +164,7 @@ public class NativeFunctionCall extends RTObject {
             addIntBinaryOp(Equal, new BinaryOp() {
                 @Override
                 public Object invoke(Object left, Object right) {
-                    return (Integer) left == (Integer) right;
+                    return ((Integer) left).intValue() == ((Integer) right).intValue();
                 }
             });
 
@@ -196,7 +196,7 @@ public class NativeFunctionCall extends RTObject {
             addIntBinaryOp(NotEquals, new BinaryOp() {
                 @Override
                 public Object invoke(Object left, Object right) {
-                    return (Integer) left != (Integer) right;
+                    return ((Integer) left).intValue() != ((Integer) right).intValue();
                 }
             });
 
@@ -315,7 +315,7 @@ public class NativeFunctionCall extends RTObject {
             addFloatBinaryOp(Equal, new BinaryOp() {
                 @Override
                 public Object invoke(Object left, Object right) {
-                    return (Float) left == (Float) right;
+                    return ((Float) left).floatValue() == ((Float) right).floatValue();
                 }
             });
 
@@ -347,7 +347,7 @@ public class NativeFunctionCall extends RTObject {
             addFloatBinaryOp(NotEquals, new BinaryOp() {
                 @Override
                 public Object invoke(Object left, Object right) {
-                    return (Float) left != (Float) right;
+                    return ((Float) left).floatValue() != ((Float) right).floatValue();
                 }
             });
 
